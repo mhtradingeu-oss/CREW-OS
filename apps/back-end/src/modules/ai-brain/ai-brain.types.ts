@@ -15,6 +15,7 @@ export type {
 
 import type {
   AiBaseInput,
+  AiExecutionContext,
   SalesKpiSummary,
   CampaignIdeasInput,
   CampaignIdeasOutput,
@@ -52,7 +53,7 @@ export interface StandPerformanceBrief {
   };
 }
 
-export interface StandStockSuggestionInput extends AiBaseInput {
+export interface StandStockSuggestionInput extends AiExecutionContext {
   standId: string;
   inventorySnapshot: StandInventoryContext[];
   performance: StandPerformanceBrief;
@@ -98,7 +99,7 @@ export interface SalesVisitAiContext {
   date?: string;
 }
 
-export interface SalesRepPlanInput extends AiBaseInput {
+export interface SalesRepPlanInput extends AiExecutionContext {
   repId: string;
   scope?: string;
   notes?: string;
@@ -138,7 +139,7 @@ export interface BrandHealthOutput {
   nextSteps?: string[];
 }
 
-export interface KpiNarrativeInput extends AiBaseInput {
+export interface KpiNarrativeInput extends AiExecutionContext {
   metrics?: Record<string, unknown>;
 }
 
