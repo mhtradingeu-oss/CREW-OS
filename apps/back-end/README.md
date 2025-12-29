@@ -1,3 +1,24 @@
+## CI & Branch Protection
+
+- CI runs on GitHub Actions: see `.github/workflows/ci.yml`.
+- **Required status checks for branch protection:**
+	- Lint (Backend)
+	- Typecheck (Backend)
+	- Test (Unit)
+	- Test (Integration)
+- Enable branch protection in GitHub UI:
+	- Require PRs before merging
+	- Require status checks to pass before merging
+	- Block force-pushes
+	- Restrict who can push to main
+
+## Local test commands (mirror CI)
+
+- Typecheck backend: `npm run typecheck --workspace=mh-os-superapp-backend`
+- Unit tests (no DB): `npm run test:unit --workspace=mh-os-superapp-backend`
+- Integration tests (needs Postgres): `npm run test:integration --workspace=mh-os-superapp-backend`
+
+See also: [docs/migrations-policy.md](../../docs/migrations-policy.md)
 # MH-OS Superapp Backend
 
 ## Local development

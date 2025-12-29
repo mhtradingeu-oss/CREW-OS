@@ -117,8 +117,12 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate --schema=apps/back-end/prisma/schema.prisma
 
-      - name: Deploy Prisma Migrations (TEST DB)
-        run: npx prisma migrate deploy --schema=apps/back-end/prisma/schema.prisma
+      - name: Reset and Apply Prisma Migrations (TEST DB)
+        run: npx prisma migrate reset --force --skip-seed --schema=apps/back-end/prisma/schema.prisma --skip-generate
+
+      - name: Migration Guard (warn on duplicate tables)
+        run: |
+          node apps/back-end/scripts/migration-guard.js || true
 
       - name: Run integration tests
         run: npm run test:integration --workspace=mh-os-superapp-backend
