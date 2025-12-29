@@ -1,5 +1,5 @@
-const request = require('supertest');
-const { createApp } = require('../app');
+import request from 'supertest';
+import { createApp } from '../app';
 
 describe('API Rate Limiting (CJS)', () => {
   const app = createApp();
