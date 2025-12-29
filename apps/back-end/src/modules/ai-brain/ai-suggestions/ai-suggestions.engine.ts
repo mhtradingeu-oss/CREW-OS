@@ -30,6 +30,7 @@ function roundConfidence(value: number) {
 
 export function buildSuggestionsFromSnapshot(snapshot: AIReadOnlySnapshot) {
   const { events, metrics, health, config, window, snapshotHash } = snapshot;
+  const featureFlags = config.featureFlags as ReadonlyArray<{ aiInsights?: boolean }>;
   const errorCount = (events.severityCounts.error ?? 0) + (events.severityCounts.critical ?? 0);
   const topModule = events.moduleBreakdown[0]?.module ?? "general";
   const automation = metrics.automationRuns;
@@ -103,17 +104,19 @@ export function buildSuggestionsFromSnapshot(snapshot: AIReadOnlySnapshot) {
     auditMetadata: buildAuditMetadata(snapshotHash, optimizationRationale, optimizationEvidence, optimizationAction),
   });
 
-  const statusSeverityMap: Record<AIReadOnlySnapshot["health"]["database"]["status"], "low" | "high"> = {
+  const statusSeverityMap = {
     ok: "low",
     unreachable: "high",
-  };
+  } as const;
   const riskFlags: AISuggestionRiskFlag[] = [];
-  if (health.database.status !== "ok") {
+  const dbStatus = health.database.status;
+  const severity = statusSeverityMap[dbStatus as keyof typeof statusSeverityMap] ?? "medium";
+  if (dbStatus !== "ok") {
     riskFlags.push({
       id: `db-${snapshotHash.slice(0, 6)}`,
-      description: `Database status is ${health.database.status}.`,
-      severity: statusSeverityMap[health.database.status],
-      evidence: [`Uptime: ${health.uptimeSeconds} seconds`, `Status checked at: ${health.readiness.checkedAt}`],
+      description: `Database status is ${dbStatus}.`,
+      severity,
+      evidence: [`Uptime: ${health.uptimeSeconds} seconds`, `Status checked at: ${health.readiness?.checkedAt}`],
     });
   }
   if (errorCount > 3) {
@@ -141,7 +144,7 @@ export function buildSuggestionsFromSnapshot(snapshot: AIReadOnlySnapshot) {
       detail: `Gather more activity log entries so the advisory context grows richer in future windows.`,
     });
   }
-  if (config.featureFlags.some((flag) => flag.aiInsights)) {
+  if (featureFlags.some((flag: { aiInsights?: boolean }) => flag.aiInsights)) {
     improvementIdeas.push({
       id: `flags-${snapshotHash.slice(0, 6)}`,
       focus: "Feature coverage",

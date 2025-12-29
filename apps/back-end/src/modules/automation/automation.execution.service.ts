@@ -5,21 +5,34 @@ import { resolveAutomationExecutionAction } from "../../core/automation/executio
 import { AutomationExecutionRepository } from "../../core/db/repositories/automation-execution.repository.js";
 import { logger } from "../../core/logger.js";
 import type { KillSwitchContext } from "../../core/automation/governance/kill-switch.service.js";
-import cuid from "@paralleldrive/cuid2";
+import { createId } from "@paralleldrive/cuid2";
 import type {
   ExecuteAutomationActionRequest,
   ExecuteAutomationActionResponse,
 } from "./automation.execution.types.js";
 import { ApiError } from "../../core/http/errors.js";
 import type { Prisma } from "@prisma/client";
+import type { AutomationKillSwitchService } from "../../core/automation/governance/kill-switch.service.js";
 import { automationKillSwitchService } from "../../core/automation/governance/kill-switch.service.js";
 import { automationIncidentService } from "../../core/automation/governance/incident.service.js";
 
 export class AutomationExecutionService {
-  private readonly guard = new AutomationExecutionGuard();
-  private readonly repository = AutomationExecutionRepository;
-  private readonly killSwitchService = automationKillSwitchService;
-  private readonly incidentService = automationIncidentService;
+  private readonly guard: AutomationExecutionGuard;
+  private readonly repository: typeof AutomationExecutionRepository;
+  private readonly killSwitchService: AutomationKillSwitchService;
+  private readonly incidentService: typeof automationIncidentService;
+
+  constructor(
+    guard?: AutomationExecutionGuard,
+    repository = AutomationExecutionRepository,
+    killSwitchService = automationKillSwitchService,
+    incidentService = automationIncidentService,
+  ) {
+    this.repository = repository;
+    this.killSwitchService = killSwitchService;
+    this.incidentService = incidentService;
+    this.guard = guard ?? new AutomationExecutionGuard(repository, killSwitchService);
+  }
 
   async execute(
     input: ExecuteAutomationActionRequest,
@@ -41,7 +54,7 @@ export class AutomationExecutionService {
 
     const action = input.action;
     const actionDefinition = resolveAutomationExecutionAction(action.type);
-    const executionId = cuid.createId();
+    const executionId = createId();
     const context: AutomationExecutionActionContext = {
       executionId,
       correlationId,
@@ -49,7 +62,9 @@ export class AutomationExecutionService {
       suggestionId: input.suggestionId,
       snapshotHash: input.snapshotHash,
       environment: approval.environment,
-      executedById: userId,
+      executedBy: {
+        connect: { id: userId }
+      },
     };
 
     const logContext = {
@@ -75,16 +90,20 @@ export class AutomationExecutionService {
       const durationSeconds = Math.max(0, Date.now() - startedAt) / 1000;
       await this.repository.logExecution({
         id: executionId,
-        approvalDecisionId: approval.id,
+        approvalDecision: {
+          connect: { id: approval.id },
+        },
         suggestionId: input.suggestionId,
         snapshotHash: input.snapshotHash,
         environment: approval.environment,
-        executedById: userId,
+        executedBy: {
+          connect: { id: userId },
+        },
         executedAt: new Date(),
         result: "SUCCESS",
         actionType: action.type,
-        actionPayloadJson: (action.payload ?? null) as Prisma.InputJsonValue | null,
-        metadataJson: (actionResult.data ?? null) as Prisma.InputJsonValue | null,
+        actionPayloadJson: (action.payload ?? undefined) as Prisma.InputJsonValue | undefined,
+        metadataJson: (actionResult.data ?? undefined) as Prisma.InputJsonValue | undefined,
       });
       automationExecutionTotal.inc({ result: "success" });
       automationExecutionLatency.observe({ result: "success" }, durationSeconds);
@@ -105,20 +124,24 @@ export class AutomationExecutionService {
       const errorCode = error instanceof ApiError && error.code ? error.code : "AUTOMATION_EXECUTION_FAILED";
       await this.repository.logExecution({
         id: executionId,
-        approvalDecisionId: approval.id,
+        approvalDecision: {
+          connect: { id: approval.id },
+        },
         suggestionId: input.suggestionId,
         snapshotHash: input.snapshotHash,
         environment: approval.environment,
-        executedById: userId,
+        executedBy: {
+          connect: { id: userId },
+        },
         executedAt: new Date(),
         result: "FAILED",
         errorCode,
         errorMessage: error instanceof Error ? error.message : String(error),
         actionType: action.type,
-        actionPayloadJson: (action.payload ?? null) as Prisma.InputJsonValue | null,
+        actionPayloadJson: (action.payload ?? undefined) as Prisma.InputJsonValue | undefined,
         metadataJson: error instanceof ApiError && error.details
           ? (error.details as Prisma.InputJsonValue)
-          : null,
+          : undefined,
       });
       logger.error("execution.failed", {
         ...logContext,

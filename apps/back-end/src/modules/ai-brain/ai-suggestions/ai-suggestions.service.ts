@@ -10,6 +10,7 @@ import {
   AI_SUGGESTIONS_DECLARATION,
 } from "./ai-suggestions.constants.js";
 import type { AISuggestionsReadout } from "./ai-suggestions.types.js";
+import type { AIReadOnlySnapshot } from "../ai-read-only/ai-read-only.types.js";
 
 const cache = new SimpleCache<AISuggestionsReadout>(env.AI_SUGGESTIONS_CACHE_TTL_MS);
 
@@ -41,11 +42,11 @@ export const aiSuggestionsService = {
     const start = Date.now();
 
     try {
-      const snapshot = await withTimeout(
-        buildAIReadOnlySnapshot(params),
+      const snapshot = (await withTimeout(
+        buildAIReadOnlySnapshot(),
         env.AI_SUGGESTIONS_TIMEOUT_MS,
         "snapshot",
-      );
+      )) as AIReadOnlySnapshot;
       const suggestionsPayload = buildSuggestionsFromSnapshot(snapshot);
       const inputPayload = JSON.stringify(snapshot);
       const inputSizeBytes = Buffer.byteLength(inputPayload);

@@ -1,8 +1,9 @@
-import type { AutomationApprovalDecision } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { conflict, forbidden } from "../../http/errors.js";
 import { logger } from "../../logger.js";
 import { AutomationExecutionRepository } from "../../db/repositories/automation-execution.repository.js";
+import type { ApprovalDecisionWithSuggestion } from "../types/approval-decision.types.js";
+import type { AutomationKillSwitchService } from "../governance/kill-switch.service.js";
 
 type GuardInput = {
   approvalDecisionId: string;
@@ -34,10 +35,14 @@ type ApprovalRepository = Pick<typeof AutomationExecutionRepository, "getApprova
 export class AutomationExecutionGuard {
   constructor(
     private readonly repository: ApprovalRepository = AutomationExecutionRepository,
-    private readonly killSwitch = automationKillSwitchService,
-  ) {}
+    private readonly killSwitch: AutomationKillSwitchService,
+  ) {
+    if (!killSwitch) {
+      throw new Error("AutomationExecutionGuard requires an AutomationKillSwitchService");
+    }
+  }
 
-  async ensureApprovalExecutable(input: GuardInput): Promise<AutomationApprovalDecision> {
+  async ensureApprovalExecutable(input: GuardInput): Promise<ApprovalDecisionWithSuggestion> {
     const context = buildContext(input);
     if (!env.AUTOMATION_EXECUTION_ENABLED) {
       logRejected("Feature flag disabled", context, "feature_flag_disabled");
@@ -61,7 +66,7 @@ export class AutomationExecutionGuard {
     return approval;
   }
 
-  private enforceStatus(approval: AutomationApprovalDecision, context: ReturnType<typeof buildContext>) {
+  private enforceStatus(approval: ApprovalDecisionWithSuggestion, context: ReturnType<typeof buildContext>) {
     if (approval.status !== "APPROVED") {
       logRejected(`Approval status '${approval.status}' is not APPROVED`, context, "status_invalid");
       throw conflict("Approval decision is not approved", { status: approval.status }, "APPROVAL_STATUS_INVALID");
@@ -73,7 +78,7 @@ export class AutomationExecutionGuard {
   }
 
   private enforceSuggestionMatching(
-    approval: AutomationApprovalDecision,
+    approval: ApprovalDecisionWithSuggestion,
     input: GuardInput,
     context: ReturnType<typeof buildContext>,
   ) {
@@ -84,7 +89,7 @@ export class AutomationExecutionGuard {
   }
 
   private enforceSnapshotMatching(
-    approval: AutomationApprovalDecision,
+    approval: ApprovalDecisionWithSuggestion,
     input: GuardInput,
     context: ReturnType<typeof buildContext>,
   ) {
@@ -94,7 +99,7 @@ export class AutomationExecutionGuard {
     }
   }
 
-  private enforceEnvironment(approval: AutomationApprovalDecision, context: ReturnType<typeof buildContext>) {
+  private enforceEnvironment(approval: ApprovalDecisionWithSuggestion, context: ReturnType<typeof buildContext>) {
     if (!approval.environment) {
       logRejected("Approval missing environment metadata", context, "environment_missing");
       throw conflict("Approval decision does not declare an execution environment", null, "ENVIRONMENT_MISSING");
@@ -105,7 +110,7 @@ export class AutomationExecutionGuard {
     }
   }
 
-  private enforceFreshness(approval: AutomationApprovalDecision, context: ReturnType<typeof buildContext>) {
+  private enforceFreshness(approval: ApprovalDecisionWithSuggestion, context: ReturnType<typeof buildContext>) {
     const now = new Date();
     if (approval.expiresAt && approval.expiresAt <= now) {
       logRejected("Approval expired", context, "expired");

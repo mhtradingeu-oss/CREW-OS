@@ -5,12 +5,27 @@
  */
 
 import { LearningService } from '../../ai/learning/learning.service.js';
-import type { LearningSignal, PerformanceSnapshot } from '../../ai/learning/learning.types.js';
+import { LearningSignal, PerformanceSnapshot } from '../../ai/learning/learning.types.js';
 import { getAuditLog, clearAuditLog } from '../../ai/learning/learning.audit.js';
 
 describe('Learning Loop Phase 9', () => {
+
+  // Deterministic clock for timestamp-based tests
+    var DeterministicClock: any;
+    var clock: any;
+
+    beforeAll(() => {
+      DeterministicClock = require('../../ai/learning/testing/DeterministicClock').DeterministicClock;
+    });
+
   beforeEach(() => {
     clearAuditLog();
+    clock = new DeterministicClock(1700000000000); // fixed epoch
+    clock.mockDateNow();
+  });
+
+  afterEach(() => {
+    clock.restore();
   });
 
   it('does not modify upstream objects', () => {

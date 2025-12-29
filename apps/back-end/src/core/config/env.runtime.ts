@@ -29,6 +29,9 @@ export const envSchema = z.object({
   AUTOMATION_EXECUTION_ENABLED: z.coerce.boolean().default(false),
   AUTOMATION_GLOBAL_DISABLED: z.coerce.boolean().default(false),
   AUTOMATION_ROLLBACK_WINDOW_MINUTES: z.coerce.number().int().positive().default(60),
+  AI_SUGGESTIONS_ENABLED: z.coerce.boolean().default(false),
+  AI_SUGGESTIONS_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+  AI_SUGGESTIONS_CACHE_TTL_MS: z.coerce.number().int().positive().default(60_000),
 });
 
 export type RuntimeEnv = z.infer<typeof envSchema>;

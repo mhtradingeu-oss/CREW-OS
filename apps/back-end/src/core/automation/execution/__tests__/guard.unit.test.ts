@@ -1,8 +1,13 @@
-import type { AutomationApprovalDecision } from "@prisma/client";
+import type { ApprovalDecisionWithSuggestion } from "../../types/approval-decision.types.js";
 import { AutomationExecutionGuard } from "../guard.js";
 import { env } from "../../../config/env.js";
+import { AutomationKillSwitchService } from "../../governance/kill-switch.service.js";
 
-const BASE_APPROVAL: Partial<AutomationApprovalDecision> = {
+/* ------------------------------------------------------------------ */
+/* Approval factory                                                    */
+/* ------------------------------------------------------------------ */
+
+const BASE_APPROVAL: ApprovalDecisionWithSuggestion = {
   id: "approval-1",
   suggestionId: "suggestion-1",
   status: "APPROVED",
@@ -10,29 +15,52 @@ const BASE_APPROVAL: Partial<AutomationApprovalDecision> = {
   environment: env.NODE_ENV,
   approvedById: "user-1",
   approvedAt: new Date("2024-01-01T00:00:00Z"),
-  expiresAt: new Date(Date.now() + 60 * 1000),
+  expiresAt: new Date(Date.now() + 60_000),
   revokedAt: null,
   createdAt: new Date("2024-01-01T00:00:00Z"),
   updatedAt: new Date("2024-01-01T00:00:00Z"),
+  suggestion: { brandId: "brand-test" },
 };
 
-const buildApproval = (overrides?: Partial<AutomationApprovalDecision>) => {
-  return { ...BASE_APPROVAL, ...overrides } as AutomationApprovalDecision;
-};
-
-const buildKillSwitchMock = () => ({
-  ensureApprovalAllowed: jest.fn(async () => undefined),
+const buildApproval = (
+  overrides: Partial<ApprovalDecisionWithSuggestion> = {},
+): ApprovalDecisionWithSuggestion => ({
+  ...BASE_APPROVAL,
+  ...overrides,
 });
 
-const buildGuard = (
-  approval: AutomationApprovalDecision | null,
-  killSwitch = buildKillSwitchMock(),
-) => {
+/* ------------------------------------------------------------------ */
+/* Kill-switch factory (REAL instance, mocked behavior)                */
+/* ------------------------------------------------------------------ */
+
+const buildKillSwitch = (): AutomationKillSwitchService => {
+  const service = new AutomationKillSwitchService(
+    // minimal repository stub – never used by these tests
+    {} as any,
+  );
+
+  jest.spyOn(service, "ensureApprovalAllowed").mockResolvedValue(undefined);
+  jest.spyOn(service, "ensureExecutionAllowed").mockResolvedValue(undefined);
+  jest.spyOn(service, "assertGlobalEnabled").mockReturnValue(undefined);
+
+  return service;
+};
+
+/* ------------------------------------------------------------------ */
+/* Guard factory                                                       */
+/* ------------------------------------------------------------------ */
+
+const buildGuard = (approval: ApprovalDecisionWithSuggestion | null) => {
   const repository = {
     getApprovalDecisionById: jest.fn(async () => approval),
   };
-  return new AutomationExecutionGuard(repository, killSwitch);
+
+  return new AutomationExecutionGuard(repository as any, buildKillSwitch());
 };
+
+/* ------------------------------------------------------------------ */
+/* Test input                                                          */
+/* ------------------------------------------------------------------ */
 
 const guardInput = {
   approvalDecisionId: "approval-1",
@@ -40,6 +68,10 @@ const guardInput = {
   snapshotHash: "snapshot-123",
   correlationId: "cid-1",
 };
+
+/* ------------------------------------------------------------------ */
+/* Tests                                                               */
+/* ------------------------------------------------------------------ */
 
 describe("AutomationExecutionGuard", () => {
   const initialFlag = env.AUTOMATION_EXECUTION_ENABLED;
@@ -55,41 +87,67 @@ describe("AutomationExecutionGuard", () => {
   it("rejects when the feature flag is disabled", async () => {
     env.AUTOMATION_EXECUTION_ENABLED = false;
     const guard = buildGuard(buildApproval());
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 403 });
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 403 });
   });
 
   it("rejects when an approval decision is missing", async () => {
     const guard = buildGuard(null);
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("rejects when the approval status is not approved", async () => {
-    const guard = buildGuard(buildApproval({ status: "PENDING" as const }));
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+    const guard = buildGuard(buildApproval({ status: "PENDING" }));
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("rejects when the suggestion id mismatches", async () => {
     const guard = buildGuard(buildApproval({ suggestionId: "other" }));
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("rejects when the snapshot hash mismatches", async () => {
     const guard = buildGuard(buildApproval({ snapshotHash: "other-hash" }));
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("rejects when the approval is revoked", async () => {
     const guard = buildGuard(buildApproval({ revokedAt: new Date() }));
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("rejects when the approval is expired", async () => {
-    const guard = buildGuard(buildApproval({ expiresAt: new Date(Date.now() - 1000) }));
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+    const guard = buildGuard(
+      buildApproval({ expiresAt: new Date(Date.now() - 1_000) }),
+    );
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("rejects when the environment mismatches the runtime", async () => {
     const guard = buildGuard(buildApproval({ environment: "production" }));
-    await expect(guard.ensureApprovalExecutable(guardInput)).rejects.toMatchObject({ status: 409 });
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 409 });
   });
 });

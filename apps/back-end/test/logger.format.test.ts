@@ -5,16 +5,16 @@ describe("logger structured output", () => {
     process.env.LOG_LEVEL = "debug";
   });
   let output: string[] = [];
-  const origLog = console.log;
-  const origError = console.error;
+  let spyInfo: jest.SpyInstance;
+  let spyError: jest.SpyInstance;
 
   beforeAll(() => {
-    console.log = (msg: string) => output.push(msg);
-    console.error = (msg: string) => output.push(msg);
+    spyInfo = jest.spyOn(console, "info").mockImplementation((msg: string) => output.push(msg));
+    spyError = jest.spyOn(console, "error").mockImplementation((msg: string) => output.push(msg));
   });
   afterAll(() => {
-    console.log = origLog;
-    console.error = origError;
+    spyInfo.mockRestore();
+    spyError.mockRestore();
   });
   beforeEach(() => {
     output = [];

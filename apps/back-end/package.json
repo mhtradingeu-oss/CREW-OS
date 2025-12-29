@@ -25,8 +25,8 @@
     "seed:all": "npm run seed:core && npm run seed:tenants",
     "smoke:phase5": "node --loader ts-node/esm --experimental-specifier-resolution=node ./scripts/phase5-automation-smoke.ts",
     "test:prepare": "NODE_ENV=test MHOS_BACKEND_ENV_PATH=.env.test npm run db:migrate",
-    "test": "NODE_ENV=test jest -c jest.config.mjs --runInBand --passWithNoTests",
-    "test:unit": "NODE_ENV=test DATABASE_URL= DATABASE_URL_TEST= jest -c jest.config.mjs --runInBand --passWithNoTests --testMatch '**/tests/unit/**/*.unit.test.ts'",
+    "test:unit": "NODE_ENV=test jest --runInBand",
+    "test": "npm run test:unit",
     "test:integration": "npm run test:prepare && NODE_ENV=test MHOS_BACKEND_ENV_PATH=.env.test jest --config jest.config.mjs --testMatch '**/tests/integration/**/*.int.test.ts'",
     "test:contract": "npm run test:prepare && NODE_ENV=test MHOS_BACKEND_ENV_PATH=.env.test jest --config jest.config.mjs --testMatch '**/tests/contract/**/*.contract.test.ts' --runInBand --passWithNoTests",
     "event:audit": "ts-node scripts/event-audit-report.ts",
@@ -69,9 +69,5 @@
   },
   "prisma": {
     "seed": "node --loader ts-node/esm --experimental-specifier-resolution=node ./prisma/seed.ts"
-  },
-  "jest": {
-    "preset": "ts-jest/presets/default-esm",
-    "testEnvironment": "node"
   }
 }

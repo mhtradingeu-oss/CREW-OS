@@ -5,7 +5,9 @@ export type AutomationExecutionActionContext = Readonly<{
   suggestionId: string;
   snapshotHash: string;
   environment: string;
-  executedById: string;
+  executedBy: {
+    connect: { id: string }
+  };
 }>;
 
 export type AutomationExecutionActionResult = Readonly<{
