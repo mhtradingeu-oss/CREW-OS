@@ -1,0 +1,84 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - /workspaces/Crewos/.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    env_file:
+      - /workspaces/Crewos/.env
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/back-end/Dockerfile
+    command: >
+      sh -c "npm run migrate:deploy && node apps/back-end/dist/server.js"
+    image: mh-os-superapp-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      BACKEND_PORT: ${BACKEND_PORT:-4000}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const http=require('node:http');const port=process.env.PORT||4000;const req=http.request({hostname:'127.0.0.1',port,path:'/health'},(res)=>{process.exit(res.statusCode===200?0:1);});req.on('error',()=>process.exit(1));req.end();\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+     - "${BACKEND_PORT:-41000}:4000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/front-end/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: mh-os-superapp-frontend
+    restart: unless-stopped
+    env_file:
+      - /workspaces/Crewos/.env
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+volumes:
+  db_data:

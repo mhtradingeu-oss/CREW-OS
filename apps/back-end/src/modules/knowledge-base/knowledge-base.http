@@ -1,0 +1,52 @@
+@apiUrl = http://localhost:4000
+@authToken =
+@brandId = demo-brand
+@categoryId = demo-category
+@knowledgeDocumentId =
+
+### List knowledge documents
+GET {{apiUrl}}/api/v1/knowledge-base?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{authToken}}
+
+### Create knowledge document
+POST {{apiUrl}}/api/v1/knowledge-base
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "title": "How to use AI summaries",
+  "content": "Explain the new knowledge base AI summarization workflow.",
+  "categoryId": "{{categoryId}}",
+  "sourceType": "manual",
+  "language": "en",
+  "tags": ["ai", "knowledge-base"]
+}
+
+### Get knowledge document
+GET {{apiUrl}}/api/v1/knowledge-base/{{knowledgeDocumentId}}?brandId={{brandId}}
+Authorization: Bearer {{authToken}}
+
+### Update knowledge document
+PUT {{apiUrl}}/api/v1/knowledge-base/{{knowledgeDocumentId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "title": "How to maintain AI summaries",
+  "tags": ["ai", "maintenance"]
+}
+
+### Delete knowledge document
+DELETE {{apiUrl}}/api/v1/knowledge-base/{{knowledgeDocumentId}}?brandId={{brandId}}
+Authorization: Bearer {{authToken}}
+
+### Generate AI summary
+POST {{apiUrl}}/api/v1/knowledge-base/{{knowledgeDocumentId}}/ai/summary
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}"
+}

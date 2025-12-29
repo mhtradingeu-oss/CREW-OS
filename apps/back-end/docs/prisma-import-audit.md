@@ -1,0 +1,229 @@
+# Prisma Import Audit – Phase 4 (Pre-Enforcement)
+
+## Summary
+- Date: 2025-12-21
+- Scope: apps/back-end
+- Prisma Client Version: 5.x
+- Status: AUDIT ONLY – NO ENFORCEMENT
+
+## Direct Prisma Imports
+- apps/back-end/src/core/ai/ai-monitoring.ts
+- apps/back-end/src/core/automation/engine/rule-matcher.ts
+- apps/back-end/src/core/automation/engine/run-repository.ts
+- apps/back-end/src/core/automation/executor/executor.ts
+- apps/back-end/src/core/prisma.ts
+- apps/back-end/src/core/security/rbac.ts
+- apps/back-end/src/modules/activity-log/activity-log.service.ts
+- apps/back-end/src/modules/admin/admin.service.ts
+- apps/back-end/src/modules/affiliate/affiliate.service.ts
+- apps/back-end/src/modules/ai-brain/ai-brain.service.ts
+- apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts
+- apps/back-end/src/modules/auth/auth.service.ts
+- apps/back-end/src/modules/brand/brand.service.ts
+- apps/back-end/src/modules/brand/hairoticmen.seed.ts
+- apps/back-end/src/modules/communication/communication.service.ts
+- apps/back-end/src/modules/crm/crm.service.ts
+- apps/back-end/src/modules/dealers/dealers.service.ts
+- apps/back-end/src/modules/finance/finance.ai.ts
+- apps/back-end/src/modules/finance/finance.service.ts
+- apps/back-end/src/modules/influencer-os/influencer-os.service.ts
+- apps/back-end/src/modules/inventory/inventory.service.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts
+- apps/back-end/src/modules/loyalty/loyalty.service.ts
+- apps/back-end/src/modules/marketing/marketing.service.ts
+- apps/back-end/src/modules/notification/notification.service.ts
+- apps/back-end/src/modules/onboarding/onboarding.service.ts
+- apps/back-end/src/modules/operations/operations.service.ts
+- apps/back-end/src/modules/partners/partners.service.ts
+- apps/back-end/src/modules/platform-ops/platform-ops.service.ts
+- apps/back-end/src/modules/pricing/pricing.service.ts
+- apps/back-end/src/modules/product/product.service.ts
+- apps/back-end/src/modules/sales-reps/sales-reps.service.ts
+- apps/back-end/src/modules/security-governance/security-governance.service.ts
+- apps/back-end/src/modules/social-intelligence/social-intelligence.service.ts
+- apps/back-end/src/modules/stand-pos/stand-pos.service.ts
+- apps/back-end/src/modules/stand/stand.service.ts
+- apps/back-end/src/modules/support/support.service.ts
+- apps/back-end/src/modules/users/users.service.ts
+- apps/back-end/src/modules/white-label/white-label.service.ts
+- apps/back-end/src/seeds/admin.seed.ts
+- apps/back-end/src/seeds/plans.seed.ts
+- apps/back-end/src/seeds/tenants.seed.ts
+
+## Indirect Prisma Usage
+- apps/back-end/prisma/seed.ts
+- apps/back-end/scripts/phase5-automation-smoke.ts
+- apps/back-end/src/ai/indexing/indexers.ts
+- apps/back-end/src/bootstrap/db.ts
+- apps/back-end/src/bootstrap/prisma-runtime.ts
+- apps/back-end/src/core/ai/ai-monitoring.ts
+- apps/back-end/src/core/ai/ai-safety.ts
+- apps/back-end/src/core/ai/autonomy/autonomy.detectors.ts
+- apps/back-end/src/core/ai/autonomy/autonomy.executor.ts
+- apps/back-end/src/core/ai/engines/einvoice.engine.ts
+- apps/back-end/src/core/ai/engines/pricing.engine.ts
+- apps/back-end/src/core/ai/engines/support-router.engine.ts
+- apps/back-end/src/core/ai/engines/support.engine.ts
+- apps/back-end/src/core/ai/engines/voice.engine.ts
+- apps/back-end/src/core/ai/orchestrator.ts
+- apps/back-end/src/core/ai/pipeline/pipeline-runner.ts
+- apps/back-end/src/core/automation/engine/rule-matcher.ts
+- apps/back-end/src/core/automation/engine/run-repository.ts
+- apps/back-end/src/core/plans-resolver.ts
+- apps/back-end/src/core/security/rbac.ts
+- apps/back-end/src/infrastructure/db/prisma-db-gateway.ts
+- apps/back-end/src/modules/activity-log/activity-log.service.ts
+- apps/back-end/src/modules/admin/admin.service.ts
+- apps/back-end/src/modules/affiliate/affiliate.service.ts
+- apps/back-end/src/modules/ai-brain/ai-agents-config.service.ts
+- apps/back-end/src/modules/ai-brain/ai-agents.service.ts
+- apps/back-end/src/modules/ai-brain/ai-brain.service.ts
+- apps/back-end/src/modules/ai-brain/ai-insights.service.ts
+- apps/back-end/src/modules/ai-brain/ai-kpi.service.ts
+- apps/back-end/src/modules/ai-brain/virtual-office.service.ts
+- apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts
+- apps/back-end/src/modules/ai-safety/ai-safety.service.ts
+- apps/back-end/src/modules/auth/auth.service.ts
+- apps/back-end/src/modules/automation/automation.explain.service.ts
+- apps/back-end/src/modules/automation/automation.observability.service.ts
+- apps/back-end/src/modules/automation/automation.service.ts
+- apps/back-end/src/modules/brand/brand.service.ts
+- apps/back-end/src/modules/brand/hairoticmen.seed.ts
+- apps/back-end/src/modules/communication/communication.service.ts
+- apps/back-end/src/modules/crm/crm.service.ts
+- apps/back-end/src/modules/dealers/dealers.controller.ts
+- apps/back-end/src/modules/dealers/dealers.service.ts
+- apps/back-end/src/modules/finance/einvoice.service.ts
+- apps/back-end/src/modules/finance/finance.ai.ts
+- apps/back-end/src/modules/finance/finance.service.ts
+- apps/back-end/src/modules/influencer-os/influencer-os.service.ts
+- apps/back-end/src/modules/inventory/inventory.service.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.controller.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts
+- apps/back-end/src/modules/loyalty/loyalty.controller.ts
+- apps/back-end/src/modules/loyalty/loyalty.service.ts
+- apps/back-end/src/modules/marketing/marketing.service.ts
+- apps/back-end/src/modules/media-studio/media-studio.controller.ts
+- apps/back-end/src/modules/notification/notification.service.ts
+- apps/back-end/src/modules/onboarding/onboarding.service.ts
+- apps/back-end/src/modules/operations/operations.service.ts
+- apps/back-end/src/modules/partners/partners.controller.ts
+- apps/back-end/src/modules/partners/partners.service.ts
+- apps/back-end/src/modules/plan-history/plan-history.service.ts
+- apps/back-end/src/modules/platform-ops/platform-ops.service.ts
+- apps/back-end/src/modules/pricing/pricing.service.ts
+- apps/back-end/src/modules/product/product.service.ts
+- apps/back-end/src/modules/sales-reps/sales-reps.service.ts
+- apps/back-end/src/modules/security-governance/rbac.seed.ts
+- apps/back-end/src/modules/security-governance/security-governance.service.ts
+- apps/back-end/src/modules/social-intelligence/social-intelligence.service.ts
+- apps/back-end/src/modules/stand-pos/stand-pos.service.ts
+- apps/back-end/src/modules/stand/stand.controller.ts
+- apps/back-end/src/modules/stand/stand.service.ts
+- apps/back-end/src/modules/support/support.service.ts
+- apps/back-end/src/modules/users/users.service.ts
+- apps/back-end/src/modules/white-label/white-label.service.ts
+- apps/back-end/src/seeds/admin.seed.ts
+- apps/back-end/src/seeds/automation.seed.ts
+- apps/back-end/src/seeds/core.seed.ts
+- apps/back-end/src/seeds/plans.seed.ts
+- apps/back-end/src/seeds/pricing.seed.ts
+- apps/back-end/src/seeds/run-seed-cli.ts
+- apps/back-end/src/seeds/tenants.seed.ts
+- apps/back-end/src/seeds/users.seed.ts
+
+## Classified Usage
+### ✅ Repository Layer
+- apps/back-end/src/bootstrap/db.ts
+- apps/back-end/src/bootstrap/prisma-runtime.ts
+- apps/back-end/src/core/prisma.ts
+- apps/back-end/src/infrastructure/db/prisma-db-gateway.ts
+
+### ⚠ Service Layer (needs wrapping)
+- apps/back-end/prisma/seed.ts (seed script)
+- apps/back-end/scripts/phase5-automation-smoke.ts (support script)
+- apps/back-end/src/ai/indexing/indexers.ts
+- apps/back-end/src/core/plans-resolver.ts
+- apps/back-end/src/core/security/rbac.ts
+- apps/back-end/src/modules/activity-log/activity-log.service.ts
+- apps/back-end/src/modules/admin/admin.service.ts
+- apps/back-end/src/modules/affiliate/affiliate.service.ts
+- apps/back-end/src/modules/ai-brain/ai-agents-config.service.ts
+- apps/back-end/src/modules/ai-brain/ai-agents.service.ts
+- apps/back-end/src/modules/ai-brain/ai-brain.service.ts
+- apps/back-end/src/modules/ai-brain/ai-insights.service.ts
+- apps/back-end/src/modules/ai-brain/ai-kpi.service.ts
+- apps/back-end/src/modules/ai-brain/virtual-office.service.ts
+- apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts
+- apps/back-end/src/modules/ai-safety/ai-safety.service.ts
+- apps/back-end/src/modules/auth/auth.service.ts
+- apps/back-end/src/modules/automation/automation.explain.service.ts
+- apps/back-end/src/modules/automation/automation.observability.service.ts
+- apps/back-end/src/modules/automation/automation.service.ts
+- apps/back-end/src/modules/brand/brand.service.ts
+- apps/back-end/src/modules/brand/hairoticmen.seed.ts (module seed)
+- apps/back-end/src/modules/communication/communication.service.ts
+- apps/back-end/src/modules/crm/crm.service.ts
+- apps/back-end/src/modules/dealers/dealers.controller.ts
+- apps/back-end/src/modules/dealers/dealers.service.ts
+- apps/back-end/src/modules/finance/einvoice.service.ts
+- apps/back-end/src/modules/finance/finance.ai.ts
+- apps/back-end/src/modules/finance/finance.service.ts
+- apps/back-end/src/modules/influencer-os/influencer-os.service.ts
+- apps/back-end/src/modules/inventory/inventory.service.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.controller.ts
+- apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts
+- apps/back-end/src/modules/loyalty/loyalty.controller.ts
+- apps/back-end/src/modules/loyalty/loyalty.service.ts
+- apps/back-end/src/modules/marketing/marketing.service.ts
+- apps/back-end/src/modules/media-studio/media-studio.controller.ts
+- apps/back-end/src/modules/notification/notification.service.ts
+- apps/back-end/src/modules/onboarding/onboarding.service.ts
+- apps/back-end/src/modules/operations/operations.service.ts
+- apps/back-end/src/modules/partners/partners.controller.ts
+- apps/back-end/src/modules/partners/partners.service.ts
+- apps/back-end/src/modules/plan-history/plan-history.service.ts
+- apps/back-end/src/modules/platform-ops/platform-ops.service.ts
+- apps/back-end/src/modules/pricing/pricing.service.ts
+- apps/back-end/src/modules/product/product.service.ts
+- apps/back-end/src/modules/sales-reps/sales-reps.service.ts
+- apps/back-end/src/modules/security-governance/rbac.seed.ts (seed)
+- apps/back-end/src/modules/security-governance/security-governance.service.ts
+- apps/back-end/src/modules/social-intelligence/social-intelligence.service.ts
+- apps/back-end/src/modules/stand-pos/stand-pos.service.ts
+- apps/back-end/src/modules/stand/stand.controller.ts
+- apps/back-end/src/modules/stand/stand.service.ts
+- apps/back-end/src/modules/support/support.service.ts
+- apps/back-end/src/modules/users/users.service.ts
+- apps/back-end/src/modules/white-label/white-label.service.ts
+- apps/back-end/src/seeds/admin.seed.ts (seed script)
+- apps/back-end/src/seeds/automation.seed.ts (seed script)
+- apps/back-end/src/seeds/core.seed.ts (seed script)
+- apps/back-end/src/seeds/plans.seed.ts (seed script)
+- apps/back-end/src/seeds/pricing.seed.ts (seed script)
+- apps/back-end/src/seeds/run-seed-cli.ts (seed runner)
+- apps/back-end/src/seeds/tenants.seed.ts (seed script)
+- apps/back-end/src/seeds/users.seed.ts (seed script)
+
+### ❌ Forbidden (must be removed)
+- apps/back-end/src/core/ai/ai-monitoring.ts
+- apps/back-end/src/core/ai/ai-safety.ts
+- apps/back-end/src/core/ai/autonomy/autonomy.detectors.ts
+- apps/back-end/src/core/ai/autonomy/autonomy.executor.ts
+- apps/back-end/src/core/ai/engines/einvoice.engine.ts
+- apps/back-end/src/core/ai/engines/pricing.engine.ts
+- apps/back-end/src/core/ai/engines/support-router.engine.ts
+- apps/back-end/src/core/ai/engines/support.engine.ts
+- apps/back-end/src/core/ai/engines/voice.engine.ts
+- apps/back-end/src/core/ai/orchestrator.ts
+- apps/back-end/src/core/ai/pipeline/pipeline-runner.ts
+- apps/back-end/src/core/automation/engine/rule-matcher.ts
+- apps/back-end/src/core/automation/engine/run-repository.ts
+- apps/back-end/src/core/automation/executor/executor.ts
+
+## Notes
+- No runtime enforcement applied
+- No refactor performed

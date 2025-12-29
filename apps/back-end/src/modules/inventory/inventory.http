@@ -1,0 +1,39 @@
+@apiUrl = http://localhost:4000
+@authToken =
+@brandId = demo-brand
+@warehouseId = demo-warehouse
+@productId = demo-product
+@inventoryItemId =
+
+### List inventory
+GET {{apiUrl}}/api/v1/inventory?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{authToken}}
+
+### Create inventory item
+POST {{apiUrl}}/api/v1/inventory
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "warehouseId": "{{warehouseId}}",
+  "productId": "{{productId}}",
+  "quantity": 20
+}
+
+### Get inventory item
+GET {{apiUrl}}/api/v1/inventory/{{inventoryItemId}}
+Authorization: Bearer {{authToken}}
+
+### Create inventory adjustment
+POST {{apiUrl}}/api/v1/inventory/adjustments
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "inventoryItemId": "{{inventoryItemId}}",
+  "delta": -5,
+  "reason": "Cycle count correction",
+  "createdByUserId": "system"
+}

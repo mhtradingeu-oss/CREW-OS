@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["jest", "node"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/core/*": ["src/core/*"],
+      "@/*": ["src/*"]
+    }
+  },
+  "exclude": [
+    "src/tests/integration/**"
+  ]
+}

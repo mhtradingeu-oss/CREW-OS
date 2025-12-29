@@ -1,0 +1,96 @@
+@apiUrl = http://localhost:4000
+@bearerToken =
+@brandId = demo-brand
+@entityId = demo-entity
+
+### List insights
+GET {{apiUrl}}/api/v1/ai-brain/insights?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create insight with manual summary
+POST {{apiUrl}}/api/v1/ai-brain/insights
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "os": "pricing",
+  "entityType": "product",
+  "entityId": "{{entityId}}",
+  "summary": "Pricing edge case",
+  "details": "Manual summary/detail describing how price is misaligned."
+}
+
+### Create insight with AI-generated content
+POST {{apiUrl}}/api/v1/ai-brain/insights
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "os": "crm",
+  "entityType": "lead",
+  "entityId": "{{entityId}}"
+}
+
+### List reports
+GET {{apiUrl}}/api/v1/ai-brain/reports?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create report with specified content
+POST {{apiUrl}}/api/v1/ai-brain/reports
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "title": "Ops Snapshot",
+  "scope": "operations",
+  "periodStart": "2025-01-01T00:00:00.000Z",
+  "periodEnd": "2025-01-31T23:59:59.000Z",
+  "content": "Manual insights summary for January operations."
+}
+
+### Create AI-generated report
+POST {{apiUrl}}/api/v1/ai-brain/reports
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "title": "AI-generated Insight",
+  "scope": "pricing",
+  "periodStart": "2025-02-01T00:00:00.000Z",
+  "periodEnd": "2025-02-28T23:59:59.000Z"
+}
+
+### List learning logs
+GET {{apiUrl}}/api/v1/ai-brain/learning?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create learning log — pricing event
+POST {{apiUrl}}/api/v1/ai-brain/learning
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "productId": "pricing-product",
+  "source": "pricing-engine",
+  "eventType": "price-refresh",
+  "inputSnapshot": { "price": 120 },
+  "outputSnapshot": { "recommendation": "increase to 125" }
+}
+
+### Create learning log — campaign
+POST {{apiUrl}}/api/v1/ai-brain/learning
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "source": "campaign-bot",
+  "eventType": "campaign-launch",
+  "inputSnapshot": { "audience": "new" },
+  "outputSnapshot": { "engagement": 72 }
+}

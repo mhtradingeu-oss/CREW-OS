@@ -1,0 +1,73 @@
+@apiUrl = http://localhost:4000
+@authToken =
+@brandId = demo-brand
+@partnerId =
+@partnerUserId =
+
+### List partners
+GET {{apiUrl}}/api/v1/partners?brandId={{brandId}}&page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### Get partner
+GET {{apiUrl}}/api/v1/partners/{{partnerId}}?brandId={{brandId}}
+Authorization: Bearer {{authToken}}
+
+### Create partner
+POST {{apiUrl}}/api/v1/partners
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "type": "dealer",
+  "name": "North Star Dealer",
+  "country": "Germany",
+  "city": "Berlin",
+  "status": "ACTIVE"
+}
+
+### Update partner
+PUT {{apiUrl}}/api/v1/partners/{{partnerId}}?brandId={{brandId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "North Star Dealer Network",
+  "city": "Hamburg"
+}
+
+### Deactivate partner
+DELETE {{apiUrl}}/api/v1/partners/{{partnerId}}?brandId={{brandId}}
+Authorization: Bearer {{authToken}}
+
+### Partner stats
+GET {{apiUrl}}/api/v1/partners/{{partnerId}}/stats?brandId={{brandId}}
+Authorization: Bearer {{authToken}}
+
+### List partner users
+GET {{apiUrl}}/api/v1/partners/{{partnerId}}/users?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{authToken}}
+
+### Create partner user (new account)
+POST {{apiUrl}}/api/v1/partners/{{partnerId}}/users?brandId={{brandId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "partner.admin@brand.com",
+  "password": "Secret123!",
+  "role": "PARTNER_ADMIN"
+}
+
+### Update partner user role
+PATCH {{apiUrl}}/api/v1/partners/{{partnerId}}/users/{{partnerUserId}}?brandId={{brandId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "role": "PARTNER_USER"
+}
+
+### Deactivate partner user
+DELETE {{apiUrl}}/api/v1/partners/{{partnerId}}/users/{{partnerUserId}}?brandId={{brandId}}
+Authorization: Bearer {{authToken}}

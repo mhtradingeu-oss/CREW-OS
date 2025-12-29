@@ -1,0 +1,10 @@
+// Error log examples (JSON, one per line)
+
+// API error (handled)
+{"timestamp":"2025-12-27T12:00:00.000Z","level":"error","message":"ApiError","environment":"development","module":"core/http/middleware/error-handler","action":"errorHandler","correlationId":"abc-123","meta":{"code":"INVALID_INPUT","message":"Invalid email address","details":null}}
+
+// Unhandled error (generic)
+{"timestamp":"2025-12-27T12:00:00.001Z","level":"error","message":"Unhandled error","environment":"development","module":"core/http/middleware/error-handler","action":"errorHandler","correlationId":"abc-123","meta":{"error":"TypeError","details":"Cannot read property 'foo' of undefined"}}
+
+// Event subscriber error
+{"timestamp":"2025-12-27T12:00:00.002Z","level":"error","message":"event.handled.error","environment":"development","eventName":"user.created","correlationId":"abc-123","handler":"sendWelcomeEmail","meta":{"error":"SomeError","details":"..."}}

@@ -1,0 +1,43 @@
+@apiUrl = http://localhost:4000
+@bearerToken =
+@brandId = demo-brand
+@taskId =
+
+### List operations tasks
+GET {{apiUrl}}/api/v1/operations/tasks?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create operations task
+POST {{apiUrl}}/api/v1/operations/tasks
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "title": "Review inventory linked services",
+  "status": "OPEN",
+  "dueDate": "2025-12-31T23:59:59.000Z"
+}
+
+### Update operations task
+PATCH {{apiUrl}}/api/v1/operations/tasks/{{taskId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "status": "IN_PROGRESS"
+}
+
+### Complete operations task
+POST {{apiUrl}}/api/v1/operations/tasks/{{taskId}}/complete
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}"
+}
+
+### List activity logs
+GET {{apiUrl}}/api/v1/operations/activity?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}

@@ -1,0 +1,89 @@
+@apiUrl = http://localhost:4000
+@authToken =
+@brandId = demo-brand
+@creatorId = demo-user
+@contactId = demo-contact
+@assigneeId = demo-agent
+@ticketId =
+
+### List support tickets
+GET {{apiUrl}}/api/v1/support?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{authToken}}
+
+### Create support ticket
+POST {{apiUrl}}/api/v1/support
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "createdByUserId": "{{creatorId}}",
+  "contactId": "{{contactId}}",
+  "category": "technical",
+  "priority": "high",
+  "status": "OPEN",
+  "content": "Initial support request details"
+}
+
+### Get ticket with messages
+GET {{apiUrl}}/api/v1/support/{{ticketId}}?brandId={{brandId}}
+Authorization: Bearer {{authToken}}
+
+### Add message
+POST {{apiUrl}}/api/v1/support/{{ticketId}}/messages
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "senderId": "{{creatorId}}",
+  "content": "Additional follow-up message"
+}
+
+### Update status
+PATCH {{apiUrl}}/api/v1/support/{{ticketId}}/status
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "status": "IN_PROGRESS"
+}
+
+### Assign ticket
+POST {{apiUrl}}/api/v1/support/{{ticketId}}/assign
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "assigneeUserId": "{{assigneeId}}",
+  "brandAssignmentScope": "{{brandId}}",
+  "role": "support_agent"
+}
+
+### Start voice session
+POST {{apiUrl}}/api/v1/support/voice/sessions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "ticketId": "{{ticketId}}",
+  "channel": "voice",
+  "locale": "en"
+}
+
+### Voice turn (audio URL)
+POST {{apiUrl}}/api/v1/support/voice/sessions/{{ticketId}}/turn
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "audioUrl": "https://example.com/audio.wav"
+}
+
+### End voice session
+POST {{apiUrl}}/api/v1/support/voice/sessions/{{ticketId}}/end
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}

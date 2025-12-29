@@ -1,0 +1,39 @@
+
+{
+
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": ["node", "jest"],
+    "allowJs": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dev",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/tests/integration/**"
+  ],
+  "references": [
+    {
+      "path": "../../packages/shared"
+    }
+  ]
+}

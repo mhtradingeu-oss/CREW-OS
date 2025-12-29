@@ -1,0 +1,100 @@
+@apiUrl = http://localhost:4000/api/v1
+@bearerToken =
+@brandId = demo-brand
+@productId = demo-product
+@pricingId = demo-pricing
+@draftId = demo-draft
+
+### List pricing (all brands)
+GET {{apiUrl}}/pricing?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### List pricing (by brand/product)
+GET {{apiUrl}}/pricing?brandId={{brandId}}&productId={{productId}}&page=1&pageSize=3
+Authorization: Bearer {{bearerToken}}
+
+### Get pricing record
+GET {{apiUrl}}/pricing/{{pricingId}}
+Authorization: Bearer {{bearerToken}}
+
+### Create pricing
+POST {{apiUrl}}/pricing
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "productId": "{{productId}}",
+  "brandId": "{{brandId}}",
+  "b2cNet": 29.99,
+  "b2cGross": 35.50,
+  "dealerNet": 24.00,
+  "vatPct": 19
+}
+
+### Update pricing
+PUT {{apiUrl}}/pricing/{{pricingId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "b2cNet": 31.25,
+  "vatPct": 20
+}
+
+### Delete pricing
+DELETE {{apiUrl}}/pricing/{{pricingId}}
+Authorization: Bearer {{bearerToken}}
+
+### List drafts
+GET {{apiUrl}}/pricing/product/{{productId}}/drafts
+Authorization: Bearer {{bearerToken}}
+
+### Create draft
+POST {{apiUrl}}/pricing/product/{{productId}}/drafts
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "channel": "wholesale",
+  "oldNet": 28.5,
+  "newNet": 27.0,
+  "brandId": "{{brandId}}"
+}
+
+### Approve draft
+POST {{apiUrl}}/pricing/product/{{productId}}/drafts/{{draftId}}/approve
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "approvedById": "admin-user"
+}
+
+### List competitor prices
+GET {{apiUrl}}/pricing/product/{{productId}}/competitors
+Authorization: Bearer {{bearerToken}}
+
+### Add competitor price
+POST {{apiUrl}}/pricing/product/{{productId}}/competitors
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "competitor": "GlobalHair",
+  "priceNet": 26.75,
+  "priceGross": 32.0,
+  "currency": "EUR"
+}
+
+### List pricing logs
+GET {{apiUrl}}/pricing/product/{{productId}}/logs
+Authorization: Bearer {{bearerToken}}
+
+### AI pricing suggestion
+POST {{apiUrl}}/pricing/product/{{productId}}/ai/suggest
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "strategy": "competitor"
+}

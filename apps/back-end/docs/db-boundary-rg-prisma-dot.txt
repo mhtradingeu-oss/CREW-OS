@@ -1,0 +1,573 @@
+apps/back-end/src/modules/influencer-os/influencer-os.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/users/users.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/admin/admin.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/communication/communication.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/communication/communication.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/communication/communication.service.ts:      prisma.notificationTemplate.count({ where }),
+apps/back-end/src/modules/communication/communication.service.ts:      prisma.notificationTemplate.findMany({
+apps/back-end/src/modules/communication/communication.service.ts:    const template = await prisma.notificationTemplate.findFirst({
+apps/back-end/src/modules/communication/communication.service.ts:    const existing = await prisma.notificationTemplate.findFirst({
+apps/back-end/src/modules/communication/communication.service.ts:    const created = await prisma.notificationTemplate.create({
+apps/back-end/src/modules/communication/communication.service.ts:    const existing = await prisma.notificationTemplate.findFirst({
+apps/back-end/src/modules/communication/communication.service.ts:    const updated = await prisma.notificationTemplate.update({
+apps/back-end/src/modules/communication/communication.service.ts:    const deleted = await prisma.notificationTemplate.deleteMany({
+apps/back-end/src/modules/communication/communication.service.ts:      ? await prisma.notificationTemplate.findUnique({
+apps/back-end/src/modules/communication/communication.service.ts:    const log = await prisma.notification.create({
+apps/back-end/src/modules/communication/communication.service.ts:        ? await prisma.notificationTemplate.findFirst({
+apps/back-end/src/modules/communication/communication.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/communication/communication.service.ts:      prisma.notification.count({ where }),
+apps/back-end/src/modules/communication/communication.service.ts:      prisma.notification.findMany({
+apps/back-end/src/modules/support/support.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/support/support.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/support/support.service.ts:      prisma.ticket.count({ where }),
+apps/back-end/src/modules/support/support.service.ts:      prisma.ticket.findMany({
+apps/back-end/src/modules/support/support.service.ts:    const record = await prisma.ticket.findFirst({
+apps/back-end/src/modules/support/support.service.ts:    const ticket = await prisma.ticket.create({
+apps/back-end/src/modules/support/support.service.ts:        await prisma.ticket.update({
+apps/back-end/src/modules/support/support.service.ts:      await prisma.ticketMessage.create({
+apps/back-end/src/modules/support/support.service.ts:    const ticket = await prisma.ticket.findUnique({
+apps/back-end/src/modules/support/support.service.ts:    const message = await prisma.ticketMessage.create({
+apps/back-end/src/modules/support/support.service.ts:    const ticket = await prisma.ticket.findFirst({
+apps/back-end/src/modules/support/support.service.ts:    const updated = await prisma.ticket.update({
+apps/back-end/src/modules/support/support.service.ts:    const ticket = await prisma.ticket.findFirst({
+apps/back-end/src/modules/support/support.service.ts:    const assignment = await prisma.ticketAssignment.create({
+apps/back-end/src/modules/support/support.service.ts:    await prisma.ticket.update({
+apps/back-end/src/modules/support/support.service.ts:    const ticket = await prisma.ticket.findFirst({ where: { id: ticketId, brandId }, select: { id: true } });
+apps/back-end/src/modules/support/support.service.ts:    const messages = await prisma.ticketMessage.findMany({
+apps/back-end/src/modules/support/support.service.ts:    const [ticketCount, voiceCount] = await prisma.$transaction([
+apps/back-end/src/modules/support/support.service.ts:      prisma.ticket.count({ where: { brandId: params.brandId } }),
+apps/back-end/src/modules/support/support.service.ts:      prisma.voiceSession.count({ where: { brandId: params.brandId } }),
+apps/back-end/src/modules/support/support.service.ts:    const [tickets, voiceSessions] = await prisma.$transaction([
+apps/back-end/src/modules/support/support.service.ts:      prisma.ticket.findMany({
+apps/back-end/src/modules/support/support.service.ts:      prisma.voiceSession.findMany({
+apps/back-end/src/modules/support/support.service.ts:    const ticket = await prisma.ticket.findFirst({ where: { id, brandId }, select: ticketDetailSelect });
+apps/back-end/src/modules/support/support.service.ts:    const voiceSession = await prisma.voiceSession.findFirst({
+apps/back-end/src/modules/inventory/inventory.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/inventory/inventory.service.ts:  const item = await prisma.inventoryItem.findFirst({ where, select: inventorySelect });
+apps/back-end/src/modules/inventory/inventory.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/inventory/inventory.service.ts:      prisma.inventoryItem.count({ where }),
+apps/back-end/src/modules/inventory/inventory.service.ts:      prisma.inventoryItem.findMany({ where, select: inventorySelect, orderBy: { updatedAt: "desc" }, skip, take }),
+apps/back-end/src/modules/inventory/inventory.service.ts:    const record = await prisma.inventoryItem.findFirst({ where, select: inventorySelect });
+apps/back-end/src/modules/inventory/inventory.service.ts:      prisma.brandProduct.findUnique({ where: { id: input.productId }, select: { id: true, brandId: true } }),
+apps/back-end/src/modules/inventory/inventory.service.ts:      prisma.warehouse.findUnique({ where: { id: input.warehouseId }, select: { id: true, brandId: true } }),
+apps/back-end/src/modules/inventory/inventory.service.ts:    const created = await prisma.inventoryItem.create({
+apps/back-end/src/modules/inventory/inventory.service.ts:    // استخدم tx بدلاً من prisma.$transaction
+apps/back-end/src/modules/inventory/inventory.service.ts:    const items = await prisma.inventoryItem.findMany({ where, select: inventorySelect });
+apps/back-end/src/modules/crm/crm.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/partners/partners.controller.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/partners/partners.controller.ts:    const insight = await prisma.aIInsight.create({
+apps/back-end/src/modules/automation/automation.observability.service.ts:	const runs = await prisma.automationRun.findMany({
+apps/back-end/src/modules/automation/automation.observability.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/automation/automation.observability.service.ts:	const runs = await prisma.automationRun.findMany({
+apps/back-end/src/modules/automation/automation.observability.service.ts:	const runs = await prisma.automationRun.findMany({
+apps/back-end/src/modules/automation/automation.observability.service.ts:	const runs = await prisma.automationRun.findMany({
+apps/back-end/src/modules/activity-log/activity-log.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/automation/automation.explain.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/automation/automation.explain.service.ts:	const ruleVersion = await prisma.automationRuleVersion.findUnique({
+apps/back-end/src/modules/automation/automation.explain.service.ts:	const run = await prisma.automationRun.findUnique({
+apps/back-end/src/modules/automation/automation.explain.service.ts:	const actionRun = await prisma.automationActionRun.findUnique({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:  const brand = await prisma.brand.upsert({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:  await prisma.brandIdentity.upsert({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:  await prisma.brandAIConfig.upsert({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:    const record = await prisma.brandCategory.upsert({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:    const record = await prisma.brandProduct.upsert({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:      await prisma.productPricing.upsert({
+apps/back-end/src/modules/brand/hairoticmen.seed.ts:    await prisma.aIAgentConfig.upsert({
+apps/back-end/src/modules/automation/automation.service.ts:import { prisma } from '../../core/prisma.js';
+apps/back-end/src/modules/partners/partners.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/operations/operations.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/operations/operations.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/operations/operations.service.ts:      prisma.operationsTask.count({ where }),
+apps/back-end/src/modules/operations/operations.service.ts:      prisma.operationsTask.findMany({
+apps/back-end/src/modules/operations/operations.service.ts:    const created = await prisma.operationsTask.create({
+apps/back-end/src/modules/operations/operations.service.ts:    const existing = await prisma.operationsTask.findFirst({
+apps/back-end/src/modules/operations/operations.service.ts:    const updated = await prisma.operationsTask.update({
+apps/back-end/src/modules/operations/operations.service.ts:    const existing = await prisma.operationsTask.findFirst({
+apps/back-end/src/modules/operations/operations.service.ts:    const completed = await prisma.operationsTask.update({
+apps/back-end/src/modules/operations/operations.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/operations/operations.service.ts:      prisma.activityLog.count({ where }),
+apps/back-end/src/modules/operations/operations.service.ts:      prisma.activityLog.findMany({
+apps/back-end/src/modules/brand/brand.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:  const category = await prisma.knowledgeCategory.findUnique({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:  const product = await prisma.brandProduct.findUnique({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:  const campaign = await prisma.campaign.findUnique({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:      prisma.knowledgeDocument.count({ where }),
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:      prisma.knowledgeDocument.findMany({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const record = await prisma.knowledgeDocument.findFirst({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const created = await prisma.knowledgeDocument.create({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const existing = await prisma.knowledgeDocument.findUnique({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const updated = await prisma.$transaction(async (tx) => {
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const existing = await prisma.knowledgeDocument.findFirst({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const updated = await prisma.knowledgeDocument.update({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    const existing = await prisma.knowledgeDocument.findFirst({
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:    await prisma.$transaction([
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:      prisma.knowledgeTag.deleteMany({ where: { documentId: id } }),
+apps/back-end/src/modules/knowledge-base/knowledge-base.service.ts:      prisma.knowledgeDocument.delete({ where: { id } }),
+apps/back-end/src/modules/product/product.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts:  const document = await prisma.knowledgeDocument.findFirst({
+apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts:  const [insight] = await prisma.$transaction([
+apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts:    prisma.aIInsight.create({
+apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts:    prisma.aILearningJournal.create({
+apps/back-end/src/modules/knowledge-base/knowledge-base.ai.ts:    prisma.knowledgeDocument.update({
+apps/back-end/src/modules/white-label/white-label.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/white-label/white-label.service.ts:  const brand = await prisma.whiteLabelBrand.findFirst({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/white-label/white-label.service.ts:      prisma.whiteLabelBrand.count({ where }),
+apps/back-end/src/modules/white-label/white-label.service.ts:      prisma.whiteLabelBrand.findMany({
+apps/back-end/src/modules/white-label/white-label.service.ts:      const [pc, om] = await prisma.$transaction([
+apps/back-end/src/modules/white-label/white-label.service.ts:        prisma.whiteLabelProduct.groupBy({
+apps/back-end/src/modules/white-label/white-label.service.ts:        prisma.whiteLabelOrder.groupBy({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const record = await prisma.whiteLabelBrand.findFirst({
+apps/back-end/src/modules/white-label/white-label.service.ts:      const existing = await prisma.whiteLabelBrand.findUnique({ where: { slug: input.slug } });
+apps/back-end/src/modules/white-label/white-label.service.ts:      const partner = await prisma.partner.findUnique({ where: { id: input.ownerPartnerId } });
+apps/back-end/src/modules/white-label/white-label.service.ts:      const affiliate = await prisma.affiliate.findUnique({ where: { id: input.ownerAffiliateId } });
+apps/back-end/src/modules/white-label/white-label.service.ts:    const created = await prisma.whiteLabelBrand.create({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const existing = await prisma.whiteLabelBrand.findFirst({
+apps/back-end/src/modules/white-label/white-label.service.ts:      const slugTaken = await prisma.whiteLabelBrand.findUnique({ where: { slug: input.slug } });
+apps/back-end/src/modules/white-label/white-label.service.ts:    const updated = await prisma.whiteLabelBrand.update({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/white-label/white-label.service.ts:      prisma.whiteLabelProduct.count({ where }),
+apps/back-end/src/modules/white-label/white-label.service.ts:      prisma.whiteLabelProduct.findMany({
+apps/back-end/src/modules/white-label/white-label.service.ts:      const baseProduct = await prisma.brandProduct.findUnique({ where: { id: input.baseProductId } });
+apps/back-end/src/modules/white-label/white-label.service.ts:      const skuExists = await prisma.whiteLabelProduct.findFirst({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const created = await prisma.whiteLabelProduct.create({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const brand = await prisma.whiteLabelBrand.findFirst({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const [productCount, orderMetrics] = await prisma.$transaction([
+apps/back-end/src/modules/white-label/white-label.service.ts:      prisma.whiteLabelProduct.count({ where: { wlBrandId: id } }),
+apps/back-end/src/modules/white-label/white-label.service.ts:      prisma.whiteLabelOrder.aggregate({
+apps/back-end/src/modules/white-label/white-label.service.ts:    const created = await prisma.whiteLabelOrder.create({
+apps/back-end/src/modules/white-label/white-label.service.ts:  const updated = await prisma.whiteLabelOrder.update({
+apps/back-end/src/modules/white-label/white-label.service.ts:  const order = await prisma.whiteLabelOrder.findUnique({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/affiliate/affiliate.service.ts:  const rows = await prisma.affiliatePerformance.groupBy({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:  const rows = await prisma.affiliateSale.groupBy({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:  const rows = await prisma.affiliatePayout.groupBy({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:  const payout = await prisma.affiliatePayout.findUnique({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:  const updated = await prisma.affiliatePayout.update({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:      await prisma.$transaction([
+apps/back-end/src/modules/affiliate/affiliate.service.ts:        prisma.affiliate.count({ where: { brandId } }),
+apps/back-end/src/modules/affiliate/affiliate.service.ts:        prisma.affiliate.count({ where: { brandId, status: "ACTIVE" } }),
+apps/back-end/src/modules/affiliate/affiliate.service.ts:        prisma.affiliateConversion.aggregate({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:        prisma.affiliateSale.aggregate({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:        prisma.affiliatePayout.aggregate({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/affiliate/affiliate.service.ts:      prisma.affiliate.count({ where }),
+apps/back-end/src/modules/affiliate/affiliate.service.ts:      prisma.affiliate.findMany({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const record = await prisma.affiliate.findFirst({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const existing = await prisma.affiliate.findFirst({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const created = await prisma.affiliate.create({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const existing = await prisma.affiliate.findFirst({ where: { id: affiliateId, brandId } });
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const updated = await prisma.affiliate.update({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const existing = await prisma.affiliate.findFirst({ where: { id: affiliateId, brandId } });
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const updated = await prisma.affiliate.update({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const links = await prisma.affiliateLink.findMany({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const affiliate = await prisma.affiliate.findFirst({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const created = await prisma.affiliateLink.create({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const affiliate = await prisma.affiliate.findFirst({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const conversion = await prisma.affiliateConversion.create({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const affiliate = await prisma.affiliate.findFirst({
+apps/back-end/src/modules/affiliate/affiliate.service.ts:    const created = await prisma.affiliatePayout.create({
+apps/back-end/src/modules/knowledge-base/knowledge-base.controller.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/knowledge-base/knowledge-base.controller.ts:    const insight = await prisma.aIInsight.create({
+apps/back-end/src/modules/loyalty/loyalty.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/loyalty/loyalty.controller.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/loyalty/loyalty.controller.ts:    const insight = await prisma.aIInsight.create({
+apps/back-end/src/modules/media-studio/media-studio.controller.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/media-studio/media-studio.controller.ts:    const insight = await prisma.aIInsight.create({
+apps/back-end/src/modules/platform-ops/platform-ops.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/finance/finance.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/finance/finance.ai.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/finance/finance.ai.ts:  const insight = await prisma.aIInsight.create({
+apps/back-end/src/modules/finance/finance.ai.ts:  await prisma.aILearningJournal.create({
+apps/back-end/src/modules/finance/einvoice.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/notification/notification.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/stand-pos/stand-pos.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/marketing/marketing.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/marketing/marketing.service.ts:    await prisma.aIInsight.create({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:  return prisma.aIMonitoringEvent.findMany({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:  return prisma.aIExecutionLog.findMany({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:  const rows = await prisma.aIExecutionLog.findMany({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:  const rows = await prisma.aIExecutionLog.findMany({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:  return prisma.aIMonitoringEvent.findMany({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:  return prisma.aISafetyEvent.findMany({
+apps/back-end/src/modules/ai-monitoring/ai-monitoring.service.ts:    await prisma.aIMonitoringEvent.create({
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  brandProductFindUnique: (args: DbFindUniqueArgs) => prisma.brandProduct.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  productPricingFindUnique: (args: DbFindUniqueArgs) => prisma.productPricing.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  competitorPriceFindMany: (args: DbFindManyArgs) => prisma.competitorPrice.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  productPriceDraftFindMany: (args: DbFindManyArgs) => prisma.productPriceDraft.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  aIPricingHistoryFindMany: (args: DbFindManyArgs) => prisma.aIPricingHistory.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  inventoryItemFindMany: (args: DbFindManyArgs) => prisma.inventoryItem.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  leadFindUnique: (args: DbFindUniqueArgs) => prisma.lead.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  partnerUserFindFirst: (args: DbFindFirstArgs) => prisma.partnerUser.findFirst(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  partnerFindFirst: (args: DbFindFirstArgs) => prisma.partner.findFirst(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  salesRepFindUnique: (args: DbFindUniqueArgs) => prisma.salesRep.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  loyaltyCustomerFindUnique: (args: DbFindUniqueArgs) => prisma.loyaltyCustomer.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  automationRuleFindUnique: (args: DbFindUniqueArgs) => prisma.automationRule.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  automationRuleVersionFindFirst: (args: DbFindFirstArgs) => prisma.automationRuleVersion.findFirst(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  aIInsightFindUnique: (args: DbFindUniqueArgs) => prisma.aIInsight.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  brandFindUnique: (args: DbFindUniqueArgs) => prisma.brand.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  campaignFindMany: (args: DbFindManyArgs) => prisma.campaign.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  socialMentionFindMany: (args: DbFindManyArgs) => prisma.socialMention.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  socialTrendFindMany: (args: DbFindManyArgs) => prisma.socialTrend.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  audienceSegmentFindMany: (args: DbFindManyArgs) => prisma.audienceSegment.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  revenueRecordFindMany: (args: DbFindManyArgs) => prisma.revenueRecord.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  financeExpenseFindMany: (args: DbFindManyArgs) => prisma.financeExpense.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  financeInvoiceFindMany: (args: DbFindManyArgs) => prisma.financeInvoice.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  financialKPIRecordFindMany: (args: DbFindManyArgs) => prisma.financialKPIRecord.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  invoiceFindUnique: (args: DbFindUniqueArgs) => prisma.invoice.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  ticketFindUnique: (args: DbFindUniqueArgs) => prisma.ticket.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  knowledgeDocumentFindUnique: (args: DbFindUniqueArgs) => prisma.knowledgeDocument.findUnique(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  activityLogFindMany: (args: DbFindManyArgs) => prisma.activityLog.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  automationLogFindMany: (args: DbFindManyArgs) => prisma.automationLog.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  scheduledJobFindMany: (args: DbFindManyArgs) => prisma.scheduledJob.findMany(toAny(args)),
+apps/back-end/src/infrastructure/db/prisma-db-gateway.ts:  operationsTaskFindMany: (args: DbFindManyArgs) => prisma.operationsTask.findMany(toAny(args)),
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:  return prisma.aIPromptFirewallRule.findMany({ orderBy: { createdAt: "desc" } });
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:  return prisma.aIPromptFirewallRule.create({
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:  return prisma.aISafetyConstraint.findMany({ orderBy: { createdAt: "desc" } });
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:  return prisma.aISafetyConstraint.create({
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:  return prisma.aIBannedAction.findMany({ orderBy: { createdAt: "desc" } });
+apps/back-end/src/modules/ai-safety/ai-safety.service.ts:  return prisma.aIBannedAction.create({
+apps/back-end/src/modules/plan-history/plan-history.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/plan-history/plan-history.service.ts:  const user = await prisma.user.findUnique({ where: { id: userId }, select: { tenantId: true } });
+apps/back-end/src/modules/plan-history/plan-history.service.ts:  return prisma.tenantPlanChange.findMany({
+apps/back-end/src/modules/auth/auth.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/auth/auth.service.ts:  const record = await prisma.user.findUnique({ where: { id: userId }, select: userSelect });
+apps/back-end/src/modules/auth/auth.service.ts:  const existing = await prisma.user.findUnique({ where: { email: input.email }, select: { id: true } });
+apps/back-end/src/modules/auth/auth.service.ts:  const plan = await prisma.plan.findUnique({ where: { key: DEFAULT_PLAN_KEY }, select: { id: true, key: true } });
+apps/back-end/src/modules/auth/auth.service.ts:  const tenant = await prisma.tenant.create({
+apps/back-end/src/modules/auth/auth.service.ts:  const brand = await prisma.brand.create({
+apps/back-end/src/modules/auth/auth.service.ts:  await prisma.tenant.update({
+apps/back-end/src/modules/auth/auth.service.ts:  const user = await prisma.user.create({
+apps/back-end/src/modules/auth/auth.service.ts:  await prisma.tenantOnboardingProfile.create({
+apps/back-end/src/modules/auth/auth.service.ts:  const user = await prisma.user.findUnique({
+apps/back-end/src/modules/auth/auth.service.ts:  const user = await prisma.user.findUnique({
+apps/back-end/src/modules/auth/auth.service.ts:  const brands = await prisma.brand.findMany({
+apps/back-end/src/modules/stand/stand.controller.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/stand/stand.controller.ts:    const insight = await prisma.aIInsight.create({
+apps/back-end/src/ai/indexing/indexers.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/ai/indexing/indexers.ts:  const brand = await prisma.brand.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const product = await prisma.brandProduct.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const pricing = await prisma.productPricing.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const competitorPrice = await prisma.competitorPrice.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const item = await prisma.inventoryItem.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const lead = await prisma.lead.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const person = await prisma.person.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const company = await prisma.company.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const partner = await prisma.partner.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const partner = await prisma.partner.findUnique({ where: { id: partnerId } });
+apps/back-end/src/ai/indexing/indexers.ts:  const stand = await prisma.stand.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const affiliate = await prisma.affiliate.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const salesRep = await prisma.salesRep.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const account = await prisma.loyaltyCustomer.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const rule = await prisma.automationRule.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const activeVersion = await prisma.automationRuleVersion.findFirst({
+apps/back-end/src/ai/indexing/indexers.ts:  const insight = await prisma.aIInsight.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const journal = await prisma.aILearningJournal.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const history = await prisma.aIPricingHistory.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const document = await prisma.knowledgeDocument.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const ticket = await prisma.ticket.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const campaign = await prisma.campaign.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const mention = await prisma.socialMention.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const trend = await prisma.socialTrend.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const task = await prisma.operationsTask.findUnique({
+apps/back-end/src/ai/indexing/indexers.ts:  const rule = await prisma.automationRule.findUnique({
+apps/back-end/src/modules/stand/stand.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/stand/stand.service.ts:  const unitGroups = await prisma.standUnit.groupBy({
+apps/back-end/src/modules/stand/stand.service.ts:  const orderGroups = await prisma.standOrder.groupBy({
+apps/back-end/src/modules/stand/stand.service.ts:    const [totalPartners, activePartners, unitAgg, orderAgg] = await prisma.$transaction([
+apps/back-end/src/modules/stand/stand.service.ts:      prisma.standPartner.count({ where: { brandId } }),
+apps/back-end/src/modules/stand/stand.service.ts:      prisma.standPartner.count({ where: { brandId, status: "ACTIVE" } }),
+apps/back-end/src/modules/stand/stand.service.ts:      prisma.standUnit.aggregate({
+apps/back-end/src/modules/stand/stand.service.ts:      prisma.standOrder.aggregate({
+apps/back-end/src/modules/stand/stand.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/stand/stand.service.ts:      prisma.standPartner.count({ where }),
+apps/back-end/src/modules/stand/stand.service.ts:      prisma.standPartner.findMany({
+apps/back-end/src/modules/stand/stand.service.ts:    const record = await prisma.standPartner.findFirst({
+apps/back-end/src/modules/stand/stand.service.ts:    const partner = await prisma.partner.findFirst({
+apps/back-end/src/modules/stand/stand.service.ts:    const created = await prisma.standPartner.create({
+apps/back-end/src/modules/stand/stand.service.ts:    const existing = await prisma.standPartner.findFirst({ where: { id, brandId } });
+apps/back-end/src/modules/stand/stand.service.ts:    const updated = await prisma.standPartner.update({
+apps/back-end/src/modules/stand/stand.service.ts:    const existing = await prisma.standPartner.findFirst({ where: { id, brandId } });
+apps/back-end/src/modules/stand/stand.service.ts:    const updated = await prisma.standPartner.update({
+apps/back-end/src/modules/stand/stand.service.ts:    const record = await prisma.standPartner.findFirst({
+apps/back-end/src/modules/social-intelligence/social-intelligence.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/security-governance/rbac.seed.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/security-governance/rbac.seed.ts:      prisma.permission.upsert({
+apps/back-end/src/modules/security-governance/rbac.seed.ts:    const roleRecord = await prisma.role.upsert({
+apps/back-end/src/modules/security-governance/rbac.seed.ts:      const existing = await prisma.rolePermission.findFirst({
+apps/back-end/src/modules/security-governance/rbac.seed.ts:        await prisma.rolePermission.create({
+apps/back-end/src/modules/security-governance/rbac.seed.ts:  const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+apps/back-end/src/modules/security-governance/rbac.seed.ts:      await prisma.user.update({
+apps/back-end/src/modules/security-governance/rbac.seed.ts:  await prisma.user.create({
+apps/back-end/src/seeds/users.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/users.seed.ts:  await prisma.user.upsert({
+apps/back-end/src/seeds/users.seed.ts:  const existing = await prisma.tenantOnboardingProfile.findFirst({
+apps/back-end/src/seeds/users.seed.ts:    await prisma.tenantOnboardingProfile.create({
+apps/back-end/src/seeds/users.seed.ts:    await prisma.tenantOnboardingProfile.update({
+apps/back-end/src/seeds/users.seed.ts:  const devTenant = await prisma.tenant.findUnique({
+apps/back-end/src/seeds/users.seed.ts:  const devBrand = await prisma.brand.findUnique({
+apps/back-end/src/seeds/users.seed.ts:  const owner = await prisma.user.findUnique({ where: { email: "dev.owner@example.com" }, select: { id: true } });
+apps/back-end/src/seeds/users.seed.ts:  const legacyTenant = await prisma.tenant.findUnique({ where: { slug: "mh-trading" }, select: { id: true } });
+apps/back-end/src/seeds/users.seed.ts:  const legacyBrand = await prisma.brand.findUnique({ where: { slug: "hairoticmen" }, select: { id: true } });
+apps/back-end/src/seeds/tenants.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/tenants.seed.ts:  await prisma.user.upsert({
+apps/back-end/src/seeds/tenants.seed.ts:  const plans = await prisma.plan.findMany({
+apps/back-end/src/seeds/tenants.seed.ts:  const devTenant = await prisma.tenant.upsert({
+apps/back-end/src/seeds/tenants.seed.ts:  const devBrand = await prisma.brand.upsert({
+apps/back-end/src/seeds/tenants.seed.ts:  await prisma.tenant.update({
+apps/back-end/src/seeds/tenants.seed.ts:  const existingDevPlanChange = await prisma.tenantPlanChange.findFirst({
+apps/back-end/src/seeds/tenants.seed.ts:    await prisma.tenantPlanChange.create({
+apps/back-end/src/seeds/tenants.seed.ts:  const mhTenant = await prisma.tenant.upsert({
+apps/back-end/src/seeds/tenants.seed.ts:  await prisma.tenant.update({
+apps/back-end/src/seeds/tenants.seed.ts:    const tenant = await prisma.tenant.upsert({
+apps/back-end/src/seeds/tenants.seed.ts:    const demoBrand = await prisma.brand.upsert({
+apps/back-end/src/seeds/tenants.seed.ts:    await prisma.tenant.update({
+apps/back-end/src/seeds/core.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/modules/ai-brain/AI-Brain-Reports-Report.md:- Listing leverages `buildPagination` and `prisma.aIReport.findMany` with `reportSelect`; creation writes the same fields so schema cohesion is maintained.
+apps/back-end/src/seeds/admin.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/admin.seed.ts:  const existing = await prisma.user.findUnique({
+apps/back-end/src/seeds/admin.seed.ts:    await prisma.user.create({
+apps/back-end/src/seeds/admin.seed.ts:  await prisma.user.update({
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:    return prisma.$transaction(
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:      insights.map((insight) => prisma.aIInsight.create({ data: insight })),
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:    const items = await prisma.aIInsight.findMany({
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:    const record = await prisma.aIInsight.findUnique({ where: { id } });
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:    return prisma.aIReport.create({
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:    return prisma.aIReport.findMany({
+apps/back-end/src/modules/ai-brain/ai-insights.service.ts:    const report = await prisma.aIReport.findUnique({ where: { id } });
+apps/back-end/src/seeds/automation.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/automation.seed.ts:    const existing = await prisma.automationRule.findFirst({
+apps/back-end/src/seeds/automation.seed.ts:      await prisma.automationRule.update({
+apps/back-end/src/seeds/automation.seed.ts:      await prisma.automationRule.create({ data: payload });
+apps/back-end/src/seeds/plans.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/plans.seed.ts:    await prisma.plan.upsert({
+apps/back-end/src/modules/security-governance/security-governance.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:    const created = await prisma.virtualOfficeActionItem.create({
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:  const record = await prisma.virtualOfficeMeeting.create({
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:  await prisma.automationLog.create({
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:  const insight = await prisma.aIInsight.create({
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:  await prisma.aILearningJournal.create({
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:      ? await prisma.brand.findUnique({ where: { id: input.brandId } })
+apps/back-end/src/modules/ai-brain/virtual-office.service.ts:    return prisma.virtualOfficeActionItem.findMany({
+apps/back-end/src/seeds/pricing.seed.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/pricing.seed.ts:  const devTenant = await prisma.tenant.findUnique({
+apps/back-end/src/seeds/pricing.seed.ts:    const brandProduct = await prisma.brandProduct.upsert({
+apps/back-end/src/seeds/pricing.seed.ts:    await prisma.productPricing.upsert({
+apps/back-end/src/seeds/pricing.seed.ts:      await prisma.competitorPrice.upsert({
+apps/back-end/src/seeds/pricing.seed.ts:    await prisma.aIPricingHistory.deleteMany({
+apps/back-end/src/seeds/pricing.seed.ts:    await prisma.aIPricingHistory.createMany({
+apps/back-end/src/bootstrap/prisma-runtime.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/bootstrap/prisma-runtime.ts:    await prisma.$connect();
+apps/back-end/src/bootstrap/prisma-runtime.ts:    await prisma.$disconnect();
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:    ] = await prisma.$transaction([
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.revenueRecord.findMany({
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.aIPricingHistory.findMany({
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.inventoryItem.findMany({ where: { ...brandFilter } }),
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.marketingPerformanceLog.findMany({
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.loyaltyTransaction.findMany({
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.lead.findMany({
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:      prisma.deal.findMany({
+apps/back-end/src/modules/ai-brain/ai-kpi.service.ts:    const prevRevenue = await prisma.revenueRecord.aggregate({
+apps/back-end/src/modules/ai-brain/AI-Brain-Learning-Report.md:- `listLearningLogs` uses `prisma.aILearningJournal.findMany` with `learningSelect` and counts total rows before returning mapped DTOs.  
+apps/back-end/src/seeds/run-seed-cli.ts:import { prisma } from "../core/prisma.js";
+apps/back-end/src/seeds/run-seed-cli.ts:    await prisma.$disconnect();
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const brands = await prisma.brand.findMany({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const [insightGroups, reportGroups, learningGroups] = await prisma.$transaction([
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aIInsight.groupBy({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aIReport.groupBy({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aILearningJournal.groupBy({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const created = await prisma.aIInsight.create({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const existing = await prisma.aIInsight.findUnique({ where: { id } });
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const updated = await prisma.aIInsight.update({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const existing = await prisma.aIInsight.findUnique({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    await prisma.aIInsight.delete({ where: { id } });
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:  const brand = await prisma.brand.findUnique({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aIInsight.count({ where }),
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aIInsight.findMany({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const created = await prisma.aIInsight.create({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aIReport.count({ where }),
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aIReport.findMany({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const created = await prisma.aIReport.create({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const [total, rows] = await prisma.$transaction([
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aILearningJournal.count({ where }),
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:      prisma.aILearningJournal.findMany({
+apps/back-end/src/modules/ai-brain/ai-brain.service.ts:    const saved = await prisma.aILearningJournal.create({
+apps/back-end/src/core/security/rbac.ts:import { prisma } from "../prisma.js";
+apps/back-end/src/core/security/rbac.ts:  const entries = await prisma.rolePermission.findMany({
+apps/back-end/src/core/security/rbac.ts:  const user = await prisma.user.findUnique({
+apps/back-end/src/core/security/rbac.ts:  const relevantPolicies = await prisma.policy.findMany({
+apps/back-end/src/modules/ai-brain/ai-agents.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/ai-agents.service.ts:    return prisma.aIAgentConfig.findMany({
+apps/back-end/src/modules/ai-brain/ai-agents.service.ts:    const agent = await prisma.aIAgentConfig.findUnique({ where: { id } });
+apps/back-end/src/modules/ai-brain/ai-agents.service.ts:    return prisma.aIAgentConfig.create({
+apps/back-end/src/modules/ai-brain/ai-agents.service.ts:    return prisma.aIAgentConfig.update({
+apps/back-end/src/modules/ai-brain/ai-agents.service.ts:    await prisma.aIAgentConfig.delete({ where: { id } });
+apps/back-end/src/core/prisma.ts:  prisma.$use(async (params, next) => {
+apps/back-end/src/core/plans-resolver.ts:import { prisma } from "./prisma.js";
+apps/back-end/src/core/plans-resolver.ts:    const tenant = await prisma.tenant.findUnique({
+apps/back-end/src/core/plans-resolver.ts:    const brand = await prisma.brand.findUnique({
+apps/back-end/src/core/db/repositories/automation.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/automation.repository.ts:  return prisma.automationRuleVersion.findMany(args);
+apps/back-end/src/core/db/repositories/ai-orchestrator.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/ai-orchestrator.repository.ts:  return prisma.aIAgentConfig.findFirst({ where: { brandId: params.brandId ?? undefined, name: params.name } });
+apps/back-end/src/core/db/repositories/ai-orchestrator.repository.ts:  return prisma.aIAgentConfig.findFirst({ where: { brandId: params.brandId ?? undefined, osScope: params.osScope } });
+apps/back-end/src/core/db/repositories/ai-orchestrator.repository.ts:  return prisma.aIAgentConfig.findFirst({ where: { name: "default" } });
+apps/back-end/src/core/db/repositories/ai-orchestrator.repository.ts:  return prisma.brand.findUnique({
+apps/back-end/src/core/db/repositories/ai-orchestrator.repository.ts:  return prisma.aIRestrictionPolicy.findMany({ select: { rulesJson: true } });
+apps/back-end/src/core/db/repositories/sales-orders.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/sales-orders.repository.ts:  return prisma.salesOrder.findFirst({
+apps/back-end/src/core/db/repositories/sales-orders.repository.ts:  return prisma.$transaction(async (tx) => {
+apps/back-end/src/core/db/repositories/ai-pricing-history.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/ai-pricing-history.repository.ts:  return prisma.aIPricingHistory.create({ data });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.productPricing.count({ where }),
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.productPricing.findMany({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPricing.findUnique({ where: { id }, select: pricingSelect });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPricing.findUnique({ where: { productId }, select: pricingSelect });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPricing.create({ data, select: pricingSelect });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPricing.update({ where: { id }, data, select: pricingSelect });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  await prisma.productPricing.delete({ where: { id } });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  const existing = await prisma.productPricing.findUnique({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    await prisma.productPricing.update({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  await prisma.productPricing.create({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPriceDraft.create({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.productPriceDraft.count({ where: { productId } }),
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.productPriceDraft.findMany({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPriceDraft.findFirst({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.productPriceDraft.update({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.competitorPrice.create({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.competitorPrice.count({ where: { productId } }),
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.competitorPrice.findMany({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.aIPricingHistory.create({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.aIPricingHistory.count({ where: { productId } }),
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.aIPricingHistory.findMany({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.aIInsight.create({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.aIInsight.count({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    prisma.aIInsight.findMany({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  await prisma.aILearningJournal.create({ data });
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  const pricing = await prisma.productPricing.findUnique({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.brandProduct.findUnique({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.brand.findUnique({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  const brand = await prisma.brand.findUnique({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:    await prisma.brand.update({
+apps/back-end/src/core/db/repositories/pricing.repository.ts:  return prisma.brandProduct.findUnique({
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:  return prisma.user.findUnique({
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:  return prisma.tenantOnboardingProfile.findFirst({
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:  return prisma.tenantOnboardingProfile.create({
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:  return prisma.tenantOnboardingProfile.update({
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:  return prisma.plan.findUnique({
+apps/back-end/src/core/db/repositories/onboarding.repository.ts:  await prisma.$transaction(async (tx) => {
+apps/back-end/src/modules/ai-brain/ai-agents-config.service.ts:import { prisma } from "../../core/prisma.js";
+apps/back-end/src/modules/ai-brain/ai-agents-config.service.ts:  const record = await prisma.aIAgentConfig.findUnique({ where: { name: agentId } });
+apps/back-end/src/modules/ai-brain/ai-agents-config.service.ts:  return prisma.aIAgentConfig.upsert({
+apps/back-end/src/modules/ai-brain/ai-agents-config.service.ts:    const configs = await prisma.aIAgentConfig.findMany();
+apps/back-end/src/core/db/repositories/voice.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/voice.repository.ts:  return prisma.voiceSession.create({ data });
+apps/back-end/src/core/db/repositories/voice.repository.ts:  return prisma.voiceTranscript.create({ data });
+apps/back-end/src/core/db/repositories/voice.repository.ts:  return prisma.voiceSession.findUnique({
+apps/back-end/src/core/db/repositories/voice.repository.ts:  return prisma.voiceSession.findUnique({
+apps/back-end/src/core/db/repositories/voice.repository.ts:  return prisma.voiceSession.update({ where: { id: sessionId }, data });
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  return prisma.automationRun.create({
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  await prisma.automationRun.update({
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  await prisma.automationRun.update({
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  return prisma.automationActionRun.create({
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  return prisma.automationActionRun.update({
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  return prisma.automationActionRun.findUnique({ where: { dedupKey } });
+apps/back-end/src/core/db/repositories/automation-run.repository.ts:  await prisma.automationRule.update({
+apps/back-end/src/core/db/repositories/ai-monitoring.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/ai-monitoring.repository.ts:  return prisma.aIExecutionLog.create({ data });
+apps/back-end/src/core/db/repositories/ai-monitoring.repository.ts:  return prisma.aIMonitoringEvent.create({ data });
+apps/back-end/src/core/db/repositories/ai-monitoring.repository.ts:  return prisma.aISafetyEvent.create({ data });
+apps/back-end/src/core/db/repositories/ai-monitoring.repository.ts:  return prisma.aIAgentBudget.findMany({
+apps/back-end/src/core/db/repositories/ai-monitoring.repository.ts:  return prisma.aIExecutionLog.aggregate({
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.productPricing.findMany({
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.productPricing.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.aIPricingHistory.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.competitorPrice.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.inventoryItem.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.lead.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.marketingPerformanceLog.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.dealerKpi.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.financeExpense.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.revenueRecord.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.ticket.findMany(args);
+apps/back-end/src/core/db/repositories/autonomy.repository.ts:  return prisma.operationsTask.findMany(args);
+apps/back-end/src/core/db/repositories/ai-safety.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/ai-safety.repository.ts:  return prisma.aIPromptFirewallRule.findMany({ where: { active: true } });
+apps/back-end/src/core/db/repositories/ai-safety.repository.ts:  return prisma.aISafetyConstraint.findMany({ where: { active: true } });
+apps/back-end/src/core/db/repositories/ai-safety.repository.ts:  return prisma.aIBannedAction.findMany();
+apps/back-end/src/core/db/repositories/dealers.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    await prisma.$transaction([
+apps/back-end/src/core/db/repositories/dealers.repository.ts:      prisma.partner.count({ where: { brandId } }),
+apps/back-end/src/core/db/repositories/dealers.repository.ts:      prisma.partner.count({ where: { brandId, status: "ACTIVE" } }),
+apps/back-end/src/core/db/repositories/dealers.repository.ts:      prisma.partnerOrder.aggregate({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:      prisma.stand.count({ where: { brandId } }),
+apps/back-end/src/core/db/repositories/dealers.repository.ts:      prisma.partner.groupBy({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.partner.count({ where }),
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.partner.findMany({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.partner.findFirst({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.partner.findFirst({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.partner.create({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.partner.update({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.partner.update({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.dealerKpi.count({ where }),
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.dealerKpi.findMany({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.dealerKpi.findUnique({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.partnerOrder.aggregate({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.partnerOrderItem.aggregate({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:    prisma.stand.count({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.dealerKpi.upsert({
+apps/back-end/src/core/db/repositories/dealers.repository.ts:  return prisma.partner.findUnique({
+apps/back-end/src/core/db/repositories/ai-insight.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/ai-insight.repository.ts:  return prisma.aIInsight.create({ data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesRep.count({ where }),
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesRep.findMany({
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesRep.findUnique({
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesRep.create({ data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesRep.update({ where: { id: repId }, data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesLead.count({ where }),
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesLead.findMany({
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesLead.create({ data: payload });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.$transaction([
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesVisit.count({ where: { repId: filters.repId } }),
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesVisit.findMany({
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesVisit.create({ data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.cRMTask.create({ data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.aIInsight.create({ data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesRepKpiSnapshot.create({ data });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  const [leadCount, visitCount, orderAggregate] = await prisma.$transaction([
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesLead.count({ where: { repId } }),
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesVisit.count({ where: { repId } }),
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:    prisma.salesOrder.aggregate({
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesRep.findUnique({ where: { id: repId }, select: { id: true, brandId: true, userId: true } });
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesLead.findMany({
+apps/back-end/src/core/db/repositories/sales-reps.repository.ts:  return prisma.salesVisit.findMany({
+apps/back-end/src/core/db/repositories/support.repository.ts:import { prisma } from "../../prisma.js";
+apps/back-end/src/core/db/repositories/support.repository.ts:  return prisma.ticket.findMany({
+apps/back-end/src/core/db/repositories/support.repository.ts:  return prisma.ticket.findUnique({

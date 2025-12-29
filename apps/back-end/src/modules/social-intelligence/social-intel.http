@@ -1,0 +1,94 @@
+@apiUrl = http://localhost:4000/api/v1
+@bearerToken =
+@brandId = demo-brand
+@mentionId =
+@trendId =
+@influencerId =
+@reportId =
+
+### List social mentions
+GET {{apiUrl}}/social-intelligence/mentions?brandId={{brandId}}&page=1&pageSize=10
+Authorization: Bearer {{bearerToken}}
+
+### Get mention
+GET {{apiUrl}}/social-intelligence/mentions/{{mentionId}}
+Authorization: Bearer {{bearerToken}}
+
+### List influencers
+GET {{apiUrl}}/social-intelligence/influencers?page=1&pageSize=10
+Authorization: Bearer {{bearerToken}}
+
+### Create influencer
+POST {{apiUrl}}/social-intelligence/influencers
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "handle": "socialstar",
+  "platform": "instagram",
+  "followers": 12000,
+  "engagementRate": 4.5,
+  "tags": "beauty, lifestyle"
+}
+
+### Update influencer
+PUT {{apiUrl}}/social-intelligence/influencers/{{influencerId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "followers": 12500
+}
+
+### Delete influencer
+DELETE {{apiUrl}}/social-intelligence/influencers/{{influencerId}}
+Authorization: Bearer {{bearerToken}}
+
+### List trends
+GET {{apiUrl}}/social-intelligence/trends?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create trend
+POST {{apiUrl}}/social-intelligence/trends
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "topic": "AI skincare buzz",
+  "platform": "instagram",
+  "score": 78.5,
+  "brandId": "{{brandId}}"
+}
+
+### Update trend
+PUT {{apiUrl}}/social-intelligence/trends/{{trendId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "score": 80.2
+}
+
+### Delete trend
+DELETE {{apiUrl}}/social-intelligence/trends/{{trendId}}
+Authorization: Bearer {{bearerToken}}
+
+### List competitor reports
+GET {{apiUrl}}/social-intelligence/competitor-reports?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### AI social summary
+POST {{apiUrl}}/social-intelligence/ai/summary
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "entityType": "trend",
+  "entityId": "{{trendId}}",
+  "context": "Trend analysis for AI-driven skincare launches."
+}
+
+### Get last AI insight
+GET {{apiUrl}}/social-intelligence/ai/insight?brandId={{brandId}}&entityType=trend&entityId={{trendId}}
+Authorization: Bearer {{bearerToken}}

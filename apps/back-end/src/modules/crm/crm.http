@@ -1,0 +1,50 @@
+@apiUrl = http://localhost:4000/api/v1
+@bearerToken =
+@leadId =
+@brandId = demo-brand
+
+### List leads
+GET {{apiUrl}}/crm?page=1&pageSize=10
+Authorization: Bearer {{bearerToken}}
+
+### List leads with brand filter
+GET {{apiUrl}}/crm?brandId={{brandId}}&status=new&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Get lead
+GET {{apiUrl}}/crm/{{leadId}}
+Authorization: Bearer {{bearerToken}}
+
+### Create lead
+POST {{apiUrl}}/crm
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "name": "Alex Rivera",
+  "email": "alex@example.com",
+  "status": "new"
+}
+
+### Update lead
+PUT {{apiUrl}}/crm/{{leadId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "status": "contacted"
+}
+
+### Delete lead
+DELETE {{apiUrl}}/crm/{{leadId}}
+Authorization: Bearer {{bearerToken}}
+
+### Score lead by AI
+POST {{apiUrl}}/crm/{{leadId}}/ai/score
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "intent": "High touch product demo"
+}

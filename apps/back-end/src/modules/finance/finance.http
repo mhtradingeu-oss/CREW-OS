@@ -1,0 +1,49 @@
+@apiUrl = http://localhost:4000
+@authToken =
+@brandId = demo-brand
+@financeRecordId =
+
+### List finance records
+GET {{apiUrl}}/api/v1/finance?brandId={{brandId}}&page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### Get finance record
+GET {{apiUrl}}/api/v1/finance/{{financeRecordId}}
+Authorization: Bearer {{authToken}}
+
+### Create finance record
+POST {{apiUrl}}/api/v1/finance
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "channel": "online",
+  "amount": 12000,
+  "currency": "EUR",
+  "periodStart": "2025-01-01T00:00:00.000Z",
+  "periodEnd": "2025-01-31T23:59:59.999Z"
+}
+
+### Update finance record
+PUT {{apiUrl}}/api/v1/finance/{{financeRecordId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 13000,
+  "currency": "USD"
+}
+
+### Delete finance record
+DELETE {{apiUrl}}/api/v1/finance/{{financeRecordId}}
+Authorization: Bearer {{authToken}}
+
+### Generate finance runway insight (AI)
+POST {{apiUrl}}/api/v1/finance/ai/runway
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "brandId": "{{brandId}}"
+}

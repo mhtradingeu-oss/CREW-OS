@@ -1,0 +1,9 @@
+node_modules
+6+7dist
+npm-debug.log
+.env
+.DS_Store
+coverage
+.turbo
+.git
+     0

@@ -1,0 +1,13 @@
+// Example event trace logs (JSON, one per line)
+
+// When publish() is called:
+{"timestamp":"2025-12-27T12:00:00.000Z","level":"info","message":"event.emitted","environment":"development","eventName":"user.created","correlationId":"abc-123","module":"user"}
+
+// When a subscriber starts handling:
+{"timestamp":"2025-12-27T12:00:00.001Z","level":"info","message":"event.handled.start","environment":"development","eventName":"user.created","correlationId":"abc-123","handler":"sendWelcomeEmail"}
+
+// On successful handler completion:
+{"timestamp":"2025-12-27T12:00:00.002Z","level":"info","message":"event.handled.success","environment":"development","eventName":"user.created","correlationId":"abc-123","handler":"sendWelcomeEmail"}
+
+// On handler error:
+{"timestamp":"2025-12-27T12:00:00.003Z","level":"error","message":"event.handled.error","environment":"development","eventName":"user.created","correlationId":"abc-123","handler":"sendWelcomeEmail","meta":{"error":"SomeError","details":"..."}}

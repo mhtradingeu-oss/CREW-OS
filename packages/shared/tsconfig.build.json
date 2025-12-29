@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  // Only build runtime entry, exclude type-only index.ts
+  "include": [
+    "src/index.runtime.ts",
+    "src/**/*.ts",
+    "!src/index.ts"
+  ],
+  "files": ["src/index.runtime.ts"],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/index.ts"
+  ]
+}

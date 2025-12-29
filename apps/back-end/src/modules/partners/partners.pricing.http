@@ -1,0 +1,21 @@
+@apiUrl = http://localhost:4000
+@bearerToken =
+@brandId = demo-brand
+@partnerId = demo-partner
+@productId = demo-product
+
+### List partner pricing
+GET {{apiUrl}}/api/v1/partners/{{partnerId}}/pricing?brandId={{brandId}}&page=1&pageSize=10
+Authorization: Bearer {{bearerToken}}
+
+### Upsert partner pricing
+POST {{apiUrl}}/api/v1/partners/{{partnerId}}/pricing/upsert
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "productId": "{{productId}}",
+  "netPrice": 125.5,
+  "currency": "EUR"
+}

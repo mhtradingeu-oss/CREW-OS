@@ -1,0 +1,63 @@
+{
+  // "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "allowJs": false,
+    "noEmit": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "incremental": true,
+    "types": [
+      "node",
+      "next",
+      "jest",
+      "@testing-library/jest-dom",
+      "@testing-library/react"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@mh-os/shared": [
+        "../../packages/shared/dist/index.d.ts"
+      ],
+      "@mh-os/shared/*": [
+        "../../packages/shared/dist/*"
+      ],
+      "@/components/*": [
+        "components/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
+      ],
+      "@/app/*": [
+        "app/*"
+      ],
+      "@/types/*": [
+        "types/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/**/*",
+    "components/**/*",
+    "lib/**/*",
+    "types/**/*",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next"
+  ],
+  "references": [
+    {
+      "path": "../../packages/shared"
+    }
+  ]
+}

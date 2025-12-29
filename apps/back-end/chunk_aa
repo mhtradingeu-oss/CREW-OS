@@ -1,0 +1,29 @@
+• Packages in scope: mh-os-superapp-backend
+• Running build in 1 packages
+• Remote caching disabled
+mh-os-superapp-backend:build: cache miss, executing 1c2b576c6f6db02e
+mh-os-superapp-backend:build: 
+mh-os-superapp-backend:build: > mh-os-superapp-backend@0.1.0 build
+mh-os-superapp-backend:build: > tsc
+mh-os-superapp-backend:build: 
+mh-os-superapp-backend:build: src/core/http/params.ts(10,1): error TS1127: Invalid character.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,2): error TS1127: Invalid character.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,3): error TS1127: Invalid character.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,5): error TS1005: ';' expected.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,10): error TS1434: Unexpected keyword or identifier.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,19): error TS1434: Unexpected keyword or identifier.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,24): error TS1228: A type predicate is only allowed in return type position for functions and methods.
+mh-os-superapp-backend:build: src/core/http/params.ts(10,38): error TS1109: Expression expected.
+mh-os-superapp-backend:build: npm error Lifecycle script `build` failed with error:
+mh-os-superapp-backend:build: npm error code 2
+mh-os-superapp-backend:build: npm error path /Users/nadeemnour/Dev/Projects/MH-OS-Superapp/apps/back-end
+mh-os-superapp-backend:build: npm error workspace mh-os-superapp-backend@0.1.0
+mh-os-superapp-backend:build: npm error location /Users/nadeemnour/Dev/Projects/MH-OS-Superapp/apps/back-end
+mh-os-superapp-backend:build: npm error command failed
+mh-os-superapp-backend:build: npm error command sh -c tsc
+
+ Tasks:    0 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    4.469s 
+Failed:    mh-os-superapp-backend#build
+

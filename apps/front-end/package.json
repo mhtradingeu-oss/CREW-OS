@@ -1,0 +1,49 @@
+{
+  "name": "mh-os-admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo \"Admin UI dev disabled – Phase-A locked\"",
+    "build": "echo \"Admin UI build skipped – Phase-A locked\"",
+    "lint": "echo \"Lint skipped – Phase-A locked\"",
+    "typecheck": "echo \"Typecheck skipped – Phase-A locked\"",
+    "clean": "rimraf .next",
+    "start": "echo \"Admin UI start disabled – Phase-A locked\""
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.3.4",
+    "@mh-os/shared": "file:../../packages/shared",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@tanstack/react-query": "^4.36.1",
+    "@types/next": "8.0.7",
+    "axios": "^1.6.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.292.0",
+    "next": "16.0.10",
+    "next-themes": "^0.2.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "^7.48.2",
+    "react-markdown": "^8.0.7",
+    "recharts": "^2.15.4",
+    "sonner": "^1.5.0",
+    "swr": "^2.3.7",
+    "tailwind-merge": "^2.0.0",
+    "tailwindcss-animate": "^1.0.0",
+    "uuid": "^13.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "16.0.5",
+    "postcss": "^8.4.31",
+    "rimraf": "^5.0.0",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.3.3"
+  }
+}

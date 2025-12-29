@@ -1,0 +1,55 @@
+@apiUrl = http://localhost:4000
+@bearerToken =
+@brandId = demo-brand
+@wlBrandSlug =
+@wlBrandId =
+@wlProductId =
+
+### List white-label brands
+GET {{apiUrl}}/api/v1/white-label/brands?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create white-label brand
+POST {{apiUrl}}/api/v1/white-label/brands
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "name": "Project White Label",
+  "slug": "project-white-label",
+  "status": "active"
+}
+
+### Get white-label brand by ID
+GET {{apiUrl}}/api/v1/white-label/brands/{{wlBrandId}}?brandId={{brandId}}
+Authorization: Bearer {{bearerToken}}
+
+### Update white-label brand
+PATCH {{apiUrl}}/api/v1/white-label/brands/{{wlBrandId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "status": "paused"
+}
+
+### Get brand stats
+GET {{apiUrl}}/api/v1/white-label/brands/{{wlBrandId}}/stats?brandId={{brandId}}
+Authorization: Bearer {{bearerToken}}
+
+### List products for the brand
+GET {{apiUrl}}/api/v1/white-label/brands/{{wlBrandId}}/products?brandId={{brandId}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create white-label product
+POST {{apiUrl}}/api/v1/white-label/brands/{{wlBrandId}}/products
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "name": "White-label Product",
+  "sku": "WL-SKU-001"
+}

@@ -1,0 +1,31 @@
+import { prisma } from '../../core/prisma.js';
+import { bus } from '../../core/events/event-bus.js';
+
+export async function dbCheck({ strict }) {
+  let ok = false;
+  let latencyMs = null;
+  let reason = '';
+  const start = Date.now();
+  try {
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 200));
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      timeout,
+    ]);
+    ok = true;
+  } catch (e) {
+    reason = e.message || 'error';
+  }
+  latencyMs = Date.now() - start;
+  if (!ok && !strict) {
+    ok = true;
+    reason = 'ignored in non-strict mode';
+  }
+  return { ok, latencyMs, ...(ok ? {} : { reason }) };
+}
+
+export function eventBusCheck() {
+  // If bus exists, return ok; else unknown
+  if (bus) return { ok: true };
+  return { unknown: true };
+}

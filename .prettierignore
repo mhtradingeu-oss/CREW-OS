@@ -1,0 +1,6 @@
+node_modules
+back-end/dist
+front-end/.next
+front-end/out
+dist
+*.tsbuildinfo

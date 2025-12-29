@@ -1,0 +1,83 @@
+@apiUrl = http://localhost:4000/api/v1
+@bearerToken =
+@policyId = demo-policy
+@restrictionId = demo-ai-restriction
+@brandId = demo-brand
+
+### List policies
+GET {{apiUrl}}/admin/policies?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create policy
+POST {{apiUrl}}/admin/policies
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "name": "Pricing Guardrail",
+  "rulesJson": "{\"maxDiscount\": 5}"
+}
+
+### Get policy
+GET {{apiUrl}}/admin/policies/{{policyId}}
+Authorization: Bearer {{bearerToken}}
+
+### Update policy
+PUT {{apiUrl}}/admin/policies/{{policyId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "name": "Pricing Guardrail v2"
+}
+
+### Delete policy
+DELETE {{apiUrl}}/admin/policies/{{policyId}}
+Authorization: Bearer {{bearerToken}}
+
+### List AI restrictions
+GET {{apiUrl}}/admin/ai-restrictions?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Create AI restriction
+POST {{apiUrl}}/admin/ai-restrictions
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "name": "No medical claims",
+  "rulesJson": "{\"deny\": [\"claims\"]}"
+}
+
+### AI restriction detail
+GET {{apiUrl}}/admin/ai-restrictions/{{restrictionId}}
+Authorization: Bearer {{bearerToken}}
+
+### Update AI restriction
+PUT {{apiUrl}}/admin/ai-restrictions/{{restrictionId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "rulesJson": "{\"deny\": [\"claims\", \"health\"]}"
+}
+
+### Delete AI restriction
+DELETE {{apiUrl}}/admin/ai-restrictions/{{restrictionId}}
+Authorization: Bearer {{bearerToken}}
+
+### List audit logs
+GET {{apiUrl}}/admin/audit-logs?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### AI audit summary
+POST {{apiUrl}}/admin/ai/audit-summary
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "brandId": "{{brandId}}",
+  "entityType": "policy",
+  "entityId": "{{policyId}}",
+  "context": "Review new pricing guardrails and recent updates."
+}

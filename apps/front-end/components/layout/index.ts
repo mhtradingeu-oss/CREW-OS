@@ -1,0 +1,9 @@
+export { default as DashboardShell } from "./dashboard-shell";
+export { default as GlobalAssistantProvider } from "./global-assistant-provider";
+export { default as GlobalSearch } from "./global-search";
+export { default as NotificationBell } from "./notification-bell";
+export { default as PageHeader } from "./page-header";
+export { default as PermissionGuard } from "./permission-guard";
+export { default as SectionHeader } from "./section-header";
+export { default as TenantSwitcher } from "./tenant-switcher";
+export { default as ThemeToggle } from "./theme-toggle";

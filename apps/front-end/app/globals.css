@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 224 76% 52%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 218 19% 92%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 220 14% 94%;
+  --muted-foreground: 220 9% 46%;
+  --accent: 210 100% 97%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 216 14% 88%;
+  --input: 216 14% 88%;
+  --ring: 224 76% 52%;
+  --radius: 0.75rem;
+  --shadow-soft: 0 10px 40px rgba(33, 41, 64, 0.08);
+  --shadow-strong: 0 20px 60px rgba(21, 30, 55, 0.12);
+  /* White-label brand tokens (visual only) */
+  --brand-primary: #2563eb;
+  --brand-secondary: #f59e42;
+  --brand-surface: #f7f8fa;
+  --brand-text: #1e293b;
+}
+
+.dark {
+  --background: 216 28% 7%;
+  --foreground: 210 40% 98%;
+  --card: 215 25% 10%;
+  --card-foreground: 210 40% 98%;
+  --popover: 215 25% 10%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 224 76% 60%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 217 19% 18%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 19% 18%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 215 22% 20%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62% 35%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 19% 24%;
+  --input: 217 19% 24%;
+  --ring: 224 76% 60%;
+  --radius: 0.75rem;
+  --shadow-soft: 0 10px 40px rgba(4, 8, 15, 0.35);
+  --shadow-strong: 0 20px 60px rgba(3, 6, 12, 0.45);
+}
+
+body {
+  background: radial-gradient(120% 120% at 20% 20%, rgba(79, 126, 255, 0.08), transparent),
+    radial-gradient(100% 100% at 80% 0%, rgba(120, 255, 214, 0.08), transparent),
+    hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "liga" 1, "calt" 1, "ss01" 1;
+}
+
+a {
+  @apply text-primary;
+}
+
+input,
+textarea,
+select {
+  @apply rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-primary;
+}
+
+button:disabled {
+  @apply opacity-60;
+}
+
+.glass-panel {
+  background: hsla(var(--card), 0.8);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
+}

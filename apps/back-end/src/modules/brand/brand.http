@@ -1,0 +1,101 @@
+@apiUrl = http://localhost:4000/api/v1
+@bearerToken =
+@brandId =
+@brandSlug = demobrandslug
+
+### List brands (default pagination)
+GET {{apiUrl}}/brand?page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### List brands (search filter)
+GET {{apiUrl}}/brand?search={{brandSlug}}&page=1&pageSize=5
+Authorization: Bearer {{bearerToken}}
+
+### Get brand
+GET {{apiUrl}}/brand/{{brandId}}
+Authorization: Bearer {{bearerToken}}
+
+### Create brand
+POST {{apiUrl}}/brand
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "name": "Demo Brand",
+  "slug": "{{brandSlug}}",
+  "description": "AI-first demo brand for MH-OS",
+  "countryOfOrigin": "Germany",
+  "defaultCurrency": "EUR",
+  "settings": {
+    "tone": "bold"
+  }
+}
+
+### Update brand
+PUT {{apiUrl}}/brand/{{brandId}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "description": "Updated description to test pagination and filters"
+}
+
+### Delete brand
+DELETE {{apiUrl}}/brand/{{brandId}}
+Authorization: Bearer {{bearerToken}}
+
+### Get brand identity
+GET {{apiUrl}}/brand/{{brandId}}/identity
+Authorization: Bearer {{bearerToken}}
+
+### Update brand identity
+PUT {{apiUrl}}/brand/{{brandId}}/identity
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "vision": "Connect every artisan to AI-driven growth.",
+  "mission": "Deliver bold, human-centered experiences for modern creators.",
+  "toneOfVoice": "Confident, helpful, concise",
+  "keywords": "artisan, growth, AI, community"
+}
+
+### Refresh brand AI identity
+POST {{apiUrl}}/brand/{{brandId}}/ai/identity
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "forceRegenerate": true
+}
+
+### Get brand rules
+GET {{apiUrl}}/brand/{{brandId}}/rules
+Authorization: Bearer {{bearerToken}}
+
+### Update brand rules
+PUT {{apiUrl}}/brand/{{brandId}}/rules
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "namingRules": "Use concise, memorable names.",
+  "pricingConstraints": "Respect MAP and minimum margin of 20%."
+}
+
+### Get brand AI config
+GET {{apiUrl}}/brand/{{brandId}}/ai/config
+Authorization: Bearer {{bearerToken}}
+
+### Update brand AI config
+PUT {{apiUrl}}/brand/{{brandId}}/ai/config
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "aiPersonality": "Bold Strategist",
+  "aiTone": "Concise and confident",
+  "aiEnabledActions": ["identity_insights", "copywriting"],
+  "aiBlockedTopics": ["politics", "religion"],
+  "aiModelVersion": "gpt-4.1"
+}
