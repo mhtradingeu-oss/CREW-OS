@@ -12,76 +12,75 @@ env:
   CI: true
 
 jobs:
-  # -----------------------
-  # 1️⃣ LINT
-  # -----------------------
-  lint:
+  lint-backend:
     name: Lint (Backend)
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm ci
-      - run: npm run lint --workspace=mh-os-superapp-backend
+      - name: Install dependencies
+        run: npm ci
 
+      - name: Run linter
+        run: npm run lint --workspace=mh-os-superapp-backend
 
-  # -----------------------
-  # 2️⃣ TYPECHECK
-  # -----------------------
-  typecheck:
+  typecheck-backend:
     name: Typecheck (Backend)
     runs-on: ubuntu-latest
+    needs: [lint-backend]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm ci
-      - run: npm run typecheck --workspace=mh-os-superapp-backend
+      - name: Install dependencies
+        run: npm ci
 
+      - name: Run typecheck
+        run: npm run typecheck --workspace=mh-os-superapp-backend
 
-  # -----------------------
-  # 3️⃣ UNIT TESTS (DB-FREE)
-  # -----------------------
-  test-unit:
+  test-unit-backend:
     name: Test (Unit)
     runs-on: ubuntu-latest
-    needs: [lint, typecheck]
+    needs: [typecheck-backend]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Run Unit Tests
+      - name: Run unit tests (DB-free)
         run: |
           npm run test \
             --workspace=mh-os-superapp-backend \
             -- --testMatch "**/tests/unit/**/*.unit.test.ts"
 
-
-  # -----------------------
-  # 4️⃣ INTEGRATION TESTS (WITH DB)
-  # -----------------------
-  test-integration:
+  test-integration-backend:
     name: Test (Integration)
     runs-on: ubuntu-latest
-    needs: [test-unit]
+    needs: [test-unit-backend]
 
     services:
       postgres:
@@ -98,22 +97,24 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
-          
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
       - name: Generate Prisma Client
         run: npx prisma generate --schema=apps/back-end/prisma/schema.prisma
 
-      - name: Deploy Prisma Migrations (TEST DB)
+      - name: Deploy Prisma Migrations (TEST DB only)
         run: npx prisma migrate deploy --schema=apps/back-end/prisma/schema.prisma
 
-      - name: Run Integration Tests
+      - name: Run integration tests
         run: npm run test:integration --workspace=mh-os-superapp-backend
