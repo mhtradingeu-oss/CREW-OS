@@ -1,5 +1,6 @@
 name: Backend CI
 
+
 on:
   push:
     branches: [ main ]
@@ -10,7 +11,7 @@ on:
 
 jobs:
   lint-backend:
-    name: Lint (Backend)
+    name: "ci/lint-backend"
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +39,7 @@ jobs:
         run: npm run lint --workspace=mh-os-superapp-backend
 
   typecheck-backend:
-    name: Typecheck (Backend)
+    name: "ci/typecheck-backend"
     runs-on: ubuntu-latest
     needs: [lint-backend]
 
@@ -67,7 +68,7 @@ jobs:
         run: npm run typecheck --workspace=mh-os-superapp-backend
 
   test-unit-backend:
-    name: Test (Unit)
+    name: "ci/test-unit-backend"
     runs-on: ubuntu-latest
     needs: [typecheck-backend]
 
@@ -99,7 +100,7 @@ jobs:
             -- --testMatch "**/tests/unit/**/*.unit.test.ts"
 
   test-integration-backend:
-    name: Test (Integration)
+    name: "ci/test-integration-backend"
     runs-on: ubuntu-latest
     needs: [test-unit-backend]
 
