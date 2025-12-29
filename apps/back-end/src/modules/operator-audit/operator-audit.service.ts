@@ -1,9 +1,10 @@
-import { Prisma } from "@prisma/client";
+import { AISuggestionStatus, Prisma } from "@prisma/client";
 import { createHash } from "crypto";
 import { env } from "../../core/config/env.js";
 import { notFound } from "../../core/http/errors.js";
 import { AutomationGovernanceRepository } from "../../core/db/repositories/automation-governance.repository.js";
 import { prisma } from "../../core/prisma.js";
+import { normalizeBrand, normalizeOptional } from "./operator-audit.normalizers.js";
 import type {
   ApprovalDetail,
   ApprovalTimelineItem,
@@ -32,7 +33,7 @@ type TimelineFilters = {
 
 async function loadBrands(brandIds: string[]) {
   if (!brandIds.length) {
-    return new Map<string, { id: string; name?: string; tenantId?: string }>();
+    return new Map<string, { id: string; name?: string; tenantId?: string | null }>();
   }
   const brands = await prisma.brand.findMany({
     where: { id: { in: brandIds } },
@@ -92,10 +93,8 @@ export const operatorAuditService = {
     const items: SnapshotTimelineItem[] = records.map((record) => ({
       id: record.id,
       timestamp: record.createdAt,
-      brand: record.brand
-        ? { id: record.brand.id, name: record.brand.name ?? undefined, tenantId: record.brand.tenantId ?? undefined }
-        : undefined,
-      tenantId: record.brand?.tenantId ?? undefined,
+      brand: normalizeBrand(record.brand),
+      tenantId: normalizeOptional(record.brand?.tenantId),
       actor: record.source ?? "system",
       actorType: "system",
       status: record.eventType ?? "snapshot",
@@ -112,7 +111,9 @@ export const operatorAuditService = {
   async listSuggestions(filters: TimelineFilters): Promise<PaginatedTimeline<SuggestionTimelineItem>> {
     const where: Prisma.AISuggestionWhereInput = {};
     if (filters.brandId) where.brandId = filters.brandId;
-    if (filters.status) where.status = filters.status;
+    if (filters.status) {
+      where.status = filters.status as AISuggestionStatus;
+    }
     if (filters.actor) {
       where.OR = [
         { agent: { contains: filters.actor, mode: "insensitive" } },
@@ -138,22 +139,26 @@ export const operatorAuditService = {
     const brandIds = Array.from(new Set(records.map((record) => record.brandId)));
     const brandMap = await loadBrands(brandIds);
 
-    const items: SuggestionTimelineItem[] = records.map((record) => ({
-      id: record.id,
-      timestamp: record.createdAt,
-      brand: brandMap.get(record.brandId)
-        ? { ...brandMap.get(record.brandId) }
-        : { id: record.brandId },
-      tenantId: record.tenantId ?? brandMap.get(record.brandId)?.tenantId,
-      actor: record.agent,
-      actorType: "system",
-      status: record.status,
-      environment: DEFAULT_ENVIRONMENT,
-      snapshotHash: hashInput(record.inputSnapshotJson),
-      suggestionType: record.suggestionType,
-      riskLevel: record.riskLevel,
-      correlationId: record.correlationId ?? undefined,
-    }));
+    const items: SuggestionTimelineItem[] = records.map((record) => {
+      const brandRecord = brandMap.get(record.brandId);
+      const brand = normalizeBrand(brandRecord ?? { id: record.brandId });
+      const tenantId = normalizeOptional(record.tenantId ?? brandRecord?.tenantId);
+
+      return {
+        id: record.id,
+        timestamp: record.createdAt,
+        brand,
+        tenantId,
+        actor: record.agent,
+        actorType: "system",
+        status: record.status,
+        environment: DEFAULT_ENVIRONMENT,
+        snapshotHash: hashInput(record.inputSnapshotJson),
+        suggestionType: record.suggestionType,
+        riskLevel: record.riskLevel,
+        correlationId: record.correlationId ?? undefined,
+      };
+    });
 
     return buildPaginatedResponse(items, total, filters);
   },
@@ -181,7 +186,7 @@ export const operatorAuditService = {
       prisma.automationApprovalDecision.findMany({
         where,
         include: {
-          suggestion: { select: { brandId: true, correlationId: true } },
+          suggestion: { select: { id: true, brandId: true, correlationId: true } },
         },
         orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
         skip: (filters.page - 1) * filters.pageSize,
@@ -201,8 +206,8 @@ export const operatorAuditService = {
       return {
         id: record.id,
         timestamp: record.approvedAt ?? record.createdAt,
-        brand: brand ? { ...brand } : undefined,
-        tenantId: brand?.tenantId,
+        brand: normalizeBrand(brand),
+        tenantId: normalizeOptional(brand?.tenantId),
         actor: actor?.email ?? record.approvedById ?? "system",
         actorType: record.approvedById ? "user" : "system",
         status: record.status,
@@ -274,11 +279,12 @@ export const operatorAuditService = {
     const items: ExecutionTimelineItem[] = records.map((record) => {
       const approval = record.approvalDecision;
       const brandId = approval?.suggestion?.brandId;
+      const brand = brandId ? brandMap.get(brandId) : undefined;
       return {
         id: record.id,
         timestamp: record.executedAt,
-        brand: brandId ? brandMap.get(brandId) : undefined,
-        tenantId: brandId ? brandMap.get(brandId)?.tenantId : undefined,
+        brand: normalizeBrand(brand),
+        tenantId: normalizeOptional(brand?.tenantId),
         actor: record.executedBy.email ?? record.executedBy.id,
         actorType: "user",
         status: record.result,
@@ -309,7 +315,13 @@ export const operatorAuditService = {
       andConditions.push({
         OR: [
           { detectedById: filters.actor },
-          { detectedBy: { contains: filters.actor, mode: "insensitive" } },
+          { relatedExecution: { executedById: filters.actor } },
+          {
+            relatedExecution: {
+              executedBy: { email: { contains: filters.actor, mode: "insensitive" } },
+            },
+          },
+          { relatedApprovalDecision: { approvedById: filters.actor } },
         ],
       });
     }
@@ -379,8 +391,8 @@ export const operatorAuditService = {
       return {
         id: record.incidentId,
         timestamp: record.detectedAt,
-        brand: brand ? { ...brand } : undefined,
-        tenantId: brand?.tenantId,
+        brand: normalizeBrand(brand),
+        tenantId: normalizeOptional(brand?.tenantId),
         actor: record.detectedById ?? record.detectedBy ?? "system",
         actorType: record.detectedById ? "user" : "system",
         status: record.status,
@@ -456,8 +468,8 @@ export const operatorAuditService = {
       return {
         id: record.id,
         timestamp: record.createdAt,
-        brand: brand ? { ...brand } : undefined,
-        tenantId: brand?.tenantId,
+        brand: normalizeBrand(brand),
+        tenantId: normalizeOptional(brand?.tenantId),
         actor: record.approvedById,
         actorType: "user",
         status: record.status,
@@ -500,10 +512,8 @@ export const operatorAuditService = {
       approvedAt: approval.approvedAt,
       expiresAt: approval.expiresAt,
       revokedAt: approval.revokedAt,
-      brand: brand
-        ? { id: brand.id, name: brand.name ?? undefined, tenantId: brand.tenantId ?? undefined }
-        : undefined,
-      tenantId: brand?.tenantId,
+      brand: normalizeBrand(brand ?? undefined),
+      tenantId: normalizeOptional(brand?.tenantId),
       correlationId: approval.suggestion?.correlationId ?? undefined,
       reason: null,
     };
@@ -521,7 +531,7 @@ export const operatorAuditService = {
             snapshotHash: true,
             environment: true,
             expiresAt: true,
-            suggestion: { select: { brandId: true, correlationId: true } },
+            suggestion: { select: { id: true, brandId: true, correlationId: true } },
           },
         },
         rollbackExecutions: true,
@@ -553,10 +563,11 @@ export const operatorAuditService = {
     );
     const rollback = await AutomationGovernanceRepository.getRollbackByExecutionId(execution.id);
 
+    const approvalSuggestionId = approval.suggestion?.id;
     const guardChecks = {
       approvalStatus: approval.status,
       snapshotHashMatched: execution.snapshotHash === approval.snapshotHash,
-      suggestionMatched: execution.suggestionId === approval.suggestionId,
+      suggestionMatched: execution.suggestionId === approvalSuggestionId,
       environmentMatched: execution.environment === approval.environment,
       expired: approval.expiresAt ? approval.expiresAt <= execution.executedAt : false,
     };
@@ -593,20 +604,18 @@ export const operatorAuditService = {
             status: rollback.status,
           }
         : null,
-      brand: brand
-        ? { id: brand.id, name: brand.name ?? undefined, tenantId: brand.tenantId ?? undefined }
-        : undefined,
-      tenantId: brand?.tenantId,
+      brand: normalizeBrand(brand),
+      tenantId: normalizeOptional(brand?.tenantId),
     };
   },
 };
 
-function formatKillSwitch(record: { id: string; reason: string; targetType: string; incidentId?: string }, scope: string): KillSwitchRecord {
+function formatKillSwitch(record: { id: string; reason: string; targetType: string; incidentId?: string | null }, scope: string): KillSwitchRecord {
   return {
     id: record.id,
     reason: record.reason,
     targetType: record.targetType,
     scope,
-    incidentId: record.incidentId,
+    incidentId: normalizeOptional(record.incidentId),
   };
 }
