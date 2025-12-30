@@ -1,6 +1,8 @@
 beforeAll(() => {
   process.env.AI_READ_ONLY_ENABLED = "true";
 });
+process.env.AI_READ_ONLY_ENABLED = "true";
+process.env.NODE_ENV = "test";
 
 import { env } from "../../../core/config/env.js";
 import { aiSuggestionsService } from "../ai-suggestions/ai-suggestions.service.js";
