@@ -1,23 +1,47 @@
--- Create automation run enums
-CREATE TYPE "AutomationRunStatus" AS ENUM (
-  'PENDING',
-  'RUNNING',
-  'SUCCESS',
-  'FAILED',
-  'PARTIAL'
-);
 
-CREATE TYPE "AutomationActionRunStatus" AS ENUM (
-  'PENDING',
-  'RUNNING',
-  'SUCCESS',
-  'FAILED',
-  'SKIPPED',
-  'RETRYING'
-);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE t.typname = 'AutomationRunStatus'
+      AND n.nspname = 'public'
+  ) THEN
+    CREATE TYPE "AutomationRunStatus" AS ENUM (
+      'PENDING',
+      'RUNNING',
+      'SUCCESS',
+      'FAILED',
+      'PARTIAL'
+    );
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE t.typname = 'AutomationActionRunStatus'
+      AND n.nspname = 'public'
+  ) THEN
+    CREATE TYPE "AutomationActionRunStatus" AS ENUM (
+      'PENDING',
+      'RUNNING',
+      'SUCCESS',
+      'FAILED',
+      'SKIPPED',
+      'RETRYING'
+    );
+  END IF;
+END
+$$;
 
 -- Create automation run table
-CREATE TABLE "AutomationRun" (
+CREATE TABLE IF NOT EXISTS "AutomationRun" (
   "id" TEXT PRIMARY KEY,
   "ruleId" TEXT NOT NULL,
   "eventName" TEXT NOT NULL,
@@ -32,11 +56,11 @@ CREATE TABLE "AutomationRun" (
   CONSTRAINT "AutomationRun_ruleId_fkey" FOREIGN KEY ("ruleId") REFERENCES "AutomationRule" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX "AutomationRun_ruleId_idx" ON "AutomationRun" ("ruleId");
-CREATE INDEX "AutomationRun_eventId_idx" ON "AutomationRun" ("eventId");
+CREATE INDEX IF NOT EXISTS "AutomationRun_ruleId_idx" ON "AutomationRun" ("ruleId");
+CREATE INDEX IF NOT EXISTS "AutomationRun_eventId_idx" ON "AutomationRun" ("eventId");
 
 -- Create automation action run table
-CREATE TABLE "AutomationActionRun" (
+CREATE TABLE IF NOT EXISTS "AutomationActionRun" (
   "id" TEXT PRIMARY KEY,
   "runId" TEXT NOT NULL,
   "actionIndex" INTEGER NOT NULL,
@@ -55,4 +79,4 @@ CREATE TABLE "AutomationActionRun" (
   CONSTRAINT "AutomationActionRun_runId_fkey" FOREIGN KEY ("runId") REFERENCES "AutomationRun" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX "AutomationActionRun_runId_idx" ON "AutomationActionRun" ("runId");
+CREATE INDEX IF NOT EXISTS "AutomationActionRun_runId_idx" ON "AutomationActionRun" ("runId");

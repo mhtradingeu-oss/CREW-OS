@@ -1,5 +1,22 @@
--- CreateEnum
-CREATE TYPE "AISuggestionStatus" AS ENUM ('pending', 'approved', 'rejected', 'executed', 'failed');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AISuggestionStatus'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AISuggestionStatus" AS ENUM (
+            'pending',
+            'approved',
+            'rejected',
+            'executed',
+            'failed'
+        );
+    END IF;
+END
+$$;
 
 -- CreateTable
 CREATE TABLE "AISuggestion" (

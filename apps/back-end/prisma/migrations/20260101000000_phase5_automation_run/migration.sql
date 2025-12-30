@@ -1,8 +1,25 @@
--- CreateEnum
-CREATE TYPE "AutomationRunStatus" AS ENUM ('PENDING','RUNNING','SUCCESS','FAILED','SKIPPED');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AutomationRunStatus'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AutomationRunStatus" AS ENUM (
+            'PENDING',
+            'RUNNING',
+            'SUCCESS',
+            'FAILED',
+            'SKIPPED'
+        );
+    END IF;
+END
+$$;
 
 -- CreateTable
-CREATE TABLE "AutomationRun" (
+CREATE TABLE IF NOT EXISTS "AutomationRun" (
     "id" TEXT NOT NULL,
     "ruleId" TEXT NOT NULL,
     "brandId" TEXT,
@@ -19,10 +36,20 @@ CREATE TABLE "AutomationRun" (
 );
 
 -- CreateIndex
-CREATE INDEX "AutomationRun_brandId_idx" ON "AutomationRun" ("brandId");
+CREATE INDEX IF NOT EXISTS "AutomationRun_brandId_idx" ON "AutomationRun" ("brandId");
 
 -- CreateIndex
-CREATE INDEX "AutomationRun_ruleId_idx" ON "AutomationRun" ("ruleId");
+CREATE INDEX IF NOT EXISTS "AutomationRun_ruleId_idx" ON "AutomationRun" ("ruleId");
 
 -- AlterTable
-ALTER TABLE "AutomationRun" ADD CONSTRAINT "AutomationRun_ruleId_fkey" FOREIGN KEY ("ruleId") REFERENCES "AutomationRule"("id") ON DELETE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'AutomationRun_ruleId_fkey'
+    ) THEN
+        ALTER TABLE "AutomationRun" ADD CONSTRAINT "AutomationRun_ruleId_fkey" FOREIGN KEY ("ruleId") REFERENCES "AutomationRule"("id") ON DELETE CASCADE;
+    END IF;
+END
+$$;

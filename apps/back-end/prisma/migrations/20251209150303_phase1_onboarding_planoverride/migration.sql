@@ -1,8 +1,44 @@
--- CreateEnum
-CREATE TYPE "TenantPersona" AS ENUM ('RETAILER_DEALER', 'PRODUCT_BRAND_OWNER', 'CREATOR_INFLUENCER', 'MEDIA_PLATFORM', 'SERVICE_PROVIDER', 'MEMBERSHIP_PROGRAM', 'AFFILIATE_MARKETER', 'MARKETING_AGENCY', 'SALES_REP_ORG', 'WHITE_LABEL_BUILDER');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'TenantPersona'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "TenantPersona" AS ENUM (
+            'RETAILER_DEALER',
+            'PRODUCT_BRAND_OWNER',
+            'CREATOR_INFLUENCER',
+            'MEDIA_PLATFORM',
+            'SERVICE_PROVIDER',
+            'MEMBERSHIP_PROGRAM',
+            'AFFILIATE_MARKETER',
+            'MARKETING_AGENCY',
+            'SALES_REP_ORG',
+            'WHITE_LABEL_BUILDER'
+        );
+    END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "OnboardingStatus" AS ENUM ('in_progress', 'completed');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'OnboardingStatus'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "OnboardingStatus" AS ENUM (
+            'in_progress',
+            'completed'
+        );
+    END IF;
+END
+$$;
 
 -- AlterTable
 ALTER TABLE "Tenant" ADD COLUMN     "planOverridesJson" JSONB;

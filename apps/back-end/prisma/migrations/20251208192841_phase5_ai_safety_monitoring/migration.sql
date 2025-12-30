@@ -4,20 +4,102 @@
   - A unique constraint covering the columns `[productId,competitor,marketplace,country]` on the table `CompetitorPrice` will be added. If there are existing duplicate values, this will fail.
 
 */
--- CreateEnum
-CREATE TYPE "AIExecutionStatus" AS ENUM ('SUCCESS', 'ERROR', 'BLOCKED', 'FALLBACK', 'RETRY');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AIExecutionStatus'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AIExecutionStatus" AS ENUM (
+            'SUCCESS',
+            'ERROR',
+            'BLOCKED',
+            'FALLBACK',
+            'RETRY'
+        );
+    END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AIRiskLevel" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AIRiskLevel'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AIRiskLevel" AS ENUM (
+            'LOW',
+            'MEDIUM',
+            'HIGH',
+            'CRITICAL'
+        );
+    END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AIMonitoringCategory" AS ENUM ('ENGINE_HEALTH', 'AGENT_ACTIVITY', 'TOKEN_USAGE', 'PERFORMANCE_METRIC', 'SYSTEM_ALERT');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AIMonitoringCategory'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AIMonitoringCategory" AS ENUM (
+            'ENGINE_HEALTH',
+            'AGENT_ACTIVITY',
+            'TOKEN_USAGE',
+            'PERFORMANCE_METRIC',
+            'SYSTEM_ALERT'
+        );
+    END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AIPromptAction" AS ENUM ('ALLOW', 'BLOCK', 'SANITIZE');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AIPromptAction'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AIPromptAction" AS ENUM (
+            'ALLOW',
+            'BLOCK',
+            'SANITIZE'
+        );
+    END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AISafetyEventType" AS ENUM ('PROMPT_FIREWALL', 'SAFETY_CONSTRAINT', 'BANNED_ACTION', 'OVERSIGHT', 'RED_TEAM');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AISafetyEventType'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AISafetyEventType" AS ENUM (
+            'PROMPT_FIREWALL',
+            'SAFETY_CONSTRAINT',
+            'BANNED_ACTION',
+            'OVERSIGHT',
+            'RED_TEAM'
+        );
+    END IF;
+END
+$$;
 
 -- AlterTable
 ALTER TABLE "KnowledgeDocument" ADD COLUMN     "campaignId" TEXT,
