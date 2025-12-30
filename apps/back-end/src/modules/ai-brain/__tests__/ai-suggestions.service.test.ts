@@ -1,3 +1,7 @@
+beforeAll(() => {
+  process.env.AI_READ_ONLY_ENABLED = "true";
+});
+
 import { env } from "../../../core/config/env.js";
 import { aiSuggestionsService } from "../ai-suggestions/ai-suggestions.service.js";
 import { validateSuggestionsPayload } from "../ai-suggestions/ai-suggestions.guard.js";
@@ -12,8 +16,13 @@ describe("AI suggestions advisory layer", () => {
     env.AI_SUGGESTIONS_ENABLED = true;
   });
 
+
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    delete process.env.AI_READ_ONLY_ENABLED;
   });
 
   it("generates deterministic suggestions without writes", async () => {
