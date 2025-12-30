@@ -47,6 +47,7 @@ import { mediaStudioRouter } from "./modules/media-studio/index.js";
 import { whiteLabelConfiguratorRouter } from "./modules/white-label-configurator/index.js";
 import { onboardingRouter } from "./modules/onboarding/index.js";
 import { planHistoryRouter } from "./modules/plan-history/index.js";
+import { operatorAuditRouter } from "./modules/operator-audit/index.js";
 import { authenticateRequest } from "./core/security/auth-middleware.js";
 import { responseFormatter } from "./core/http/middleware/response-formatter.js";
 import { attachPlanContext, requireFeature } from "./core/http/middleware/plan-gating.js";
@@ -118,6 +119,7 @@ export function createApp() {
   app.use("/api/v1/white-label", white_labelRouter);
   app.use("/api/v1/automation", automationRouter);
   app.use("/api/v1/automation/observability", automationObservabilityRouter);
+  app.use("/api/v1/audit", operatorAuditRouter);
   app.use("/api/v1/communication", communicationRouter);
   app.use("/api/v1/knowledge", knowledge_baseRouter);
   app.use("/api/v1/security", security_governanceRouter);

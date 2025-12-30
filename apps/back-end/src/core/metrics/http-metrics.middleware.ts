@@ -1,6 +1,7 @@
 import { Counter, Histogram } from 'prom-client';
 import type { Request, Response, NextFunction } from 'express';
 import { register } from './metrics.js';
+import { sanitizeRoute } from '../http/middleware/route-utils.js';
 
 const httpRequestsTotal = new Counter({
   name: 'http_requests_total',
@@ -28,7 +29,7 @@ export function httpMetricsMiddleware(req: Request, res: Response, next: NextFun
   const start = process.hrtime.bigint();
   res.on('finish', () => {
     const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
-    const route = req.route?.path || req.path || 'unknown';
+    const route = sanitizeRoute(req.originalUrl ?? req.path ?? 'unknown');
     const labels = {
       method: req.method,
       route,

@@ -15,6 +15,7 @@
   },
   "scripts": {
     "build": "tsc -b",
+    "test": "echo \"Shared package has no tests\"",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },

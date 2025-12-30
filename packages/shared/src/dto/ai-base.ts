@@ -5,3 +5,9 @@ export interface AiBaseInput {
   locale?: string;
   traceId?: string;
 }
+
+// Specialized context required whenever orchestrator inputs need brand-level targeting
+export interface AiExecutionContext extends AiBaseInput {
+  brandId: string;
+  agentName?: string;
+}

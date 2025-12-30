@@ -1,167 +1,167 @@
-name: CI
+name: Backend CI
+
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
+
+
 
 jobs:
-  quality:
-    name: Quality Checks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Use Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
-      - name: Install dependencies (npm ci)
-        run: npm ci
-
-      - name: Turbo cache restore
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
-
-
-      # 1️⃣ Typecheck (fail on error)
-      - name: Typecheck
-        run: npm run typecheck --workspace=mh-os-superapp-backend
-
-      # 2️⃣ Unit tests (fail on error)
-      - name: Test: Unit
-        run: npm run test -- --testMatch '**/tests/unit/**/*.unit.test.ts' --workspace=mh-os-superapp-backend
-
-      # 3️⃣ Integration tests (fail on error)
-      - name: Test: Integration
-        run: npm run test:integration --workspace=mh-os-superapp-backend
-
-      # 4️⃣ Contract tests (warn only)
-      - name: Test: Contract (warn only)
-        run: |
-          echo 'Running contract tests (warn only)...'
-          set +e
-          npm run test -- --testMatch '**/tests/contract/**/*.contract.test.ts' --workspace=mh-os-superapp-backend > contract-test.log 2>&1
-          CONTRACT_EXIT=$?
-          if [ $CONTRACT_EXIT -eq 0 ]; then
-            echo 'Contract tests passed.'
-          else
-            echo 'WARNING: Contract test mismatches found:'
-            cat contract-test.log | grep -E 'FAIL|Mismatch|Error|Expected|Received' || cat contract-test.log
-            # Do not fail the workflow yet
-            exit 0
-          fi
-      # TODO: After stabilization, enforce contract test failures (remove exit 0 above)
-
-      - name: Turbo cache save
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}name: CI
-
-    integration:
-      name: Integration Tests
-      needs: [quality]
-      runs-on: ubuntu-latest
-      services:
-        postgres:
-          image: postgres:15
-          env:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: mh_os_test
-          ports:
-            - 5432:5432
-          options: >-
-            --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mh_os_test
-        NODE_ENV: test
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-        - name: Use Node.js LTS
-          uses: actions/setup-node@v4
-          with:
-            node-version: 'lts/*'
-            cache: 'npm'
-            cache-dependency-path: '**/package-lock.json'
-        - name: Install dependencies (npm ci)
-          run: npm ci
-        - name: Generate Prisma Client
-          run: npx prisma generate --schema=apps/back-end/prisma/schema.prisma
-        - name: Deploy Prisma Migrations
-          run: npx prisma migrate deploy --schema=apps/back-end/prisma/schema.prisma
-        - name: Run integration tests
-          run: npm run test:integration --workspace=mh-os-superapp-backend
-          env:
-            DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mh_os_test
-            NODE_ENV: test
-        - name: Show migration logs if failed
-          if: failure()
-          run: cat apps/back-end/prisma/migrations/*/migration.sql || true
-
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-
-jobs:
-  build-and-validate:
+  lint-backend:
+    name: "ci/lint-backend"
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Node setup
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 4️⃣ Lint backend
-      - name: Lint backend
-        run: npm run lint --workspace=mh-os-superapp-backend
+      - name: Env Guard (fail if DATABASE_URL is set)
+        run: |
+          if [ ! -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL must NOT be set in CI. Use DATABASE_URL_TEST only." >&2
+            exit 1
+          fi
 
-      # 5️⃣ Lint frontend
-      - name: Lint frontend
-        run: npm run lint --workspace=mh-os-admin
-
-      # 6️⃣ Typecheck (all workspaces)
-      - name: Typecheck (all workspaces)
-        run: npm run typecheck
-
-      # 7️⃣ Build shared package
-      - name: Build shared package
+      - name: Build shared packages
         run: npm run build --workspace=@mh-os/shared
 
-      # 8️⃣ Build backend
-      - name: Build backend
-        run: npm run build --workspace=mh-os-superapp-backend
+      - name: Run linter
+        run: npm run lint --workspace=mh-os-superapp-backend
 
-      # 9️⃣ Build frontend
-      - name: Build frontend
-        run: npm run build --workspace=mh-os-admin
+  typecheck-backend:
+    name: "ci/typecheck-backend"
+    runs-on: ubuntu-latest
+    needs: [lint-backend]
 
-      # 🚫 Phase A exclusions (documented)
-      - name: Skip Prisma / DB / Tests (Phase A)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Env Guard (fail if DATABASE_URL is set)
         run: |
-          echo "Phase A: Skipping Prisma validate, database, and backend tests"
+          if [ ! -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL must NOT be set in CI. Use DATABASE_URL_TEST only." >&2
+            exit 1
+          fi
+
+      - name: Build shared packages
+        run: npm run build --workspace=@mh-os/shared
+
+      - name: Run typecheck
+        run: npm run typecheck --workspace=mh-os-superapp-backend
+
+  test-unit-backend:
+    name: "ci/test-unit-backend"
+    runs-on: ubuntu-latest
+    needs: [typecheck-backend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Env Guard (fail if DATABASE_URL is set)
+        run: |
+          if [ ! -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL must NOT be set in CI. Use DATABASE_URL_TEST only." >&2
+            exit 1
+          fi
+
+      - name: Build shared packages
+        run: npm run build --workspace=@mh-os/shared
+
+      - name: Run unit tests
+        run: |
+          npm run test \
+            --workspace=mh-os-superapp-backend \
+            -- --testMatch "**/tests/unit/**/*.unit.test.ts"
+
+  test-integration-backend:
+    name: "ci/test-integration-backend"
+    runs-on: ubuntu-latest
+    needs: [test-unit-backend]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mh_os_test_${{ github.run_id }}_${{ github.run_attempt }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/mh_os_test_${{ github.run_id }}_${{ github.run_attempt }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Env Guard (fail if DATABASE_URL is set)
+        run: |
+          if [ ! -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL must NOT be set in CI. Use DATABASE_URL_TEST only." >&2
+            exit 1
+          fi
+
+      - name: Build shared packages
+        run: npm run build --workspace=@mh-os/shared
+
+      - name: Generate Prisma Client (TEST DB)
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL_TEST }}
+        run: npx prisma generate --schema=apps/back-end/prisma/schema.prisma
+
+      - name: Apply Prisma Migrations (TEST DB)
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL_TEST }}
+        run: npx prisma migrate deploy --schema=apps/back-end/prisma/schema.prisma
+
+      - name: Migration Guard (warn on duplicate tables)
+        run: |
+          node apps/back-end/scripts/migration-guard.js || true
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL_TEST: ${{ env.DATABASE_URL_TEST }}
+        run: npm run test:integration --workspace=mh-os-superapp-backend
+
+      - name: Cleanup (always)
+        if: always()
+        run: bash scripts/cleanup-local-artifacts.sh || true

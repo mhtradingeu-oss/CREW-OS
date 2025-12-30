@@ -261,6 +261,10 @@ class SalesRepsService {
 
   async getAiPlan(repId: string, input: SalesRepAiPlanRequest): Promise<SalesRepAiPlanDto> {
     const rep = await this.ensureRepExists(repId);
+    if (!rep.brandId) {
+      throw badRequest("Sales rep must be assigned to a brand before generating an AI plan");
+    }
+    const brandId = rep.brandId;
 
     const [leads, visits] = await Promise.all([
       listRecentSalesLeads(repId, 8),
@@ -306,7 +310,7 @@ class SalesRepsService {
     }));
 
     const aiResponse = await aiOrchestrator.generateSalesRepPlan({
-      brandId: rep.brandId === null ? undefined : rep.brandId,
+      brandId,
       repId,
       scope: input.scope,
       notes: input.notes,
@@ -327,7 +331,7 @@ class SalesRepsService {
         taskCount: planTasks.length,
         summary: planResult.summary ?? undefined,
       },
-      { brandId: rep.brandId === null ? undefined : rep.brandId, module: "sales-reps" },
+      { brandId, module: "sales-reps" },
     );
     return planResult;
   }
