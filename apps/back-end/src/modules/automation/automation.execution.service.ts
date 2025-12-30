@@ -86,7 +86,7 @@ export class AutomationExecutionService {
         brandId: approval.suggestion?.brandId,
       });
       await this.killSwitchService.ensureExecutionAllowed(executionId, actionKillContext);
-      const actionResult = await actionDefinition.execute(action.payload, context);
+      const actionResult = await actionDefinition.execute(action.payload as any, context);
       const durationSeconds = Math.max(0, Date.now() - startedAt) / 1000;
       await this.repository.logExecution({
         id: executionId,

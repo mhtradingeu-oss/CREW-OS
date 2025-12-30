@@ -1,116 +1,34 @@
-import type { Response, NextFunction } from "express";
+import type { Response, NextFunction, Request } from "express";
 import type { AuthenticatedRequest } from "../../core/http/http-types.js";
 import { AISuggestionService } from "./ai-suggestion.service.js";
 import { forbidden, notFound, badRequest, unauthorized } from "../../core/http/errors.js";
-import { buildExecutionPlanFromSuggestion } from "./ai-suggestion.execution-mapper.js";
-import * as executor from "../../core/automation/executor/executor.js";
-import { publish } from "../../core/events/event-bus.js";
 import { getPermissionsForRole } from "../../core/security/rbac.js";
+import { automationExecutionService } from "../../modules/automation/automation.execution.service.js";
+import type { ExecuteAutomationActionRequest } from "../../modules/automation/automation.execution.types.js";
+import type { ExecuteAiSuggestionRequest } from "./ai-suggestion.execution.validators.js";
 // POST /api/v1/ai-suggestions/:id/execute (internal, ops/admin)
 export async function executeSuggestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
-    const suggestionArr = await service.repo.listSuggestions({ filter: { id } });
-    const suggestion = suggestionArr[0];
-    if (!suggestion) return next(notFound("Suggestion not found"));
-    if (suggestion.status !== "approved") {
-      return next(badRequest("Suggestion is not approved"));
+    const suggestionId = req.params.id;
+    if (!suggestionId) {
+      return next(badRequest("Missing suggestion id"));
     }
-    // Build execution plan from suggestion
-    const plan = buildExecutionPlanFromSuggestion({
-      suggestionId: suggestion.id,
-      domain: suggestion.domain,
-      suggestionType: suggestion.suggestionType,
-      proposedOutputJson: suggestion.proposedOutputJson,
-    });
-    if ("error" in plan) {
-      // Audit log for failed execution plan
-      await publish(
-        "ai.suggestion.failed",
-        {
-          suggestionId: suggestion.id,
-          correlationId: suggestion.correlationId || suggestion.id,
-          eventType: "ai.suggestion.failed",
-          inputSnapshot: redactSecrets(safeParseJson(suggestion.inputSnapshotJson)),
-          outputSnapshot: { error: plan.error, details: plan.details },
-        },
-        {
-          actorUserId: req.user?.id,
-          brandId: suggestion.brandId,
-          tenantId: suggestion.tenantId,
-          module: "ai-suggestions",
-        }
-      );
-      return next(badRequest(plan.error, plan.details));
-    }
-    // Simulate execution result
-    const executionResult = { steps: plan.steps, status: "executed" };
-    // Audit log for successful execution
-    await publish(
-      "ai.suggestion.executed",
-      {
-        suggestionId: suggestion.id,
-        correlationId: suggestion.correlationId || suggestion.id,
-        eventType: "ai.suggestion.executed",
-        inputSnapshot: redactSecrets(safeParseJson(suggestion.inputSnapshotJson)),
-        outputSnapshot: redactSecrets(executionResult),
-      },
-      {
-        actorUserId: req.user?.id,
-        brandId: suggestion.brandId,
-        tenantId: suggestion.tenantId,
-        module: "ai-suggestions",
-      }
-    );
-    res.status(200).json({ status: "executed", suggestionId: suggestion.id });
+    const userId = req.user?.id;
+    if (!userId) return next(unauthorized());
+    const payload = req.body as ExecuteAiSuggestionRequest;
+    const correlationId =
+      payload.correlationId ??
+      ((req as Request & { context?: { correlationId?: string } }).context?.correlationId);
+    const executionPayload: ExecuteAutomationActionRequest = {
+      ...payload,
+      suggestionId,
+      correlationId,
+    };
+    const result = await automationExecutionService.execute(executionPayload, userId);
+    res.status(200).json(result);
   } catch (err) {
-    // Audit log for execution failure
-    if (req?.params?.id) {
-      await publish(
-        "ai.suggestion.failed",
-        {
-          suggestionId: req.params.id,
-          correlationId: req.params.id,
-          eventType: "ai.suggestion.failed",
-          error: err instanceof Error ? err.message : String(err),
-        },
-        {
-          actorUserId: req.user?.id,
-          module: "ai-suggestions",
-        }
-      );
-    }
     next(err);
   }
-}
-// --- Helpers ---
-function safeParseJson(json: any) {
-  if (!json || typeof json !== "string") return undefined;
-  try {
-    return JSON.parse(json);
-  } catch {
-    return undefined;
-  }
-}
-
-function redactSecrets(obj: any) {
-  // Simple redaction: remove keys named 'secret', 'apiKey', 'token' (case-insensitive)
-  if (!obj || typeof obj !== "object") return obj;
-  const SENSITIVE = ["secret", "apiKey", "token", "password"];
-  const redact = (val: any): any => {
-    if (Array.isArray(val)) return val.map(redact);
-    if (val && typeof val === "object") {
-      return Object.fromEntries(
-        Object.entries(val).map(([k, v]) =>
-          SENSITIVE.includes(k.toLowerCase())
-            ? [k, "[REDACTED]"]
-            : [k, redact(v)]
-        )
-      );
-    }
-    return val;
-  };
-  return redact(obj);
 }
 
 

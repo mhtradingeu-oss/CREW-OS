@@ -2,6 +2,7 @@ import type { ApprovalDecisionWithSuggestion } from "../../types/approval-decisi
 import { AutomationExecutionGuard } from "../guard.js";
 import { env } from "../../../config/env.js";
 import { AutomationKillSwitchService } from "../../governance/kill-switch.service.js";
+import { forbidden } from "../../../http/errors.js";
 
 /* ------------------------------------------------------------------ */
 /* Approval factory                                                    */
@@ -50,12 +51,12 @@ const buildKillSwitch = (): AutomationKillSwitchService => {
 /* Guard factory                                                       */
 /* ------------------------------------------------------------------ */
 
-const buildGuard = (approval: ApprovalDecisionWithSuggestion | null) => {
+const buildGuard = (approval: ApprovalDecisionWithSuggestion | null, killSwitch?: AutomationKillSwitchService) => {
   const repository = {
     getApprovalDecisionById: jest.fn(async () => approval),
   };
 
-  return new AutomationExecutionGuard(repository as any, buildKillSwitch());
+  return new AutomationExecutionGuard(repository as any, killSwitch ?? buildKillSwitch());
 };
 
 /* ------------------------------------------------------------------ */
@@ -114,7 +115,7 @@ describe("AutomationExecutionGuard", () => {
 
     await expect(
       guard.ensureApprovalExecutable(guardInput),
-    ).rejects.toMatchObject({ status: 409 });
+    ).rejects.toMatchObject({ status: 409, code: "APPROVAL_SUGGESTION_MISMATCH" });
   });
 
   it("rejects when the snapshot hash mismatches", async () => {
@@ -122,7 +123,7 @@ describe("AutomationExecutionGuard", () => {
 
     await expect(
       guard.ensureApprovalExecutable(guardInput),
-    ).rejects.toMatchObject({ status: 409 });
+    ).rejects.toMatchObject({ status: 409, code: "SNAPSHOT_MISMATCH" });
   });
 
   it("rejects when the approval is revoked", async () => {
@@ -148,6 +149,19 @@ describe("AutomationExecutionGuard", () => {
 
     await expect(
       guard.ensureApprovalExecutable(guardInput),
-    ).rejects.toMatchObject({ status: 409 });
+    ).rejects.toMatchObject({ status: 409, code: "ENVIRONMENT_MISMATCH" });
+  });
+
+  it("rejects when kill switch blocks the approval", async () => {
+    const killSwitch = buildKillSwitch();
+    jest
+      .spyOn(killSwitch, "ensureApprovalAllowed")
+      .mockRejectedValue(forbidden("blocked", undefined, "AUTOMATION_KILL_SWITCH"));
+
+    const guard = buildGuard(buildApproval(), killSwitch);
+
+    await expect(
+      guard.ensureApprovalExecutable(guardInput),
+    ).rejects.toMatchObject({ status: 403, code: "AUTOMATION_KILL_SWITCH" });
   });
 });

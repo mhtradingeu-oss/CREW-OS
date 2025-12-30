@@ -21,6 +21,7 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@mh-os/shared$': '<rootDir>/../../packages/shared/src/index.ts',
     '^@mh-os/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
+    '^@paralleldrive/cuid2$': '<rootDir>/__mocks__/@paralleldrive/cuid2.ts',
   },
   modulePathIgnorePatterns: [
     ...IGNORED_ARTIFACT_PATHS.map((dir) => `<rootDir>/${dir}(/.*)?`),
