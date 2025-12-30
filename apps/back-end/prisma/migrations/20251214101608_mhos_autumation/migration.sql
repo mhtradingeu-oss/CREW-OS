@@ -1,18 +1,16 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `actionsConfigJson` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `actionsJson` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `conditionConfigJson` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `conditionsJson` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `enabled` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `triggerConfigJson` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `triggerEvent` on the `AutomationRule` table. All the data in the column will be lost.
-  - You are about to drop the column `triggerType` on the `AutomationRule` table. All the data in the column will be lost.
-  - Added the required column `ruleVersionId` to the `AutomationRun` table without a default value. This is not possible if the table is not empty.
-
-*/
-- -- CreateEnum
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = 'AutomationRuleLifecycleState'
+            AND n.nspname = 'public'
+    ) THEN
+        CREATE TYPE "AutomationRuleLifecycleState" AS ENUM ('DRAFT', 'REVIEW', 'ACTIVE', 'PAUSED', 'ARCHIVED');
+    END IF;
+END
+$$;
 DO $$
 BEGIN
     IF NOT EXISTS (
