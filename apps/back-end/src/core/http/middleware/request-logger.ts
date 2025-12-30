@@ -1,17 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { logger } from "../../logger.js";
-
-function sanitizePath(originalUrl: string): string {
-  const path = originalUrl.split("?")[0] ?? "/";
-  if (path.startsWith("/api/v1/auth")) {
-    return "/api/v1/auth/*";
-  }
-  return path;
-}
+import { sanitizeRoute } from "./route-utils.js";
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = Date.now();
-  const label = sanitizePath(req.originalUrl);
+  const label = sanitizeRoute(req.originalUrl);
   const correlationId = (req as any)?.context?.correlationId;
   // Log request start
   logger.info("request.start", {

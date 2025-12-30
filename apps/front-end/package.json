@@ -7,6 +7,7 @@
     "dev": "echo \"Admin UI dev disabled – Phase-A locked\"",
     "build": "echo \"Admin UI build skipped – Phase-A locked\"",
     "lint": "echo \"Lint skipped – Phase-A locked\"",
+    "test": "echo \"Admin tests skipped – Phase-A locked\"",
     "typecheck": "echo \"Typecheck skipped – Phase-A locked\"",
     "clean": "rimraf .next",
     "start": "echo \"Admin UI start disabled – Phase-A locked\""
