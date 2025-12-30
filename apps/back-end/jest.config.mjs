@@ -37,7 +37,6 @@ export default {
     '/metrics\\.routes\\.test\\.ts$',
     '/pricing\\.validators\\.test\\.ts$',
     '/activity-log\\.repository\\.unit\\.test\\.ts$',
-    '/ai-suggestions\\.service\\.test\\.ts$',
     ...IGNORED_ARTIFACT_PATHS.map((dir) => `<rootDir>/${dir}(/.*)?`),
   ],
   // Exclude integration/contract artifacts from the default run

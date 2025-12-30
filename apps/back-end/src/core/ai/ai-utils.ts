@@ -20,6 +20,10 @@ export class SimpleCache<T> {
   set(key: string, value: T) {
     this.store.set(key, { value, expiresAt: Date.now() + this.ttlMs });
   }
+
+  clear() {
+    this.store.clear();
+  }
 }
 
 export function hashPayload(input: unknown) {

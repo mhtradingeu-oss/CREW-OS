@@ -2,6 +2,7 @@
 import { PrismaClient as PrismaClientType, PrismaClient } from "@prisma/client";
 import { logger } from "./logger.js";
 import { getNormalizedDatabaseUrl, checkEnvSafety } from "./config/env-guard.js";
+import { enforceReadOnlyMutation } from "./prisma-read-only-guard.js";
 
 declare global {
   var prisma: PrismaClientType | undefined;
@@ -30,6 +31,7 @@ export const prisma =
 
 if (process.env.NODE_ENV !== "test") {
   prisma.$use(async (params, next) => {
+    enforceReadOnlyMutation(params.action);
     const start = Date.now();
     try {
       const result = await next(params);

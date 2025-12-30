@@ -10,6 +10,7 @@ import { router as aiLearningRouter } from "./ai-learning.routes.js";
 import { router as virtualOfficeRouter } from "./virtual-office.routes.js";
 import { router as aiAutonomyRouter, autonomyDebugRouter } from "./ai-autonomy.routes.js";
 import { router as aiAgentsConfigRouter } from "./ai-agents-config.routes.js";
+import { aiReadOnlyRouter } from "./ai-read-only/ai-read-only.routes.js";
 
 const router = Router();
 
@@ -38,5 +39,6 @@ router.use("/learning", aiLearningRouter);
 router.use("/virtual-office", virtualOfficeRouter);
 router.use("/autonomy", aiAutonomyRouter);
 router.use("/debug/autonomy", autonomyDebugRouter);
+router.use("/read-only", aiReadOnlyRouter);
 
 export { router };
