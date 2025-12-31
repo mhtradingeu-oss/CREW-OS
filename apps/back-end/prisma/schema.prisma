@@ -121,79 +121,204 @@ enum AutomationRollbackStatus {
   FAILED
 }
 
-model User {
-  id                       String                      @id @default(cuid())
-  email                    String                      @unique
-  password                 String
-  role                     String                      @default("USER")
-  status                   String                      @default("ACTIVE")
-  tenantId                 String?
-  brandId                  String?
-  rolesJson                Json?
-  createdAt                DateTime                    @default(now())
-  updatedAt                DateTime                    @updatedAt
-  tenant                   Tenant?                     @relation("TenantUsers", fields: [tenantId], references: [id])
-  brand                    Brand?                      @relation("BrandUsers", fields: [brandId], references: [id])
-  activityLogs             ActivityLog[]
-  affiliates               Affiliate[]
-  auditLogs                AuditLog[]
-  loyaltyCustomers         LoyaltyCustomer[]
-  loyaltyTransactions      LoyaltyTransaction[]
-  notifications            Notification[]
-  partnerUsers             PartnerUser[]
-  salesReps                SalesRep[]
-  StandBonusTrigger        StandBonusTrigger[]
-  influencerDiscoveryTasks InfluencerDiscoveryTask[]   @relation("InfluencerDiscoveryRequestedBy")
-  assignedTickets          Ticket[]                    @relation("TicketAssignedTo")
-  createdTickets           Ticket[]                    @relation("TicketCreatedBy")
-  ticketAssignments        TicketAssignment[]
-  ticketMessages           TicketMessage[]
-  onboardingProfiles       TenantOnboardingProfile[]   @relation("UserOnboardingProfiles")
-  planChanges              TenantPlanChange[]          @relation("PlanChangeChangedBy")
-  automationExecutions     AutomationExecutionLedger[]
+enum TenantPersona {
+  RETAILER_DEALER
+  PRODUCT_BRAND_OWNER
+  CREATOR_INFLUENCER
+  MEDIA_PLATFORM
+  SERVICE_PROVIDER
+  MEMBERSHIP_PROGRAM
+  AFFILIATE_MARKETER
+  MARKETING_AGENCY
+  SALES_REP_ORG
+  WHITE_LABEL_BUILDER
+}
 
+enum OnboardingStatus {
+  in_progress
+  completed
+}
+
+enum AISuggestionStatus {
+  pending
+  approved
+  rejected
+  executed
+  failed
+}
+
+model AIAgentBudget {
+  id               String   @id @default(cuid())
+  agentName        String
+  brandId          String?
+  tenantId         String?
+  dailyBudgetUsd   Float?
+  monthlyBudgetUsd Float?
+  tokenLimit       Int?
+  alertThreshold   Float?   @default(0.8)
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  brand            Brand?   @relation(fields: [brandId], references: [id])
+  tenant           Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@unique([agentName, brandId, tenantId])
+  @@index([brandId])
   @@index([tenantId])
+}
+
+model AIAgentConfig {
+  id         String   @id @default(cuid())
+  brandId    String?
+  name       String   @unique
+  osScope    String?
+  configJson String?
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  brand      Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model AIBannedAction {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  description String?
+  severity    AIRiskLevel?
+  scope       String?
+  mitigation  String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model AIExecutionLog {
+  id               String            @id @default(cuid())
+  runId            String
+  agentName        String?
+  namespace        String?
+  model            String?
+  provider         String?
+  status           AIExecutionStatus
+  riskLevel        AIRiskLevel?
+  latencyMs        Int?
+  promptTokens     Int?
+  completionTokens Int?
+  totalTokens      Int?
+  costUsd          Float?
+  promptPreview    String?
+  outputPreview    String?
+  errorMessage     String?
+  brandId          String?
+  tenantId         String?
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  brand            Brand?            @relation(fields: [brandId], references: [id])
+  tenant           Tenant?           @relation(fields: [tenantId], references: [id])
+
+  @@index([brandId])
+  @@index([tenantId])
+  @@index([namespace])
+  @@index([agentName])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AIInsight {
+  id         String   @id @default(cuid())
+  brandId    String?
+  os         String?
+  entityType String?
+  entityId   String?
+  summary    String?
+  details    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  brand      Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model AILearningJournal {
+  id                 String        @id @default(cuid())
+  productId          String?
+  brandId            String?
+  source             String?
+  eventType          String?
+  inputSnapshotJson  String?
+  outputSnapshotJson String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  brand              Brand?        @relation(fields: [brandId], references: [id])
+  product            BrandProduct? @relation(fields: [productId], references: [id])
+
+  @@index([brandId])
+  @@index([productId])
+}
+
+model AIMonitoringEvent {
+  id        String               @id @default(cuid())
+  category  AIMonitoringCategory
+  status    String?
+  metric    Json?
+  agentName String?
+  engine    String?
+  namespace String?
+  riskLevel AIRiskLevel?
+  brandId   String?
+  tenantId  String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  brand     Brand?               @relation(fields: [brandId], references: [id])
+  tenant    Tenant?              @relation(fields: [tenantId], references: [id])
+
+  @@index([category])
+  @@index([brandId])
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+model AIPricingHistory {
+  id              String       @id @default(cuid())
+  productId       String
+  brandId         String?
+  channel         String?
+  oldNet          Decimal?
+  newNet          Decimal?
+  aiAgent         String?
+  confidenceScore Decimal?
+  summary         String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  brand           Brand?       @relation(fields: [brandId], references: [id])
+  product         BrandProduct @relation(fields: [productId], references: [id])
+
+  @@index([productId])
   @@index([brandId])
 }
 
-model Role {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  description String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  permissions RolePermission[]
+model AIPromptFirewallRule {
+  id           String         @id @default(cuid())
+  name         String
+  matcherType  String
+  matcherValue String
+  action       AIPromptAction
+  reason       String?
+  severity     AIRiskLevel?
+  active       Boolean        @default(true)
+  tags         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
-model Permission {
-  id          String           @id @default(cuid())
-  code        String           @unique
-  description String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  roles       RolePermission[]
-}
-
-model RolePermission {
-  id           String     @id @default(cuid())
-  roleId       String
-  permissionId String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  permission   Permission @relation(fields: [permissionId], references: [id])
-  role         Role       @relation(fields: [roleId], references: [id])
-}
-
-model Policy {
-  id        String   @id @default(cuid())
-  name      String
-  rulesJson String?
-  category  String?
-  status    String   @default("enabled")
-  brandId   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
+model AIReport {
+  id          String    @id @default(cuid())
+  brandId     String?
+  title       String
+  scope       String?
+  periodStart DateTime?
+  periodEnd   DateTime?
+  content     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  brand       Brand?    @relation(fields: [brandId], references: [id])
 }
 
 model AIRestrictionPolicy {
@@ -202,6 +327,194 @@ model AIRestrictionPolicy {
   rulesJson String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AISafetyConstraint {
+  id                    String   @id @default(cuid())
+  code                  String   @unique
+  scope                 String?
+  description           String?
+  ruleJson              String?
+  allowedActionsJson    String?
+  restrictedDomainsJson String?
+  riskScore             Int?
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model AISafetyEvent {
+  id        String            @id @default(cuid())
+  type      AISafetyEventType
+  action    String?
+  ruleId    String?
+  runId     String?
+  agentName String?
+  namespace String?
+  riskLevel AIRiskLevel?
+  decision  String?
+  detail    Json?
+  brandId   String?
+  tenantId  String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  brand     Brand?            @relation(fields: [brandId], references: [id])
+  tenant    Tenant?           @relation(fields: [tenantId], references: [id])
+
+  @@index([type])
+  @@index([brandId])
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+model AISuggestion {
+  id       String @id @default(cuid())
+  tenantId String
+  brandId  String
+
+  agent          String
+  domain         String
+  suggestionType String
+  riskLevel      String
+
+  status               AISuggestionStatus @default(pending)
+  requiredApprovalRole String
+
+  inputSnapshotJson  String
+  proposedOutputJson String
+
+  approvedByUserId String?
+  approvedAt       DateTime?
+  executedAt       DateTime?
+  failureReason    String?
+
+  correlationId String
+
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+  approvalDecisions AutomationApprovalDecision[]
+
+  @@index([tenantId])
+  @@index([brandId])
+  @@index([status])
+  @@index([correlationId])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  brandId   String?
+  userId    String?
+  module    String?
+  type      String
+  source    String?
+  severity  String?
+  metaJson  String?
+  createdAt DateTime @default(now())
+  brand     Brand?   @relation(fields: [brandId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([brandId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Affiliate {
+  id               String                 @id @default(cuid())
+  brandId          String?
+  userId           String?
+  personId         String?
+  tierId           String?
+  code             String?                @unique
+  type             String?
+  channel          String?
+  status           String?                @default("ACTIVE")
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  brand            Brand?                 @relation(fields: [brandId], references: [id])
+  person           Person?                @relation(fields: [personId], references: [id])
+  user             User?                  @relation(fields: [userId], references: [id])
+  links            AffiliateLink[]
+  payouts          AffiliatePayout[]
+  performance      AffiliatePerformance[]
+  sales            AffiliateSale[]
+  ownedWhiteLabels WhiteLabelBrand[]      @relation("WL_AffiliateOwner")
+  conversions      AffiliateConversion[]  @relation("AffiliateConversionToAffiliate")
+}
+
+model AffiliateConversion {
+  id          String    @id @default(cuid())
+  brandId     String?
+  affiliateId String
+  orderId     String?
+  amount      Decimal?
+  currency    String?
+  metadata    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  affiliate   Affiliate @relation("AffiliateConversionToAffiliate", fields: [affiliateId], references: [id])
+  brand       Brand?    @relation("AffiliateConversionToBrand", fields: [brandId], references: [id])
+}
+
+model AffiliateLink {
+  id          String    @id @default(cuid())
+  affiliateId String
+  linkCode    String    @unique
+  targetUrl   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+}
+
+model AffiliatePayout {
+  id          String    @id @default(cuid())
+  affiliateId String
+  amount      Decimal?
+  currency    String?
+  status      String?
+  paidAt      DateTime?
+  requestedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+  method      String?
+  notes       String?
+  brandId     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  brand       Brand?    @relation("AffiliatePayoutToBrand", fields: [brandId], references: [id])
+}
+
+model AffiliatePerformance {
+  id          String    @id @default(cuid())
+  affiliateId String
+  period      String?
+  clicks      Int       @default(0)
+  orders      Int       @default(0)
+  revenue     Decimal?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+}
+
+model AffiliateSale {
+  id          String        @id @default(cuid())
+  affiliateId String
+  productId   String?
+  orderValue  Decimal?
+  commission  Decimal?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  affiliate   Affiliate     @relation(fields: [affiliateId], references: [id])
+  product     BrandProduct? @relation(fields: [productId], references: [id])
+}
+
+model AudienceSegment {
+  id               String            @id @default(cuid())
+  brandId          String?
+  name             String
+  filters          String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  brand            Brand?            @relation(fields: [brandId], references: [id])
 }
 
 model AuditLog {
@@ -216,6 +529,1185 @@ model AuditLog {
   user       User?    @relation(fields: [userId], references: [id])
 }
 
+model AutomationActionRun {
+  id               String                    @id @default(cuid())
+  runId            String
+  actionIndex      Int
+  actionType       String
+  status           AutomationActionRunStatus @default(PENDING)
+  attemptCount     Int                       @default(0)
+  nextAttemptAt    DateTime?
+  dedupKey         String                    @unique
+  actionConfigJson Json
+  resultJson       Json?
+  errorJson        Json?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  summary          String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  run AutomationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+}
+
+model AutomationApprovalDecision {
+  id           String                      @id @default(cuid())
+  suggestionId String?
+  suggestion   AISuggestion?               @relation(fields: [suggestionId], references: [id])
+  status       AutomationApprovalStatus    @default(PENDING)
+  snapshotHash String
+  environment  String
+  approvedById String?
+  approvedAt   DateTime?
+  expiresAt    DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+  executions   AutomationExecutionLedger[]
+  incidents    AutomationIncident[]
+
+  @@index([status])
+}
+
+model AutomationBrandKillSwitch {
+  brandId       String    @id
+  tenantId      String?
+  enabled       Boolean   @default(false)
+  reason        String?
+  activatedById String?
+  activatedAt   DateTime?
+  deactivatedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  brand         Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+}
+
+model AutomationExecutionKillSwitch {
+  id            String                              @id @default(cuid())
+  targetId      String
+  targetType    AutomationExecutionKillSwitchTarget
+  reason        String
+  isActive      Boolean                             @default(true)
+  activatedById String?
+  activatedAt   DateTime                            @default(now())
+  incidentId    String?
+  incident      AutomationIncident?                 @relation(fields: [incidentId], references: [incidentId])
+  createdAt     DateTime                            @default(now())
+  updatedAt     DateTime                            @updatedAt
+
+  @@index([targetId, targetType])
+  @@index([incidentId])
+}
+
+model AutomationExecutionLedger {
+  id                 String                              @id @default(cuid())
+  approvalDecisionId String
+  approvalDecision   AutomationApprovalDecision          @relation(fields: [approvalDecisionId], references: [id], onDelete: Cascade)
+  suggestionId       String?
+  snapshotHash       String
+  environment        String
+  executedById       String
+  executedBy         User                                @relation(fields: [executedById], references: [id], onDelete: Cascade)
+  executedAt         DateTime                            @default(now())
+  result             AutomationExecutionResult
+  errorCode          String?
+  errorMessage       String?
+  actionType         String
+  actionPayloadJson  Json?
+  metadataJson       Json?
+  incidents          AutomationIncident[]
+  rollbackExecutions AutomationRollbackExecutionLedger[]
+
+  @@index([approvalDecisionId])
+  @@index([executedById])
+}
+
+model AutomationExecutionLog {
+  id           String         @id @default(cuid())
+  ruleId       String
+  eventName    String?
+  status       String
+  resultJson   String?
+  errorMessage String?
+  runAt        DateTime       @default(now())
+  rule         AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+model AutomationIncident {
+  incidentId                String                              @id @default(cuid())
+  type                      AutomationIncidentType
+  severity                  AutomationIncidentSeverity
+  status                    AutomationIncidentStatus            @default(OPEN)
+  description               String?
+  detectedAt                DateTime                            @default(now())
+  detectedBy                AutomationDetectionSource
+  detectedById              String?
+  metadataJson              Json?
+  relatedExecutionId        String?
+  relatedExecution          AutomationExecutionLedger?          @relation(fields: [relatedExecutionId], references: [id])
+  relatedApprovalDecisionId String?
+  relatedApprovalDecision   AutomationApprovalDecision?         @relation(fields: [relatedApprovalDecisionId], references: [id])
+  mitigationNotesJson       Json?
+  resolutionNotesJson       Json?
+  mitigatedAt               DateTime?
+  resolvedAt                DateTime?
+  createdAt                 DateTime                            @default(now())
+  updatedAt                 DateTime                            @updatedAt
+  executionKillSwitches     AutomationExecutionKillSwitch[]
+  rollbackExecutions        AutomationRollbackExecutionLedger[]
+
+  @@index([relatedExecutionId])
+  @@index([relatedApprovalDecisionId])
+}
+
+model AutomationLog {
+  id          String   @id @default(cuid())
+  brandId     String?
+  eventName   String?
+  ruleId      String?
+  workflowId  String?
+  result      String?
+  detailsJson String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  brand       Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model AutomationRollbackExecutionLedger {
+  id                String                    @id @default(cuid())
+  executionId       String
+  execution         AutomationExecutionLedger @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  incidentId        String
+  incident          AutomationIncident        @relation(fields: [incidentId], references: [incidentId])
+  approvedById      String
+  approvedAt        DateTime
+  reason            String
+  snapshotReference String
+  scopeDescription  String
+  status            AutomationRollbackStatus  @default(PENDING)
+  requestedById     String?
+  executedAt        DateTime?
+  metadataJson      Json?
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  @@index([executionId])
+  @@index([incidentId])
+}
+
+model AutomationRule {
+  id             String                       @id @default(cuid())
+  brandId        String?
+  name           String
+  description    String?
+  state          AutomationRuleLifecycleState @default(DRAFT)
+  enabled        Boolean                      @default(true)
+  triggerEvent   String?
+  triggerType    String?
+  actionsJson    Json?
+  conditionsJson Json?
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  createdById    String?
+  updatedById    String?
+  lastRunAt      DateTime?
+  lastRunStatus  String?
+  brand          Brand?                       @relation(fields: [brandId], references: [id])
+  versions       AutomationRuleVersion[]
+  automationRuns AutomationRun[]
+  executionLogs  AutomationExecutionLog[]
+}
+
+model AutomationRuleVersion {
+  id                  String                       @id @default(cuid())
+  ruleId              String
+  versionNumber       Int
+  triggerEvent        String
+  conditionConfigJson Json
+  actionsConfigJson   Json
+  metaSnapshotJson    Json?
+  createdAt           DateTime                     @default(now())
+  createdById         String?
+  state               AutomationRuleLifecycleState @default(DRAFT)
+  rule                AutomationRule               @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  runs                AutomationRun[]
+
+  @@unique([ruleId, versionNumber])
+}
+
+model AutomationRun {
+  id               String              @id @default(cuid())
+  ruleId           String
+  ruleVersionId    String
+  eventName        String
+  eventId          String?
+  status           AutomationRunStatus @default(PENDING)
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  summaryJson      Json?
+  errorJson        Json?
+  triggerEventJson Json?
+  conditionsJson   Json?
+  actionsJson      Json?
+  ruleMetaJson     Json?
+  dedupKey         String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  rule        AutomationRule        @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  ruleVersion AutomationRuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+  actionRuns  AutomationActionRun[]
+
+  @@index([ruleId])
+  @@index([ruleVersionId])
+  @@index([eventId])
+}
+
+model Brand {
+  id                          String                        @id @default(cuid())
+  name                        String
+  slug                        String                        @unique
+  description                 String?
+  countryOfOrigin             String?
+  defaultCurrency             String?
+  settingsJson                String?
+  tenantId                    String?
+  createdAt                   DateTime                      @default(now())
+  updatedAt                   DateTime                      @updatedAt
+  tenant                      Tenant?                       @relation("TenantBrands", fields: [tenantId], references: [id])
+  defaultForTenants           Tenant[]                      @relation("TenantDefaultBrand")
+  users                       User[]                        @relation("BrandUsers")
+  aiAgentConfigs              AIAgentConfig[]
+  aiInsights                  AIInsight[]
+  aiLearningJournals          AILearningJournal[]
+  aiPricingHistories          AIPricingHistory[]
+  aiReports                   AIReport[]
+  aiExecutionLogs             AIExecutionLog[]
+  aiMonitoringEvents          AIMonitoringEvent[]
+  aiSafetyEvents              AISafetyEvent[]
+  aiAgentBudgets              AIAgentBudget[]
+  virtualOfficeMeetings       VirtualOfficeMeeting[]
+  virtualOfficeActionItems    VirtualOfficeActionItem[]
+  activityLogs                ActivityLog[]
+  policies                    Policy[]
+  affiliates                  Affiliate[]
+  affiliateConversions        AffiliateConversion[]         @relation("AffiliateConversionToBrand")
+  affiliatePayouts            AffiliatePayout[]             @relation("AffiliatePayoutToBrand")
+  audienceSegments            AudienceSegment[]
+  automationLogs              AutomationLog[]
+  automationRules             AutomationRule[]
+  automationKillSwitch        AutomationBrandKillSwitch?
+  aiConfig                    BrandAIConfig?
+  categories                  BrandCategory[]
+  identity                    BrandIdentity?
+  products                    BrandProduct[]
+  rules                       BrandRules?
+  crmSegments                 CRMSegment[]
+  crmTasks                    CRMTask[]
+  campaigns                   Campaign[]
+  companies                   Company[]
+  competitorPrices            CompetitorPrice[]
+  competitorSocialReports     CompetitorSocialReport[]
+  deals                       Deal[]
+  financialKpiRecords         FinancialKPIRecord[]
+  influencerProfiles          InfluencerProfile[]
+  influencerStatSnapshots     InfluencerStatSnapshot[]      @relation("BrandToInfluencerStatSnapshot")
+  influencerDiscoveryTasks    InfluencerDiscoveryTask[]     @relation("BrandToInfluencerDiscoveryTask")
+  influencerNegotiations      InfluencerNegotiation[]       @relation("BrandToInfluencerNegotiation")
+  influencerCampaignLinks     InfluencerCampaignLink[]      @relation("BrandToInfluencerCampaignLink")
+  inventoryItems              InventoryItem[]
+  invoices                    Invoice[]
+  knowledgeCategories         KnowledgeCategory[]
+  knowledgeDocuments          KnowledgeDocument[]
+  leads                       Lead[]
+  loyaltyCustomers            LoyaltyCustomer[]
+  loyaltyPrograms             LoyaltyProgram[]
+  loyaltyRewards              LoyaltyReward[]
+  loyaltyTiers                LoyaltyTier[]                 @relation("LoyaltyTierToBrand")
+  loyaltyTransactions         LoyaltyTransaction[]
+  dealerKpis                  DealerKpi[]
+  standKpis                   StandKpi[]
+  notifications               Notification[]
+  notificationTemplates       NotificationTemplate[]
+  operationsTasks             OperationsTask[]
+  partners                    Partner[]
+  partnerOrders               PartnerOrder[]
+  partnerTiers                PartnerTier[]
+  persons                     Person[]
+  productPriceDrafts          ProductPriceDraft[]
+  productPricings             ProductPricing[]
+  revenueRecords              RevenueRecord[]
+  SalesLead                   SalesLead[]
+  salesOrders                 SalesOrder[]
+  salesReps                   SalesRep[]
+  SalesRepKpiSnapshot         SalesRepKpiSnapshot[]
+  salesVisits                 SalesVisit[]
+  scheduledJobs               ScheduledJob[]
+  socialMentions              SocialMention[]
+  socialTrends                SocialTrend[]
+  Stand                       Stand[]
+  standOrders                 StandOrder[]
+  standPartners               StandPartner[]
+  StandPerformanceSnapshot    StandPerformanceSnapshot[]
+  StandRefillOrder            StandRefillOrder[]
+  tickets                     Ticket[]
+  ticketAssignments           TicketAssignment[]
+  whiteLabelBrands            WhiteLabelBrand[]
+  FinanceExpense              FinanceExpense[]
+  FinanceInvoice              FinanceInvoice[]
+  voiceSessions               VoiceSession[]
+}
+
+model BrandAIConfig {
+  id                   String   @id @default(cuid())
+  brandId              String   @unique
+  aiPersonality        String?
+  aiTone               String?
+  aiContentStyle       String?
+  aiPricingStyle       String?
+  aiEnabledActionsJson String?
+  aiBlockedTopicsJson  String?
+  aiModelVersion       String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  brand                Brand    @relation(fields: [brandId], references: [id])
+}
+
+model BrandCategory {
+  id          String         @id @default(cuid())
+  brandId     String?
+  name        String
+  slug        String         @unique
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  brand       Brand?         @relation(fields: [brandId], references: [id])
+  products    BrandProduct[]
+}
+
+model BrandIdentity {
+  id                 String   @id @default(cuid())
+  brandId            String   @unique
+  vision             String?
+  mission            String?
+  values             String?
+  toneOfVoice        String?
+  persona            String?
+  brandStory         String?
+  keywords           String?
+  colorPalette       String?
+  packagingStyle     String?
+  socialProfilesJson String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  brand              Brand    @relation(fields: [brandId], references: [id])
+}
+
+model BrandProduct {
+  id                      String                       @id @default(cuid())
+  brandId                 String?
+  categoryId              String?
+  name                    String
+  slug                    String                       @unique
+  description             String?
+  sku                     String?                      @unique
+  lifecycleStage          String?                      @default("concept")
+  barcode                 String?
+  ean                     String?
+  upc                     String?
+  qrCodeUrl               String?
+  tags                    Json?
+  marketingProfileJson    String?
+  seoProfileJson          String?
+  distributionProfileJson String?
+  complianceProfileJson   String?
+  localizationProfileJson String?
+  socialProofJson         String?
+  analyticsProfileJson    String?
+  complianceDocIds        Json?
+  specDocIds              Json?
+  status                  String?                      @default("ACTIVE")
+  createdAt               DateTime                     @default(now())
+  updatedAt               DateTime                     @updatedAt
+  mediaIds                Json?
+  aiLearningJournal       AILearningJournal[]
+  aiPricingHistory        AIPricingHistory[]
+  affiliateSales          AffiliateSale[]
+  brand                   Brand?                       @relation(fields: [brandId], references: [id])
+  category                BrandCategory?               @relation(fields: [categoryId], references: [id])
+  competitorPrices        CompetitorPrice[]
+  socialMentions          SocialMention[]
+  socialTrends            SocialTrend[]
+  competitorSocialReports CompetitorSocialReport[]
+  inventoryItems          InventoryItem[]
+  knowledgeDocuments      KnowledgeDocument[]
+  partnerOrderItems       PartnerOrderItem[]
+  partnerPrices           PartnerPricing[]
+  priceDrafts             ProductPriceDraft[]
+  pricing                 ProductPricing?
+  revenueRecords          RevenueRecord[]
+  standInventories        StandInventory[]
+  standOrderItems         StandOrderItem[]
+  StandRefillItem         StandRefillItem[]
+  whiteLabelProducts      WhiteLabelProduct[]
+
+  @@index([brandId])
+  @@index([categoryId])
+}
+
+model BrandRules {
+  id                 String   @id @default(cuid())
+  brandId            String   @unique
+  namingRules        String?
+  descriptionRules   String?
+  marketingRules     String?
+  discountRules      String?
+  pricingConstraints String?
+  restrictedWords    String?
+  allowedWords       String?
+  aiRestrictions     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  brand              Brand    @relation(fields: [brandId], references: [id])
+}
+
+model CRMSegment {
+  id         String   @id @default(cuid())
+  brandId    String?
+  name       String
+  filterJson Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  brand      Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model CRMTask {
+  id           String    @id @default(cuid())
+  brandId      String?
+  title        String
+  dueDate      DateTime?
+  status       String?
+  assignedToId String?
+  leadId       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  brand        Brand?    @relation(fields: [brandId], references: [id])
+  lead         Lead?     @relation(fields: [leadId], references: [id])
+}
+
+model Campaign {
+  id                      String                    @id @default(cuid())
+  brandId                 String?
+  channelId               String?
+  name                    String
+  objective               String?
+  budget                  Decimal?
+  status                  String?
+  targetSegmentIds        Json?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  brand                   Brand?                    @relation(fields: [brandId], references: [id])
+  performanceLogs         MarketingPerformanceLog[]
+  knowledgeDocuments      KnowledgeDocument[]
+  influencerLinks         InfluencerCampaignLink[]  @relation("CampaignToInfluencerCampaignLink")
+  CampaignLeadAttribution CampaignLeadAttribution[]
+  CampaignInteraction     CampaignInteraction[]
+}
+
+model CampaignInteraction {
+  id         String   @id @default(cuid())
+  campaignId String
+  type       String
+  leadId     String?
+  customerId String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  campaign Campaign     @relation(fields: [campaignId], references: [id])
+  lead     Lead?        @relation("CampaignInteractionLead", fields: [leadId], references: [id])
+  customer CrmCustomer? @relation("CampaignInteractionCustomer", fields: [customerId], references: [id])
+
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([customerId])
+}
+
+model CampaignLeadAttribution {
+  id         String   @id @default(cuid())
+  campaignId String
+  brandId    String?
+  leadId     String?
+  customerId String?
+  source     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  campaign Campaign     @relation(fields: [campaignId], references: [id])
+  lead     Lead?        @relation(fields: [leadId], references: [id])
+  customer CrmCustomer? @relation(fields: [customerId], references: [id])
+
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([customerId])
+  @@index([brandId])
+}
+
+model Company {
+  id           String         @id @default(cuid())
+  brandId      String?
+  name         String
+  type         String?
+  vatNumber    String?
+  country      String?
+  city         String?
+  website      String?
+  tags         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  brand        Brand?         @relation(fields: [brandId], references: [id])
+  deals        Deal[]
+  leads        Lead[]
+  SalesLead    SalesLead[]
+  CrmCustomer  CrmCustomer[]
+}
+
+model CompetitorPrice {
+  id          String       @id @default(cuid())
+  productId   String
+  brandId     String?
+  competitor  String
+  marketplace String?
+  country     String?
+  priceNet    Decimal?
+  priceGross  Decimal?
+  currency    String?
+  collectedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  brand       Brand?       @relation(fields: [brandId], references: [id])
+  product     BrandProduct @relation(fields: [productId], references: [id])
+
+  @@unique([productId, competitor, marketplace, country])
+  @@index([productId])
+  @@index([brandId])
+}
+
+model CompetitorSocialReport {
+  id         String        @id @default(cuid())
+  brandId    String?
+  productId  String?
+  competitor String?
+  period     String?
+  summary    String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  brand      Brand?        @relation(fields: [brandId], references: [id])
+  product    BrandProduct? @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+model CrmCustomer {
+  id                   String   @id @default(cuid())
+  brandId              String?
+  leadId               String   @unique
+  personId             String?
+  companyId            String?
+  firstOrderId         String?
+  firstRevenueRecordId String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  lead                    Lead                      @relation("LeadToCrmCustomer", fields: [leadId], references: [id])
+  person                  Person?                   @relation(fields: [personId], references: [id])
+  company                 Company?                  @relation(fields: [companyId], references: [id])
+  firstOrder              SalesOrder?               @relation(fields: [firstOrderId], references: [id])
+  firstRevenueRecord      RevenueRecord?            @relation(fields: [firstRevenueRecordId], references: [id])
+  campaignInteractions    CampaignInteraction[]     @relation("CampaignInteractionCustomer")
+  CampaignLeadAttribution CampaignLeadAttribution[]
+
+  @@index([leadId])
+  @@index([brandId])
+}
+
+model Deal {
+  id                String        @id @default(cuid())
+  brandId           String?
+  leadId            String?
+  companyId         String?
+  title             String
+  value             Decimal?
+  currency          String?
+  status            String?
+  expectedCloseDate DateTime?
+  ownerId           String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  brand             Brand?        @relation(fields: [brandId], references: [id])
+  company           Company?      @relation(fields: [companyId], references: [id])
+  lead              Lead?         @relation(fields: [leadId], references: [id])
+}
+
+model DealerKpi {
+  id              String    @id @default(cuid())
+  brandId         String
+  partnerId       String
+  totalOrders     Int       @default(0)
+  totalRevenue    Decimal?
+  totalUnits      Int       @default(0)
+  activeStands    Int       @default(0)
+  engagementScore Float?
+  lastOrderAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  partner         Partner   @relation(fields: [partnerId], references: [id])
+  brand           Brand     @relation(fields: [brandId], references: [id])
+
+  @@unique([partnerId, brandId])
+}
+
+model EInvoice {
+  id               String   @id @default(cuid())
+  invoiceId        String
+  invoice          Invoice  @relation(fields: [invoiceId], references: [id])
+  format           String // 'XRECHNUNG' | 'ZUGFERD'
+  xmlData          String
+  validationErrors Json?
+  validated        Boolean  @default(false)
+  peppolSent       Boolean  @default(false)
+  peppolMessageId  String?
+  createdAt        DateTime @default(now())
+
+  @@index([invoiceId])
+}
+
+model FinanceExpense {
+  id          String   @id @default(cuid())
+  brandId     String
+  category    String
+  amount      Decimal
+  currency    String
+  incurredAt  DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  brand       Brand    @relation(fields: [brandId], references: [id])
+
+  @@index([brandId])
+}
+
+model FinanceInvoice {
+  id         String    @id @default(cuid())
+  brandId    String
+  customerId String?
+  externalId String?
+  amount     Decimal
+  currency   String
+  status     String    @default("draft")
+  issuedAt   DateTime?
+  dueAt      DateTime?
+  paidAt     DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  brand      Brand     @relation(fields: [brandId], references: [id])
+
+  @@index([brandId])
+}
+
+model FinancialKPIRecord {
+  id        String   @id @default(cuid())
+  brandId   String?
+  period    String?
+  metrics   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  brand     Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model InfluencerCampaignLink {
+  id              String            @id @default(cuid())
+  brandId         String?
+  influencerId    String
+  campaignId      String?
+  role            String?
+  trackingUrl     String?
+  performanceJson String?
+  status          String?           @default("active")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  brand           Brand?            @relation("BrandToInfluencerCampaignLink", fields: [brandId], references: [id])
+  influencer      InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  campaign        Campaign?         @relation("CampaignToInfluencerCampaignLink", fields: [campaignId], references: [id])
+
+  @@index([brandId])
+  @@index([influencerId])
+  @@index([campaignId])
+}
+
+model InfluencerDiscoveryTask {
+  id                String   @id @default(cuid())
+  brandId           String?
+  query             String?
+  categories        String?
+  platforms         String?
+  status            String?  @default("queued")
+  resultCount       Int?
+  requestedByUserId String?
+  findingsJson      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  brand             Brand?   @relation("BrandToInfluencerDiscoveryTask", fields: [brandId], references: [id])
+  requestedBy       User?    @relation("InfluencerDiscoveryRequestedBy", fields: [requestedByUserId], references: [id])
+
+  @@index([brandId])
+  @@index([requestedByUserId])
+}
+
+model InfluencerNegotiation {
+  id              String             @id @default(cuid())
+  brandId         String?
+  influencerId    String?
+  status          String?            @default("draft")
+  lastSuggestedAt DateTime?
+  termsJson       String?
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  brand           Brand?             @relation("BrandToInfluencerNegotiation", fields: [brandId], references: [id])
+  influencer      InfluencerProfile? @relation(fields: [influencerId], references: [id])
+
+  @@index([brandId])
+  @@index([influencerId])
+}
+
+model InfluencerProfile {
+  id                String                   @id @default(cuid())
+  brandId           String?
+  handle            String
+  platform          String
+  followers         Int?
+  engagementRate    Float?
+  profileUrl        String?
+  tags              String?
+  displayName       String?
+  category          String?
+  country           String?
+  language          String?
+  contactEmail      String?
+  audienceJson      String?
+  authenticityScore Float?
+  fakeFollowerRisk  Float?
+  marketFitScore    Float?
+  engagementScore   Float?
+  status            String?                  @default("active")
+  riskNotes         String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  brand             Brand?                   @relation(fields: [brandId], references: [id])
+  statSnapshots     InfluencerStatSnapshot[]
+  negotiations      InfluencerNegotiation[]
+  campaignLinks     InfluencerCampaignLink[]
+}
+
+model InfluencerStatSnapshot {
+  id                 String            @id @default(cuid())
+  influencerId       String
+  brandId            String?
+  followers          Int?
+  engagementRate     Float?
+  fakeFollowerPct    Float?
+  audienceMatchScore Float?
+  marketFitScore     Float?
+  authenticityScore  Float?
+  avgViews           Int?
+  metricsJson        String?
+  collectedAt        DateTime          @default(now())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  influencer         InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  brand              Brand?            @relation("BrandToInfluencerStatSnapshot", fields: [brandId], references: [id])
+
+  @@index([influencerId])
+  @@index([brandId])
+}
+
+model InventoryItem {
+  id          String       @id @default(cuid())
+  brandId     String?
+  warehouseId String
+  productId   String
+  quantity    Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  brand       Brand?       @relation(fields: [brandId], references: [id])
+  product     BrandProduct @relation(fields: [productId], references: [id])
+
+  @@index([brandId])
+  @@index([warehouseId])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id           String        @id @default(cuid())
+  brandId      String?
+  customerType String
+  customerId   String?
+  status       String?
+  totalNet     Decimal?
+  totalGross   Decimal?
+  currency     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  brand        Brand?        @relation(fields: [brandId], references: [id])
+  EInvoice     EInvoice[]
+}
+
+model KnowledgeCategory {
+  id        String              @id @default(cuid())
+  brandId   String?
+  name      String
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  brand     Brand?              @relation(fields: [brandId], references: [id])
+  documents KnowledgeDocument[]
+}
+
+model KnowledgeDocument {
+  id         String             @id @default(cuid())
+  brandId    String?
+  title      String
+  categoryId String?
+  productId  String?
+  campaignId String?
+  content    String?
+  summary    String?
+  sourceType String?
+  language   String?
+  fileUrl    String?
+  storageKey String?
+  faqJson    String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  brand      Brand?             @relation(fields: [brandId], references: [id])
+  category   KnowledgeCategory? @relation(fields: [categoryId], references: [id])
+  product    BrandProduct?      @relation(fields: [productId], references: [id])
+  campaign   Campaign?          @relation(fields: [campaignId], references: [id])
+  tags       KnowledgeTag[]
+}
+
+model KnowledgeTag {
+  id         String            @id @default(cuid())
+  documentId String
+  name       String
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  document   KnowledgeDocument @relation(fields: [documentId], references: [id])
+}
+
+model Lead {
+  id                      String                    @id @default(cuid())
+  brandId                 String?
+  personId                String?
+  companyId               String?
+  sourceId                String?
+  status                  String?
+  score                   Int?
+  pipelineId              String?
+  stageId                 String?
+  ownerId                 String?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  tasks                   CRMTask[]
+  deals                   Deal[]
+  brand                   Brand?                    @relation(fields: [brandId], references: [id])
+  company                 Company?                  @relation(fields: [companyId], references: [id])
+  person                  Person?                   @relation(fields: [personId], references: [id])
+  SalesLead               SalesLead[]
+  crmCustomer             CrmCustomer?              @relation("LeadToCrmCustomer")
+  campaignInteractions    CampaignInteraction[]     @relation("CampaignInteractionLead")
+  CampaignLeadAttribution CampaignLeadAttribution[]
+}
+
+model LoyaltyCustomer {
+  id            String                 @id @default(cuid())
+  brandId       String?
+  userId        String?
+  personId      String?
+  programId     String
+  tierId        String?
+  pointsBalance Int                    @default(0)
+  tier          String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  brand         Brand?                 @relation(fields: [brandId], references: [id])
+  person        Person?                @relation(fields: [personId], references: [id])
+  program       LoyaltyProgram         @relation(fields: [programId], references: [id])
+  user          User?                  @relation(fields: [userId], references: [id])
+  transactions  LoyaltyTransaction[]
+  redemptions   RewardRedemption[]
+  tierInfo      LoyaltyTier?           @relation(fields: [tierId], references: [id], name: "CustomerTiers")
+}
+
+model LoyaltyProgram {
+  id           String               @id @default(cuid())
+  brandId      String?
+  name         String
+  type         String?
+  description  String?
+  status       String               @default("ACTIVE")
+  rulesJson    String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  tiers        LoyaltyTier[]
+  customers    LoyaltyCustomer[]
+  brand        Brand?               @relation(fields: [brandId], references: [id])
+  rewards      LoyaltyReward[]
+  transactions LoyaltyTransaction[]
+  redemptions  RewardRedemption[]
+}
+
+model LoyaltyReward {
+  id          String             @id @default(cuid())
+  brandId     String?
+  programId   String?
+  name        String
+  description String?
+  costPoints  Int?
+  pointsCost  Int?
+  rewardType  String?
+  payloadJson String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  brand       Brand?             @relation(fields: [brandId], references: [id])
+  program     LoyaltyProgram?    @relation(fields: [programId], references: [id])
+  redemptions RewardRedemption[]
+}
+
+model LoyaltyTier {
+  id                  String            @id @default(cuid())
+  brandId             String?
+  programId           String
+  name                String
+  minPoints           Int
+  maxPoints           Int?
+  benefitsDescription String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  program             LoyaltyProgram    @relation(fields: [programId], references: [id])
+  brand               Brand?            @relation("LoyaltyTierToBrand", fields: [brandId], references: [id])
+  customers           LoyaltyCustomer[] @relation("CustomerTiers")
+}
+
+model LoyaltyTransaction {
+  id           String          @id @default(cuid())
+  brandId      String?
+  customerId   String
+  programId    String
+  userId       String?
+  pointsChange Int
+  reason       String?
+  sourceEntity String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  brand        Brand?          @relation(fields: [brandId], references: [id])
+  customer     LoyaltyCustomer @relation(fields: [customerId], references: [id])
+  program      LoyaltyProgram  @relation(fields: [programId], references: [id])
+  user         User?           @relation(fields: [userId], references: [id])
+}
+
+model MarketingPerformanceLog {
+  id          String   @id @default(cuid())
+  campaignId  String
+  date        DateTime
+  impressions Int?
+  clicks      Int?
+  spend       Decimal?
+  conversions Int?
+  revenue     Decimal?
+  kpiJson     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  brandId    String?
+  userId     String?
+  channel    String
+  title      String
+  body       String
+  status     String?   @default("unread")
+  metaJson   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  type       String?
+  dataJson   String?
+  readAt     DateTime?
+  archivedAt DateTime?
+  brand      Brand?    @relation(fields: [brandId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
+
+  @@index([brandId])
+  @@index([userId])
+}
+
+model NotificationTemplate {
+  id            String   @id @default(cuid())
+  brandId       String?
+  code          String   @unique
+  channel       String
+  version       Int      @default(1)
+  subject       String?
+  body          String?
+  variablesJson String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  brand         Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model OperationsTask {
+  id        String    @id @default(cuid())
+  brandId   String?
+  title     String
+  status    String?
+  dueDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  brand     Brand?    @relation(fields: [brandId], references: [id])
+}
+
+model Partner {
+  id               String               @id @default(cuid())
+  brandId          String?
+  type             String
+  name             String
+  country          String?
+  city             String?
+  status           String?              @default("ACTIVE")
+  tierId           String?
+  settingsJson     Json?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  brand            Brand?               @relation(fields: [brandId], references: [id])
+  tier             PartnerTier?         @relation(fields: [tierId], references: [id])
+  contracts        PartnerContract[]
+  orders           PartnerOrder[]
+  pricing          PartnerPricing[]
+  users            PartnerUser[]
+  salesOrders      SalesOrder[]
+  salesVisits      SalesVisit[]
+  standPartners    StandPartner[]
+  StandRefillOrder StandRefillOrder[]
+  dealerKpis       DealerKpi[]
+  ownedWhiteLabels WhiteLabelBrand[]    @relation("WL_PartnerOwner")
+}
+
+model PartnerContract {
+  id        String    @id @default(cuid())
+  partnerId String
+  startDate DateTime?
+  endDate   DateTime?
+  termsJson String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  partner   Partner   @relation(fields: [partnerId], references: [id])
+}
+
+model PartnerOrder {
+  id        String             @id @default(cuid())
+  brandId   String?
+  partnerId String
+  status    String?
+  total     Decimal?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  brand     Brand?             @relation(fields: [brandId], references: [id])
+  partner   Partner            @relation(fields: [partnerId], references: [id])
+  items     PartnerOrderItem[]
+}
+
+model PartnerOrderItem {
+  id        String       @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  order     PartnerOrder @relation(fields: [orderId], references: [id])
+  product   BrandProduct @relation(fields: [productId], references: [id])
+}
+
+model PartnerPricing {
+  id        String       @id @default(cuid())
+  partnerId String
+  productId String
+  netPrice  Decimal?
+  currency  String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  partner   Partner      @relation(fields: [partnerId], references: [id])
+  product   BrandProduct @relation(fields: [productId], references: [id])
+}
+
+model PartnerTier {
+  id        String    @id @default(cuid())
+  brandId   String?
+  name      String
+  benefits  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  partners  Partner[]
+  brand     Brand?    @relation(fields: [brandId], references: [id])
+}
+
+model PartnerUser {
+  id        String   @id @default(cuid())
+  partnerId String
+  userId    String?
+  role      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+}
+
+model Person {
+  id               String            @id @default(cuid())
+  brandId          String?
+  firstName        String?
+  lastName         String?
+  email            String?           @unique
+  phone            String?
+  country          String?
+  city             String?
+  tags             String?
+  source           String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  affiliates       Affiliate[]
+  leads            Lead[]
+  loyaltyCustomers LoyaltyCustomer[]
+  brand            Brand?            @relation(fields: [brandId], references: [id])
+  CrmCustomer      CrmCustomer[]
+}
+
 model Plan {
   id              String             @id @default(cuid())
   key             String             @unique
@@ -227,6 +1719,461 @@ model Plan {
   tenants         Tenant[]
   planChangesFrom TenantPlanChange[] @relation("PlanChangeFrom")
   planChangesTo   TenantPlanChange[] @relation("PlanChangeTo")
+}
+
+model Policy {
+  id        String   @id @default(cuid())
+  name      String
+  rulesJson String?
+  category  String?
+  status    String   @default("enabled")
+  brandId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  brand     Brand?   @relation(fields: [brandId], references: [id])
+}
+
+model ProductPriceDraft {
+  id                   String       @id @default(cuid())
+  productId            String
+  brandId              String?
+  channel              String
+  oldNet               Decimal?
+  newNet               Decimal?
+  status               String?      @default("DRAFT")
+  statusReason         String?
+  currency             String?
+  mapPrice             Decimal?
+  marginTarget         Decimal?
+  guardrailMinMargin   Decimal?
+  guardrailMaxDiscount Decimal?
+  createdById          String?
+  approvedById         String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  brand                Brand?       @relation(fields: [brandId], references: [id])
+  product              BrandProduct @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([brandId])
+}
+
+model ProductPricing {
+  id                   String       @id @default(cuid())
+  productId            String       @unique
+  brandId              String?
+  cogsEur              Decimal?
+  fullCostEur          Decimal?
+  b2cNet               Decimal?
+  b2cGross             Decimal?
+  dealerNet            Decimal?
+  dealerPlusNet        Decimal?
+  standPartnerNet      Decimal?
+  distributorNet       Decimal?
+  amazonNet            Decimal?
+  ebayNet              Decimal?
+  uvpNet               Decimal?
+  vatPct               Decimal?
+  mapPrice             Decimal?
+  marginTarget         Decimal?
+  guardrailMinMargin   Decimal?
+  guardrailMaxDiscount Decimal?
+  currency             String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  brand                Brand?       @relation(fields: [brandId], references: [id])
+  product              BrandProduct @relation(fields: [productId], references: [id])
+
+  @@index([brandId])
+}
+
+model RevenueRecord {
+  id          String        @id @default(cuid())
+  brandId     String?
+  productId   String?
+  channel     String?
+  amount      Decimal?
+  currency    String?
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  brand       Brand?        @relation(fields: [brandId], references: [id])
+  product     BrandProduct? @relation(fields: [productId], references: [id])
+  CrmCustomer CrmCustomer[]
+}
+
+model RewardRedemption {
+  id           String          @id @default(cuid())
+  customerId   String
+  rewardId     String?
+  programId    String?
+  pointsSpent  Int
+  status       String?
+  metadataJson String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  customer     LoyaltyCustomer @relation(fields: [customerId], references: [id])
+  program      LoyaltyProgram? @relation(fields: [programId], references: [id])
+  reward       LoyaltyReward?  @relation(fields: [rewardId], references: [id])
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  role         Role       @relation(fields: [roleId], references: [id])
+}
+
+model SalesLead {
+  id             String          @id @default(cuid())
+  brandId        String?
+  repId          String
+  leadId         String?
+  companyId      String?
+  territoryId    String?
+  source         String?
+  score          Decimal?        @db.Decimal
+  stage          String?
+  status         String          @default("OPEN")
+  nextAction     String?
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  Brand          Brand?          @relation(fields: [brandId], references: [id])
+  Company        Company?        @relation(fields: [companyId], references: [id])
+  Lead           Lead?           @relation(fields: [leadId], references: [id])
+  rep            SalesRep        @relation(fields: [repId], references: [id])
+
+  @@index([brandId], map: "SalesLead_brandId_index")
+  @@index([repId], map: "SalesLead_repId_index")
+  @@index([territoryId], map: "SalesLead_territoryId_index")
+}
+
+model SalesOrder {
+  id                 String               @id @default(cuid())
+  brandId            String?
+  repId              String?
+  partnerId          String?
+  status             String?
+  total              Decimal?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  brand              Brand?               @relation(fields: [brandId], references: [id])
+  partner            Partner?             @relation(fields: [partnerId], references: [id])
+  rep                SalesRep?            @relation(fields: [repId], references: [id])
+  CrmCustomer        CrmCustomer[]
+}
+
+model SalesRep {
+  id             String                        @id @default(cuid())
+  brandId        String?
+  userId         String?
+  code           String?
+  region         String?
+  status         String?                       @default("ACTIVE")
+  createdAt      DateTime                      @default(now())
+  updatedAt      DateTime                      @updatedAt
+  leads          SalesLead[]
+  orders         SalesOrder[]
+  brand          Brand?                        @relation(fields: [brandId], references: [id])
+  user           User?                         @relation(fields: [userId], references: [id])
+  kpiSnapshots   SalesRepKpiSnapshot[]
+  visits         SalesVisit[]
+}
+
+model SalesRepKpiSnapshot {
+  id          String   @id @default(cuid())
+  brandId     String?
+  repId       String
+  period      String?
+  metricsJson String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  Brand       Brand?   @relation(fields: [brandId], references: [id])
+  rep         SalesRep @relation(fields: [repId], references: [id])
+
+  @@index([brandId], map: "SalesRepKpiSnapshot_brandId_index")
+  @@index([repId], map: "SalesRepKpiSnapshot_repId_index")
+}
+
+model SalesVisit {
+  id        String           @id @default(cuid())
+  brandId   String?
+  repId     String
+  partnerId String?
+  date      DateTime?
+  purpose   String?
+  result    String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  brand     Brand?           @relation(fields: [brandId], references: [id])
+  partner   Partner?         @relation(fields: [partnerId], references: [id])
+  rep       SalesRep         @relation(fields: [repId], references: [id])
+}
+
+model ScheduledJob {
+  id             String    @id @default(cuid())
+  brandId        String?
+  name           String
+  cronExpression String
+  lastRunAt      DateTime?
+  nextRunAt      DateTime?
+  status         String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  brand          Brand?    @relation(fields: [brandId], references: [id])
+}
+
+model SocialMention {
+  id         String        @id @default(cuid())
+  brandId    String?
+  productId  String?
+  platform   String
+  author     String?
+  keyword    String?
+  content    String?
+  sentiment  String?
+  url        String?
+  occurredAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  brand      Brand?        @relation(fields: [brandId], references: [id])
+  product    BrandProduct? @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+model SocialTrend {
+  id            String        @id @default(cuid())
+  brandId       String?
+  productId     String?
+  topic         String
+  platform      String?
+  score         Float?
+  trendDataJson String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  brand         Brand?        @relation(fields: [brandId], references: [id])
+  product       BrandProduct? @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+model Stand {
+  id                   String                     @id @default(cuid())
+  brandId              String?
+  standPartnerId       String
+  name                 String
+  description          String?
+  standType            String?
+  status               String                     @default("ACTIVE")
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @default(now()) @updatedAt
+  Brand                Brand?                     @relation(fields: [brandId], references: [id])
+  standPartner         StandPartner               @relation(fields: [standPartnerId], references: [id])
+  locations            StandLocation[]
+  orders               StandOrder[]
+  performanceSnapshots StandPerformanceSnapshot[]
+  standKpis            StandKpi[]
+  refillOrders         StandRefillOrder[]
+  standUnits           StandUnit[]
+
+  @@index([brandId], map: "Stand_brandId_index")
+  @@index([standPartnerId], map: "Stand_standPartnerId_index")
+}
+
+model StandInventory {
+  id              String         @id @default(cuid())
+  standUnitId     String
+  productId       String
+  quantity        Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  standLocationId String?
+  status          String         @default("ACTIVE")
+  lastRefillAt    DateTime?
+  product         BrandProduct   @relation(fields: [productId], references: [id])
+  standLocation   StandLocation? @relation(fields: [standLocationId], references: [id])
+  standUnit       StandUnit      @relation(fields: [standUnitId], references: [id])
+
+  @@index([standLocationId], map: "StandInventory_standLocationId_index")
+}
+
+model StandKpi {
+  id              String    @id @default(cuid())
+  brandId         String
+  standId         String
+  totalSales      Decimal?
+  totalUnits      Int       @default(0)
+  stockOutEvents  Int       @default(0)
+  lastSaleAt      DateTime?
+  lastStockOutAt  DateTime?
+  regressionScore Float?
+  engagementScore Float?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  stand           Stand     @relation(fields: [standId], references: [id])
+  brand           Brand     @relation(fields: [brandId], references: [id])
+
+  @@unique([standId, brandId])
+}
+
+model StandLocation {
+  id                       String                     @id @default(cuid())
+  standId                  String
+  name                     String
+  address                  String?
+  city                     String?
+  country                  String?
+  region                   String?
+  geoLocationJson          String?
+  status                   String                     @default("ACTIVE")
+  qrCodeUrl                String?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @default(now()) @updatedAt
+  inventories              StandInventory[]
+  stand                    Stand                      @relation(fields: [standId], references: [id], onDelete: Cascade)
+  orders                   StandOrder[]
+  StandPerformanceSnapshot StandPerformanceSnapshot[]
+  StandRefillOrder         StandRefillOrder[]
+
+  @@index([city, country], map: "StandLocation_city_country_index")
+  @@index([standId], map: "StandLocation_standId_index")
+}
+
+model StandOrder {
+  id              String           @id @default(cuid())
+  brandId         String?
+  standPartnerId  String
+  status          String?
+  total           Decimal?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  standId         String?
+  standLocationId String?
+  orderSource     String?
+  brand           Brand?           @relation(fields: [brandId], references: [id])
+  stand           Stand?           @relation(fields: [standId], references: [id])
+  standLocation   StandLocation?   @relation(fields: [standLocationId], references: [id])
+  standPartner    StandPartner     @relation(fields: [standPartnerId], references: [id])
+  items           StandOrderItem[]
+
+  @@index([standId], map: "StandOrder_standId_index")
+  @@index([standLocationId], map: "StandOrder_standLocationId_index")
+}
+
+model StandOrderItem {
+  id        String       @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  order     StandOrder   @relation(fields: [orderId], references: [id])
+  product   BrandProduct @relation(fields: [productId], references: [id])
+}
+
+model StandPartner {
+  id              String               @id @default(cuid())
+  brandId         String?
+  partnerId       String
+  standType       String?
+  locationAddress String?
+  status          String?              @default("ACTIVE")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  stands          Stand[]
+  orders          StandOrder[]
+  brand           Brand?               @relation(fields: [brandId], references: [id])
+  partner         Partner              @relation(fields: [partnerId], references: [id])
+  standUnits      StandUnit[]
+}
+
+model StandPerformanceSnapshot {
+  id              String         @id @default(cuid())
+  brandId         String?
+  standId         String?
+  standLocationId String?
+  period          String?
+  metricsJson     String?
+  note            String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
+  Brand           Brand?         @relation(fields: [brandId], references: [id])
+  stand           Stand?         @relation(fields: [standId], references: [id])
+  StandLocation   StandLocation? @relation(fields: [standLocationId], references: [id])
+
+  @@index([brandId], map: "StandPerformanceSnapshot_brandId_index")
+  @@index([standId], map: "StandPerformanceSnapshot_standId_index")
+  @@index([standLocationId], map: "StandPerformanceSnapshot_standLocationId_index")
+}
+
+model StandRefillItem {
+  id            String           @id @default(cuid())
+  refillOrderId String
+  productId     String
+  quantity      Int
+  cost          Decimal?         @db.Decimal
+  refillSource  String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
+  BrandProduct  BrandProduct     @relation(fields: [productId], references: [id])
+  refillOrder   StandRefillOrder @relation(fields: [refillOrderId], references: [id], onDelete: Cascade)
+}
+
+model StandRefillOrder {
+  id              String            @id @default(cuid())
+  brandId         String?
+  standId         String?
+  standLocationId String?
+  partnerId       String?
+  status          String            @default("PLANNED")
+  expectedAt      DateTime?
+  completedAt     DateTime?
+  carrierInfoJson String?
+  source          String?
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+  items           StandRefillItem[]
+  Brand           Brand?            @relation(fields: [brandId], references: [id])
+  Partner         Partner?          @relation(fields: [partnerId], references: [id])
+  stand           Stand?            @relation(fields: [standId], references: [id])
+  StandLocation   StandLocation?    @relation(fields: [standLocationId], references: [id])
+
+  @@index([brandId], map: "StandRefillOrder_brandId_index")
+  @@index([standId], map: "StandRefillOrder_standId_index")
+  @@index([standLocationId], map: "StandRefillOrder_standLocationId_index")
+}
+
+model StandUnit {
+  id                  String                   @id @default(cuid())
+  standPartnerId      String
+  code                String?
+  locationDescription String?
+  status              String?                  @default("ACTIVE")
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  standId             String?
+  inventories         StandInventory[]
+  stand               Stand?                   @relation(fields: [standId], references: [id])
+  standPartner        StandPartner             @relation(fields: [standPartnerId], references: [id])
+
+  @@index([standId], map: "StandUnit_standId_index")
 }
 
 model Tenant {
@@ -292,2997 +2239,85 @@ model TenantPlanChange {
   @@index([changedByUserId])
 }
 
-enum TenantPersona {
-  RETAILER_DEALER
-  PRODUCT_BRAND_OWNER
-  CREATOR_INFLUENCER
-  MEDIA_PLATFORM
-  SERVICE_PROVIDER
-  MEMBERSHIP_PROGRAM
-  AFFILIATE_MARKETER
-  MARKETING_AGENCY
-  SALES_REP_ORG
-  WHITE_LABEL_BUILDER
-}
-
-enum OnboardingStatus {
-  in_progress
-  completed
-}
-
-model Brand {
-  id                          String                        @id @default(cuid())
-  name                        String
-  slug                        String                        @unique
-  description                 String?
-  countryOfOrigin             String?
-  defaultCurrency             String?
-  settingsJson                String?
-  tenantId                    String?
-  createdAt                   DateTime                      @default(now())
-  updatedAt                   DateTime                      @updatedAt
-  tenant                      Tenant?                       @relation("TenantBrands", fields: [tenantId], references: [id])
-  defaultForTenants           Tenant[]                      @relation("TenantDefaultBrand")
-  users                       User[]                        @relation("BrandUsers")
-  aiAgentConfigs              AIAgentConfig[]
-  aiInsights                  AIInsight[]
-  aiLearningJournals          AILearningJournal[]
-  aiPricingHistories          AIPricingHistory[]
-  aiReports                   AIReport[]
-  aiExecutionLogs             AIExecutionLog[]
-  aiMonitoringEvents          AIMonitoringEvent[]
-  aiSafetyEvents              AISafetyEvent[]
-  aiAgentBudgets              AIAgentBudget[]
-  virtualOfficeMeetings       VirtualOfficeMeeting[]
-  virtualOfficeActionItems    VirtualOfficeActionItem[]
-  activityLogs                ActivityLog[]
-  policies                    Policy[]
-  affiliates                  Affiliate[]
-  affiliateTiers              AffiliateTier[]
-  affiliateConversions        AffiliateConversion[]         @relation("AffiliateConversionToBrand")
-  affiliatePayouts            AffiliatePayout[]             @relation("AffiliatePayoutToBrand")
-  audienceInsights            AudienceInsight[]
-  audienceSegments            AudienceSegment[]
-  automationEvents            AutomationEvent[]
-  automationLogs              AutomationLog[]
-  automationRules             AutomationRule[]
-  automationKillSwitch        AutomationBrandKillSwitch?
-  automationWorkflows         AutomationWorkflow[]
-  aiConfig                    BrandAIConfig?
-  categories                  BrandCategory[]
-  identity                    BrandIdentity?
-  products                    BrandProduct[]
-  productLocalizations        ProductLocalization[]
-  productComplianceProfiles   ProductCompliance[]
-  productDistributionProfiles ProductDistributionProfile[]
-  productMarketingProfiles    ProductMarketingProfile[]
-  productSocialProof          ProductSocialProof[]
-  productAnalyticsHooks       ProductAnalyticsHook[]
-  rules                       BrandRules?
-  budgetPlans                 BudgetPlan[]
-  crmNotes                    CRMNote[]
-  crmSegments                 CRMSegment[]
-  crmTasks                    CRMTask[]
-  campaigns                   Campaign[]
-  companies                   Company[]
-  competitorPrices            CompetitorPrice[]
-  competitorSocialReports     CompetitorSocialReport[]
-  contentPlans                ContentPlan[]
-  deals                       Deal[]
-  expenses                    Expense[]
-  financialKpiRecords         FinancialKPIRecord[]
-  influencerProfiles          InfluencerProfile[]
-  influencerStatSnapshots     InfluencerStatSnapshot[]      @relation("BrandToInfluencerStatSnapshot")
-  influencerDiscoveryTasks    InfluencerDiscoveryTask[]     @relation("BrandToInfluencerDiscoveryTask")
-  influencerNegotiations      InfluencerNegotiation[]       @relation("BrandToInfluencerNegotiation")
-  influencerCampaignLinks     InfluencerCampaignLink[]      @relation("BrandToInfluencerCampaignLink")
-  interactionLogs             InteractionLog[]
-  inventoryItems              InventoryItem[]
-  inventoryKpiRecords         InventoryKPIRecord[]
-  inventoryTransactions       InventoryTransaction[]
-  invoices                    Invoice[]
-  knowledgeCategories         KnowledgeCategory[]
-  knowledgeDocuments          KnowledgeDocument[]
-  knowledgeSources            KnowledgeSource[]
-  leads                       Lead[]
-  leadSources                 LeadSource[]
-  loyaltyCustomers            LoyaltyCustomer[]
-  loyaltyPrograms             LoyaltyProgram[]
-  loyaltyRewards              LoyaltyReward[]
-  loyaltyTiers                LoyaltyTier[]                 @relation("LoyaltyTierToBrand")
-  loyaltyTransactions         LoyaltyTransaction[]
-  dealerKpis                  DealerKpi[]
-  standKpis                   StandKpi[]
-  marketingChannels           MarketingChannel[]
-  notifications               Notification[]
-  notificationChannels        NotificationChannel[]
-  notificationTemplates       NotificationTemplate[]
-  operationsTasks             OperationsTask[]
-  partners                    Partner[]
-  partnerOrders               PartnerOrder[]
-  partnerTiers                PartnerTier[]
-  payments                    Payment[]
-  persons                     Person[]
-  pipelines                   Pipeline[]
-  productPriceDrafts          ProductPriceDraft[]
-  productPricings             ProductPricing[]
-  programPayouts              ProgramPayout[]
-  purchaseOrders              PurchaseOrder[]
-  reorderSuggestions          ReorderSuggestion[]
-  revenueRecords              RevenueRecord[]
-  seoContents                 SEOContent[]
-  SalesAccount                SalesAccount[]
-  SalesCommissionLog          SalesCommissionLog[]
-  SalesLead                   SalesLead[]
-  salesOrders                 SalesOrder[]
-  salesQuotes                 SalesQuote[]
-  salesReps                   SalesRep[]
-  commissionRecords           SalesRepCommissionRecord[]
-  commissionSchemes           SalesRepCommissionScheme[]
-  SalesRepKpiSnapshot         SalesRepKpiSnapshot[]
-  salesPerformance            SalesRepPerformanceSnapshot[]
-  salesTargets                SalesRepTarget[]
-  salesTasks                  SalesRepTask[]
-  routePlans                  SalesRoutePlan[]
-  territories                 SalesTerritory[]
-  salesVisits                 SalesVisit[]
-  scheduledJobs               ScheduledJob[]
-  shipments                   Shipment[]
-  socialMentions              SocialMention[]
-  socialTrends                SocialTrend[]
-  Stand                       Stand[]
-  standOrders                 StandOrder[]
-  StandPackage                StandPackage[]
-  standPartners               StandPartner[]
-  StandPerformanceSnapshot    StandPerformanceSnapshot[]
-  StandRefillOrder            StandRefillOrder[]
-  stockAdjustments            StockAdjustment[]
-  stockTransfers              StockTransfer[]
-  taxProfiles                 TaxProfile[]
-  tickets                     Ticket[]
-  ticketAssignments           TicketAssignment[]
-  trackingLinks               TrackedLink[]
-  trackingProfiles            TrackingProfile[]
-  warehouses                  Warehouse[]
-  whiteLabelBrands            WhiteLabelBrand[]
-  FinanceExpense              FinanceExpense[]
-  FinanceInvoice              FinanceInvoice[]
-  voiceSessions               VoiceSession[]
-}
-
-model BrandIdentity {
-  id                 String   @id @default(cuid())
-  brandId            String   @unique
-  vision             String?
-  mission            String?
-  values             String?
-  toneOfVoice        String?
-  persona            String?
-  brandStory         String?
-  keywords           String?
-  colorPalette       String?
-  packagingStyle     String?
-  socialProfilesJson String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  brand              Brand    @relation(fields: [brandId], references: [id])
-}
-
-model BrandRules {
-  id                 String   @id @default(cuid())
-  brandId            String   @unique
-  namingRules        String?
-  descriptionRules   String?
-  marketingRules     String?
-  discountRules      String?
-  pricingConstraints String?
-  restrictedWords    String?
-  allowedWords       String?
-  aiRestrictions     String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  brand              Brand    @relation(fields: [brandId], references: [id])
-}
-
-model BrandAIConfig {
-  id                   String   @id @default(cuid())
-  brandId              String   @unique
-  aiPersonality        String?
-  aiTone               String?
-  aiContentStyle       String?
-  aiPricingStyle       String?
-  aiEnabledActionsJson String?
-  aiBlockedTopicsJson  String?
-  aiModelVersion       String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  brand                Brand    @relation(fields: [brandId], references: [id])
-}
-
-model BrandCategory {
-  id          String         @id @default(cuid())
-  brandId     String?
-  name        String
-  slug        String         @unique
-  description String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  brand       Brand?         @relation(fields: [brandId], references: [id])
-  products    BrandProduct[]
-}
-
-model BrandProduct {
-  id                      String                       @id @default(cuid())
-  brandId                 String?
-  categoryId              String?
-  name                    String
-  slug                    String                       @unique
-  description             String?
-  sku                     String?                      @unique
-  lifecycleStage          String?                      @default("concept")
-  barcode                 String?
-  ean                     String?
-  upc                     String?
-  qrCodeUrl               String?
-  tags                    Json?
-  marketingProfileJson    String?
-  seoProfileJson          String?
-  distributionProfileJson String?
-  complianceProfileJson   String?
-  localizationProfileJson String?
-  socialProofJson         String?
-  analyticsProfileJson    String?
-  complianceDocIds        Json?
-  specDocIds              Json?
-  status                  String?                      @default("ACTIVE")
-  createdAt               DateTime                     @default(now())
-  updatedAt               DateTime                     @updatedAt
-  mediaIds                Json?
-  aiLearningJournal       AILearningJournal[]
-  aiPricingHistory        AIPricingHistory[]
-  affiliateSales          AffiliateSale[]
-  brand                   Brand?                       @relation(fields: [brandId], references: [id])
-  category                BrandCategory?               @relation(fields: [categoryId], references: [id])
-  localizations           ProductLocalization[]
-  complianceProfiles      ProductCompliance[]
-  distributionProfiles    ProductDistributionProfile[]
-  marketingProfiles       ProductMarketingProfile[]
-  socialProof             ProductSocialProof[]
-  analyticsHooks          ProductAnalyticsHook[]
-  seoContents             SEOContent[]
-  competitorPrices        CompetitorPrice[]
-  socialMentions          SocialMention[]
-  socialTrends            SocialTrend[]
-  competitorSocialReports CompetitorSocialReport[]
-  dealProducts            DealProduct[]
-  inventoryItems          InventoryItem[]
-  inventoryTransactions   InventoryTransaction[]
-  invoiceItems            InvoiceItem[]
-  knowledgeDocuments      KnowledgeDocument[]
-  partnerOrderItems       PartnerOrderItem[]
-  partnerPrices           PartnerPricing[]
-  priceDrafts             ProductPriceDraft[]
-  pricing                 ProductPricing?
-  purchaseOrderItems      PurchaseOrderItem[]
-  reorderSuggestions      ReorderSuggestion[]
-  revenueRecords          RevenueRecord[]
-  salesOrderItems         SalesOrderItem[]
-  salesQuoteItems         SalesQuoteItem[]
-  shipmentItems           ShipmentItem[]
-  standInventories        StandInventory[]
-  standOrderItems         StandOrderItem[]
-  StandRefillItem         StandRefillItem[]
-  standSalesRecords       StandSalesRecord[]
-  stockAdjustments        StockAdjustment[]
-  stockTransferItems      StockTransferItem[]
-  whiteLabelProducts      WhiteLabelProduct[]
-
-  @@index([brandId])
-  @@index([categoryId])
-}
-
-model ProductLocalization {
-  id             String       @id @default(cuid())
-  productId      String
-  brandId        String?
-  locale         String
-  title          String?
-  description    String?
-  marketingText  String?
-  seoTitle       String?
-  seoDescription String?
-  seoKeywords    String?
-  urlSlug        String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  product        BrandProduct @relation(fields: [productId], references: [id])
-  brand          Brand?       @relation(fields: [brandId], references: [id])
-
-  @@unique([productId, locale])
-  @@index([brandId])
-}
-
-model ProductCompliance {
-  id             String       @id @default(cuid())
-  productId      String
-  brandId        String?
-  country        String?
-  ingredients    String?
-  warnings       String?
-  certifications String?
-  legalNotes     String?
-  docsJson       String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  product        BrandProduct @relation(fields: [productId], references: [id])
-  brand          Brand?       @relation(fields: [brandId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-}
-
-model ProductDistributionProfile {
-  id              String       @id @default(cuid())
-  productId       String
-  brandId         String?
-  channel         String
-  marketplace     String?
-  country         String?
-  listingTitle    String?
-  bulletsJson     String?
-  description     String?
-  searchTerms     String?
-  fulfillmentType String?
-  feesEstimate    Decimal?
-  moq             Int?
-  wholesalePrice  Decimal?
-  metadataJson    String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  product         BrandProduct @relation(fields: [productId], references: [id])
-  brand           Brand?       @relation(fields: [brandId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-}
-
-model ProductMarketingProfile {
-  id                  String       @id @default(cuid())
-  productId           String
-  brandId             String?
-  audience            String?
-  painPoints          String?
-  benefits            String?
-  usp                 String?
-  hooksJson           String?
-  scriptsJson         String?
-  influencerBriefJson String?
-  channelCreativeJson String?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  product             BrandProduct @relation(fields: [productId], references: [id])
-  brand               Brand?       @relation(fields: [brandId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-}
-
-model ProductSocialProof {
-  id                   String       @id @default(cuid())
-  productId            String
-  brandId              String?
-  rating               Float?
-  reviewsCount         Int?
-  testimonialLinksJson String?
-  mediaLinksJson       String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  product              BrandProduct @relation(fields: [productId], references: [id])
-  brand                Brand?       @relation(fields: [brandId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-}
-
-model ProductAnalyticsHook {
-  id             String       @id @default(cuid())
-  productId      String
-  brandId        String?
-  channel        String?
-  period         String?
-  impressions    Int?
-  ctr            Float?
-  conversion     Float?
-  refundRate     Float?
-  repeatPurchase Float?
-  roas           Float?
-  collectedAt    DateTime?
-  metricsJson    String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  product        BrandProduct @relation(fields: [productId], references: [id])
-  brand          Brand?       @relation(fields: [brandId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-  @@index([channel])
-}
-
-model ProductPricing {
-  id                   String       @id @default(cuid())
-  productId            String       @unique
-  brandId              String?
-  cogsEur              Decimal?
-  fullCostEur          Decimal?
-  b2cNet               Decimal?
-  b2cGross             Decimal?
-  dealerNet            Decimal?
-  dealerPlusNet        Decimal?
-  standPartnerNet      Decimal?
-  distributorNet       Decimal?
-  amazonNet            Decimal?
-  ebayNet              Decimal?
-  uvpNet               Decimal?
-  vatPct               Decimal?
-  mapPrice             Decimal?
-  marginTarget         Decimal?
-  guardrailMinMargin   Decimal?
-  guardrailMaxDiscount Decimal?
-  currency             String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  brand                Brand?       @relation(fields: [brandId], references: [id])
-  product              BrandProduct @relation(fields: [productId], references: [id])
-
-  @@index([brandId])
-}
-
-model CompetitorPrice {
-  id          String       @id @default(cuid())
-  productId   String
-  brandId     String?
-  competitor  String
-  marketplace String?
-  country     String?
-  priceNet    Decimal?
-  priceGross  Decimal?
-  currency    String?
-  collectedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  brand       Brand?       @relation(fields: [brandId], references: [id])
-  product     BrandProduct @relation(fields: [productId], references: [id])
-
-  @@unique([productId, competitor, marketplace, country])
-  @@index([productId])
-  @@index([brandId])
-}
-
-model ProductPriceDraft {
-  id                   String       @id @default(cuid())
-  productId            String
-  brandId              String?
-  channel              String
-  oldNet               Decimal?
-  newNet               Decimal?
-  status               String?      @default("DRAFT")
-  statusReason         String?
-  currency             String?
-  mapPrice             Decimal?
-  marginTarget         Decimal?
-  guardrailMinMargin   Decimal?
-  guardrailMaxDiscount Decimal?
-  createdById          String?
-  approvedById         String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  brand                Brand?       @relation(fields: [brandId], references: [id])
-  product              BrandProduct @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-}
-
-model AIPricingHistory {
-  id              String       @id @default(cuid())
-  productId       String
-  brandId         String?
-  channel         String?
-  oldNet          Decimal?
-  newNet          Decimal?
-  aiAgent         String?
-  confidenceScore Decimal?
-  summary         String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  brand           Brand?       @relation(fields: [brandId], references: [id])
-  product         BrandProduct @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-  @@index([brandId])
-}
-
-model AILearningJournal {
-  id                 String        @id @default(cuid())
-  productId          String?
-  brandId            String?
-  source             String?
-  eventType          String?
-  inputSnapshotJson  String?
-  outputSnapshotJson String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  brand              Brand?        @relation(fields: [brandId], references: [id])
-  product            BrandProduct? @relation(fields: [productId], references: [id])
-
-  @@index([brandId])
-  @@index([productId])
-}
-
-model Person {
-  id               String            @id @default(cuid())
+model Ticket {
+  id               String             @id @default(cuid())
   brandId          String?
-  firstName        String?
-  lastName         String?
-  email            String?           @unique
-  phone            String?
-  country          String?
-  city             String?
-  tags             String?
+  createdByUserId  String?
+  contactId        String?
+  assignedToUserId String?
+  status           String?
+  channel          String?
+  locale           String?
   source           String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  affiliates       Affiliate[]
-  leads            Lead[]
-  loyaltyCustomers LoyaltyCustomer[]
-  loyaltyReferrals LoyaltyReferral[] @relation("ReferralPerson")
-  brand            Brand?            @relation(fields: [brandId], references: [id])
-  CrmCustomer      CrmCustomer[]
+  priority         String?
+  category         String?
+  metadataJson     String?
+  closedAt         DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  assignedTo       User?              @relation("TicketAssignedTo", fields: [assignedToUserId], references: [id])
+  brand            Brand?             @relation(fields: [brandId], references: [id])
+  createdBy        User?              @relation("TicketCreatedBy", fields: [createdByUserId], references: [id])
+  assignments      TicketAssignment[]
+  messages         TicketMessage[]
+  voiceSessions    VoiceSession[]
 }
 
-model Company {
-  id           String         @id @default(cuid())
-  brandId      String?
-  name         String
-  type         String?
-  vatNumber    String?
-  country      String?
-  city         String?
-  website      String?
-  tags         String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  brand        Brand?         @relation(fields: [brandId], references: [id])
-  deals        Deal[]
-  leads        Lead[]
-  SalesAccount SalesAccount[]
-  SalesLead    SalesLead[]
-  CrmCustomer  CrmCustomer[]
-}
-
-model CRMSegment {
-  id         String   @id @default(cuid())
-  brandId    String?
-  name       String
-  filterJson Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  brand      Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model Lead {
-  id                      String                    @id @default(cuid())
-  brandId                 String?
-  personId                String?
-  companyId               String?
-  sourceId                String?
-  status                  String?
-  score                   Int?
-  pipelineId              String?
-  stageId                 String?
-  ownerId                 String?
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
-  tasks                   CRMTask[]
-  deals                   Deal[]
-  brand                   Brand?                    @relation(fields: [brandId], references: [id])
-  company                 Company?                  @relation(fields: [companyId], references: [id])
-  person                  Person?                   @relation(fields: [personId], references: [id])
-  pipeline                Pipeline?                 @relation(fields: [pipelineId], references: [id])
-  source                  LeadSource?               @relation(fields: [sourceId], references: [id])
-  stage                   PipelineStage?            @relation(fields: [stageId], references: [id])
-  activities              LeadActivity[]
-  scores                  LeadScoreHistory[]
-  SalesLead               SalesLead[]
-  crmCustomer             CrmCustomer?              @relation("LeadToCrmCustomer")
-  campaignInteractions    CampaignInteraction[]     @relation("CampaignInteractionLead")
-  CampaignLeadAttribution CampaignLeadAttribution[]
-}
-
-model CrmCustomer {
-  id                   String   @id @default(cuid())
-  brandId              String?
-  leadId               String   @unique
-  personId             String?
-  companyId            String?
-  firstOrderId         String?
-  firstRevenueRecordId String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  lead                    Lead                      @relation("LeadToCrmCustomer", fields: [leadId], references: [id])
-  person                  Person?                   @relation(fields: [personId], references: [id])
-  company                 Company?                  @relation(fields: [companyId], references: [id])
-  firstOrder              SalesOrder?               @relation(fields: [firstOrderId], references: [id])
-  firstRevenueRecord      RevenueRecord?            @relation(fields: [firstRevenueRecordId], references: [id])
-  campaignInteractions    CampaignInteraction[]     @relation("CampaignInteractionCustomer")
-  CampaignLeadAttribution CampaignLeadAttribution[]
-
-  @@index([leadId])
-  @@index([brandId])
-}
-
-model LeadSource {
+model TicketAssignment {
   id        String   @id @default(cuid())
-  brandId   String?
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  leads     Lead[]
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model LeadActivity {
-  id        String   @id @default(cuid())
-  leadId    String
-  activity  String?
-  metaJson  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  lead      Lead     @relation(fields: [leadId], references: [id])
-}
-
-model LeadScoreHistory {
-  id        String   @id @default(cuid())
-  leadId    String
-  score     Int
-  reason    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  lead      Lead     @relation(fields: [leadId], references: [id])
-}
-
-model Pipeline {
-  id        String          @id @default(cuid())
-  brandId   String?
-  name      String
-  type      String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  leads     Lead[]
-  brand     Brand?          @relation(fields: [brandId], references: [id])
-  stages    PipelineStage[]
-}
-
-model PipelineStage {
-  id         String   @id @default(cuid())
-  pipelineId String
-  name       String
-  order      Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  leads      Lead[]
-  pipeline   Pipeline @relation(fields: [pipelineId], references: [id])
-}
-
-model Deal {
-  id                String        @id @default(cuid())
-  brandId           String?
-  leadId            String?
-  companyId         String?
-  title             String
-  value             Decimal?
-  currency          String?
-  status            String?
-  expectedCloseDate DateTime?
-  ownerId           String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  brand             Brand?        @relation(fields: [brandId], references: [id])
-  company           Company?      @relation(fields: [companyId], references: [id])
-  lead              Lead?         @relation(fields: [leadId], references: [id])
-  products          DealProduct[]
-}
-
-model DealProduct {
-  id        String       @id @default(cuid())
-  dealId    String
-  productId String
-  quantity  Int
-  price     Decimal
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  deal      Deal         @relation(fields: [dealId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
-}
-
-model CRMTask {
-  id           String    @id @default(cuid())
-  brandId      String?
-  title        String
-  dueDate      DateTime?
-  status       String?
-  assignedToId String?
-  leadId       String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  brand        Brand?    @relation(fields: [brandId], references: [id])
-  lead         Lead?     @relation(fields: [leadId], references: [id])
-}
-
-model CRMNote {
-  id         String   @id @default(cuid())
-  brandId    String?
-  entityType String
-  entityId   String
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  brand      Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model InteractionLog {
-  id        String   @id @default(cuid())
-  brandId   String?
-  channel   String
-  direction String?
-  summary   String?
-  metaJson  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model MarketingChannel {
-  id           String            @id @default(cuid())
-  brandId      String?
-  name         String
-  type         String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  campaigns    Campaign[]
-  contentItems ContentPlanItem[]
-  brand        Brand?            @relation(fields: [brandId], references: [id])
-}
-
-model AudienceSegment {
-  id               String            @id @default(cuid())
-  brandId          String?
-  name             String
-  filters          String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  audienceInsights AudienceInsight[]
-  brand            Brand?            @relation(fields: [brandId], references: [id])
-}
-
-model ContentPlan {
-  id          String            @id @default(cuid())
-  brandId     String?
-  name        String
-  periodStart DateTime?
-  periodEnd   DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  brand       Brand?            @relation(fields: [brandId], references: [id])
-  items       ContentPlanItem[]
-}
-
-model ContentPlanItem {
-  id            String            @id @default(cuid())
-  contentPlanId String
-  channelId     String?
-  topic         String?
-  format        String?
-  status        String?
-  scheduledAt   DateTime?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  channel       MarketingChannel? @relation(fields: [channelId], references: [id])
-  contentPlan   ContentPlan       @relation(fields: [contentPlanId], references: [id])
-}
-
-model Campaign {
-  id                      String                    @id @default(cuid())
-  brandId                 String?
-  channelId               String?
-  name                    String
-  objective               String?
-  budget                  Decimal?
-  status                  String?
-  targetSegmentIds        Json?
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
-  brand                   Brand?                    @relation(fields: [brandId], references: [id])
-  channel                 MarketingChannel?         @relation(fields: [channelId], references: [id])
-  adSets                  CampaignAdSet[]
-  performanceLogs         MarketingPerformanceLog[]
-  knowledgeDocuments      KnowledgeDocument[]
-  influencerLinks         InfluencerCampaignLink[]  @relation("CampaignToInfluencerCampaignLink")
-  CampaignLeadAttribution CampaignLeadAttribution[]
-  CampaignInteraction     CampaignInteraction[]
-}
-
-model CampaignAdSet {
-  id            String       @id @default(cuid())
-  campaignId    String
-  audienceJson  String?
-  placementJson String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  ads           CampaignAd[]
-  campaign      Campaign     @relation(fields: [campaignId], references: [id])
-}
-
-model CampaignAd {
-  id         String        @id @default(cuid())
-  adSetId    String
-  creativeId String?
-  status     String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  adSet      CampaignAdSet @relation(fields: [adSetId], references: [id])
-}
-
-model MarketingPerformanceLog {
-  id          String   @id @default(cuid())
-  campaignId  String
-  date        DateTime
-  impressions Int?
-  clicks      Int?
-  spend       Decimal?
-  conversions Int?
-  revenue     Decimal?
-  kpiJson     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  campaign    Campaign @relation(fields: [campaignId], references: [id])
-}
-
-model CampaignLeadAttribution {
-  id         String   @id @default(cuid())
-  campaignId String
-  brandId    String?
-  leadId     String?
-  customerId String?
-  source     String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  campaign Campaign     @relation(fields: [campaignId], references: [id])
-  lead     Lead?        @relation(fields: [leadId], references: [id])
-  customer CrmCustomer? @relation(fields: [customerId], references: [id])
-
-  @@index([campaignId])
-  @@index([leadId])
-  @@index([customerId])
-  @@index([brandId])
-}
-
-model CampaignInteraction {
-  id         String   @id @default(cuid())
-  campaignId String
-  type       String
-  leadId     String?
-  customerId String?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  campaign Campaign     @relation(fields: [campaignId], references: [id])
-  lead     Lead?        @relation("CampaignInteractionLead", fields: [leadId], references: [id])
-  customer CrmCustomer? @relation("CampaignInteractionCustomer", fields: [customerId], references: [id])
-
-  @@index([campaignId])
-  @@index([leadId])
-  @@index([customerId])
-}
-
-model SEOContent {
-  id           String        @id @default(cuid())
-  brandId      String?
-  productId    String?
-  title        String
-  keywords     String?
-  content      String?
-  status       String?
-  locale       String?
-  urlSlug      String?
-  schemaMarkup String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  brand        Brand?        @relation(fields: [brandId], references: [id])
-  product      BrandProduct? @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-}
-
-model TrackingProfile {
-  id           String        @id @default(cuid())
-  brandId      String?
-  name         String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  trackedLinks TrackedLink[]
-  brand        Brand?        @relation(fields: [brandId], references: [id])
-}
-
-model TrackedLink {
-  id                String           @id @default(cuid())
-  trackingProfileId String?
-  brandId           String?
-  url               String
-  code              String           @unique
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  brand             Brand?           @relation(fields: [brandId], references: [id])
-  trackingProfile   TrackingProfile? @relation(fields: [trackingProfileId], references: [id])
-}
-
-model SalesRep {
-  id             String                        @id @default(cuid())
-  brandId        String?
-  userId         String?
-  code           String?
-  region         String?
-  status         String?                       @default("ACTIVE")
-  createdAt      DateTime                      @default(now())
-  updatedAt      DateTime                      @updatedAt
-  accounts       SalesAccount[]
-  commissionLogs SalesCommissionLog[]
-  leads          SalesLead[]
-  orders         SalesOrder[]
-  quotes         SalesQuote[]
-  brand          Brand?                        @relation(fields: [brandId], references: [id])
-  user           User?                         @relation(fields: [userId], references: [id])
-  commissions    SalesRepCommissionRecord[]
-  kpiSnapshots   SalesRepKpiSnapshot[]
-  performance    SalesRepPerformanceSnapshot[]
-  targets        SalesRepTarget[]
-  tasks          SalesRepTask[]
-  territories    SalesRepTerritoryAssignment[]
-  routes         SalesRoutePlan[]
-  visits         SalesVisit[]
-}
-
-model SalesTerritory {
-  id          String                        @id @default(cuid())
-  brandId     String?
-  name        String
-  country     String?
-  city        String?
-  createdAt   DateTime                      @default(now())
-  updatedAt   DateTime                      @updatedAt
-  SalesLead   SalesLead[]
-  assignments SalesRepTerritoryAssignment[]
-  brand       Brand?                        @relation(fields: [brandId], references: [id])
-}
-
-model SalesRepTerritoryAssignment {
-  id          String         @id @default(cuid())
-  repId       String
-  territoryId String
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  rep         SalesRep       @relation(fields: [repId], references: [id])
-  territory   SalesTerritory @relation(fields: [territoryId], references: [id])
-}
-
-model SalesRoutePlan {
-  id        String           @id @default(cuid())
-  brandId   String?
-  repId     String
-  date      DateTime?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  brand     Brand?           @relation(fields: [brandId], references: [id])
-  rep       SalesRep         @relation(fields: [repId], references: [id])
-  stops     SalesRouteStop[]
-}
-
-model SalesRouteStop {
-  id          String         @id @default(cuid())
-  routePlanId String
-  partnerId   String?
-  orderIndex  Int?
-  status      String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  partner     Partner?       @relation(fields: [partnerId], references: [id])
-  routePlan   SalesRoutePlan @relation(fields: [routePlanId], references: [id])
-}
-
-model SalesVisit {
-  id        String           @id @default(cuid())
-  brandId   String?
-  repId     String
-  partnerId String?
-  date      DateTime?
-  purpose   String?
-  result    String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  brand     Brand?           @relation(fields: [brandId], references: [id])
-  partner   Partner?         @relation(fields: [partnerId], references: [id])
-  rep       SalesRep         @relation(fields: [repId], references: [id])
-  notes     SalesVisitNote[]
-}
-
-model SalesVisitNote {
-  id        String     @id @default(cuid())
-  visitId   String
-  content   String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  visit     SalesVisit @relation(fields: [visitId], references: [id])
-}
-
-model SalesQuote {
-  id         String           @id @default(cuid())
-  brandId    String?
-  repId      String?
-  partnerId  String?
-  status     String?
-  validUntil DateTime?
-  total      Decimal?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  brand      Brand?           @relation(fields: [brandId], references: [id])
-  partner    Partner?         @relation(fields: [partnerId], references: [id])
-  rep        SalesRep?        @relation(fields: [repId], references: [id])
-  items      SalesQuoteItem[]
-}
-
-model SalesQuoteItem {
-  id        String       @id @default(cuid())
-  quoteId   String
-  productId String
-  quantity  Int
-  price     Decimal
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  product   BrandProduct @relation(fields: [productId], references: [id])
-  quote     SalesQuote   @relation(fields: [quoteId], references: [id])
-}
-
-model SalesOrder {
-  id                 String               @id @default(cuid())
-  brandId            String?
-  repId              String?
-  partnerId          String?
-  status             String?
-  total              Decimal?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  SalesCommissionLog SalesCommissionLog[]
-  brand              Brand?               @relation(fields: [brandId], references: [id])
-  partner            Partner?             @relation(fields: [partnerId], references: [id])
-  rep                SalesRep?            @relation(fields: [repId], references: [id])
-  items              SalesOrderItem[]
-  CrmCustomer        CrmCustomer[]
-}
-
-model SalesOrderItem {
-  id        String       @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Decimal
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  order     SalesOrder   @relation(fields: [orderId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
-}
-
-model SalesRepTarget {
-  id         String   @id @default(cuid())
-  brandId    String?
-  repId      String
-  period     String?
-  targetJson String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  brand      Brand?   @relation(fields: [brandId], references: [id])
-  rep        SalesRep @relation(fields: [repId], references: [id])
-}
-
-model SalesRepPerformanceSnapshot {
-  id        String   @id @default(cuid())
-  brandId   String?
-  repId     String
-  period    String?
-  kpiJson   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-  rep       SalesRep @relation(fields: [repId], references: [id])
-}
-
-model SalesRepCommissionScheme {
-  id                String                     @id @default(cuid())
-  brandId           String?
-  name              String
-  rulesJson         String?
-  createdAt         DateTime                   @default(now())
-  updatedAt         DateTime                   @updatedAt
-  commissionRecords SalesRepCommissionRecord[]
-  brand             Brand?                     @relation(fields: [brandId], references: [id])
-}
-
-model SalesRepCommissionRecord {
-  id        String                    @id @default(cuid())
-  brandId   String?
-  repId     String
-  schemeId  String?
-  amount    Decimal?
-  period    String?
-  createdAt DateTime                  @default(now())
-  updatedAt DateTime                  @updatedAt
-  brand     Brand?                    @relation(fields: [brandId], references: [id])
-  rep       SalesRep                  @relation(fields: [repId], references: [id])
-  scheme    SalesRepCommissionScheme? @relation(fields: [schemeId], references: [id])
-}
-
-model SalesRepTask {
-  id        String    @id @default(cuid())
-  brandId   String?
-  repId     String
-  title     String
-  status    String?
-  dueDate   DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  brand     Brand?    @relation(fields: [brandId], references: [id])
-  rep       SalesRep  @relation(fields: [repId], references: [id])
-}
-
-model SalesLead {
-  id             String          @id @default(cuid())
-  brandId        String?
-  repId          String
-  leadId         String?
-  companyId      String?
-  territoryId    String?
-  source         String?
-  score          Decimal?        @db.Decimal
-  stage          String?
-  status         String          @default("OPEN")
-  nextAction     String?
-  notes          String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @default(now()) @updatedAt
-  Brand          Brand?          @relation(fields: [brandId], references: [id])
-  Company        Company?        @relation(fields: [companyId], references: [id])
-  Lead           Lead?           @relation(fields: [leadId], references: [id])
-  rep            SalesRep        @relation(fields: [repId], references: [id])
-  SalesTerritory SalesTerritory? @relation(fields: [territoryId], references: [id])
-
-  @@index([brandId], map: "SalesLead_brandId_index")
-  @@index([repId], map: "SalesLead_repId_index")
-  @@index([territoryId], map: "SalesLead_territoryId_index")
-}
-
-model SalesAccount {
-  id                String        @id @default(cuid())
-  brandId           String?
-  name              String
-  companyId         String?
-  standPartnerId    String?
-  assignedRepId     String?
-  region            String?
-  status            String        @default("ACTIVE")
-  lastInteractionAt DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @default(now()) @updatedAt
-  assignedRep       SalesRep?     @relation(fields: [assignedRepId], references: [id])
-  Brand             Brand?        @relation(fields: [brandId], references: [id])
-  Company           Company?      @relation(fields: [companyId], references: [id])
-  StandPartner      StandPartner? @relation(fields: [standPartnerId], references: [id])
-
-  @@index([assignedRepId], map: "SalesAccount_assignedRepId_index")
-  @@index([brandId], map: "SalesAccount_brandId_index")
-}
-
-model SalesCommissionLog {
-  id         String      @id @default(cuid())
-  brandId    String?
-  repId      String
-  orderId    String?
-  rate       Decimal?    @db.Decimal
-  earned     Decimal?    @db.Decimal
-  period     String?
-  status     String?
-  paidAt     DateTime?
-  notes      String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @default(now()) @updatedAt
-  Brand      Brand?      @relation(fields: [brandId], references: [id])
-  SalesOrder SalesOrder? @relation(fields: [orderId], references: [id])
-  rep        SalesRep    @relation(fields: [repId], references: [id])
-
-  @@index([brandId], map: "SalesCommissionLog_brandId_index")
-  @@index([repId], map: "SalesCommissionLog_repId_index")
-}
-
-model SalesRepKpiSnapshot {
-  id          String   @id @default(cuid())
-  brandId     String?
-  repId       String
-  period      String?
-  metricsJson String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
-  Brand       Brand?   @relation(fields: [brandId], references: [id])
-  rep         SalesRep @relation(fields: [repId], references: [id])
-
-  @@index([brandId], map: "SalesRepKpiSnapshot_brandId_index")
-  @@index([repId], map: "SalesRepKpiSnapshot_repId_index")
-}
-
-model Partner {
-  id               String               @id @default(cuid())
-  brandId          String?
-  type             String
-  name             String
-  country          String?
-  city             String?
-  status           String?              @default("ACTIVE")
-  tierId           String?
-  settingsJson     Json?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  brand            Brand?               @relation(fields: [brandId], references: [id])
-  tier             PartnerTier?         @relation(fields: [tierId], references: [id])
-  aiInsights       PartnerAIInsight[]
-  contracts        PartnerContract[]
-  orders           PartnerOrder[]
-  performance      PartnerPerformance[]
-  pricing          PartnerPricing[]
-  users            PartnerUser[]
-  salesOrders      SalesOrder[]
-  salesQuotes      SalesQuote[]
-  routeStops       SalesRouteStop[]
-  salesVisits      SalesVisit[]
-  standPartners    StandPartner[]
-  StandRefillOrder StandRefillOrder[]
-  dealerKpis       DealerKpi[]
-  ownedWhiteLabels WhiteLabelBrand[]    @relation("WL_PartnerOwner")
-}
-
-model DealerKpi {
-  id              String    @id @default(cuid())
-  brandId         String
-  partnerId       String
-  totalOrders     Int       @default(0)
-  totalRevenue    Decimal?
-  totalUnits      Int       @default(0)
-  activeStands    Int       @default(0)
-  engagementScore Float?
-  lastOrderAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  partner         Partner   @relation(fields: [partnerId], references: [id])
-  brand           Brand     @relation(fields: [brandId], references: [id])
-
-  @@unique([partnerId, brandId])
-}
-
-model PartnerUser {
-  id        String   @id @default(cuid())
-  partnerId String
+  ticketId  String
   userId    String?
+  brandId   String?
   role      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  partner   Partner  @relation(fields: [partnerId], references: [id])
+  brand     Brand?   @relation(fields: [brandId], references: [id])
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
   user      User?    @relation(fields: [userId], references: [id])
 }
 
-model PartnerContract {
-  id        String    @id @default(cuid())
-  partnerId String
-  startDate DateTime?
-  endDate   DateTime?
-  termsJson String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  partner   Partner   @relation(fields: [partnerId], references: [id])
-}
-
-model PartnerPricing {
-  id        String       @id @default(cuid())
-  partnerId String
-  productId String
-  netPrice  Decimal?
-  currency  String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  partner   Partner      @relation(fields: [partnerId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
-}
-
-model PartnerOrder {
-  id        String             @id @default(cuid())
-  brandId   String?
-  partnerId String
-  status    String?
-  total     Decimal?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  brand     Brand?             @relation(fields: [brandId], references: [id])
-  partner   Partner            @relation(fields: [partnerId], references: [id])
-  items     PartnerOrderItem[]
-}
-
-model PartnerOrderItem {
-  id        String       @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Decimal
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  order     PartnerOrder @relation(fields: [orderId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
-}
-
-model PartnerPerformance {
+model TicketMessage {
   id        String   @id @default(cuid())
-  partnerId String
-  period    String?
-  kpiJson   String?
+  ticketId  String
+  senderId  String?
+  content   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  partner   Partner  @relation(fields: [partnerId], references: [id])
-}
-
-model PartnerTier {
-  id        String    @id @default(cuid())
-  brandId   String?
-  name      String
-  benefits  String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  partners  Partner[]
-  brand     Brand?    @relation(fields: [brandId], references: [id])
-}
-
-model PartnerAIInsight {
-  id        String   @id @default(cuid())
-  partnerId String
-  summary   String?
-  details   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  partner   Partner  @relation(fields: [partnerId], references: [id])
-}
-
-model StandPartner {
-  id              String               @id @default(cuid())
-  brandId         String?
-  partnerId       String
-  standType       String?
-  locationAddress String?
-  status          String?              @default("ACTIVE")
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  SalesAccount    SalesAccount[]
-  stands          Stand[]
-  aiInsights      StandAIInsight[]
-  bonusTriggers   StandBonusTrigger[]
-  loyaltyLedgers  StandLoyaltyLedger[]
-  orders          StandOrder[]
-  brand           Brand?               @relation(fields: [brandId], references: [id])
-  partner         Partner              @relation(fields: [partnerId], references: [id])
-  rewards         StandReward[]
-  standUnits      StandUnit[]
-}
-
-model Stand {
-  id                   String                     @id @default(cuid())
-  brandId              String?
-  standPartnerId       String
-  name                 String
-  description          String?
-  standType            String?
-  status               String                     @default("ACTIVE")
-  createdAt            DateTime                   @default(now())
-  updatedAt            DateTime                   @default(now()) @updatedAt
-  Brand                Brand?                     @relation(fields: [brandId], references: [id])
-  standPartner         StandPartner               @relation(fields: [standPartnerId], references: [id])
-  StandBonusTrigger    StandBonusTrigger[]
-  locations            StandLocation[]
-  StandLoyaltyLedger   StandLoyaltyLedger[]
-  orders               StandOrder[]
-  packages             StandPackage[]
-  performanceSnapshots StandPerformanceSnapshot[]
-  standKpis            StandKpi[]
-  refillOrders         StandRefillOrder[]
-  standUnits           StandUnit[]
-
-  @@index([brandId], map: "Stand_brandId_index")
-  @@index([standPartnerId], map: "Stand_standPartnerId_index")
-}
-
-model StandKpi {
-  id              String    @id @default(cuid())
-  brandId         String
-  standId         String
-  totalSales      Decimal?
-  totalUnits      Int       @default(0)
-  stockOutEvents  Int       @default(0)
-  lastSaleAt      DateTime?
-  lastStockOutAt  DateTime?
-  regressionScore Float?
-  engagementScore Float?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  stand           Stand     @relation(fields: [standId], references: [id])
-  brand           Brand     @relation(fields: [brandId], references: [id])
-
-  @@unique([standId, brandId])
-}
-
-model StandLocation {
-  id                       String                     @id @default(cuid())
-  standId                  String
-  name                     String
-  address                  String?
-  city                     String?
-  country                  String?
-  region                   String?
-  geoLocationJson          String?
-  status                   String                     @default("ACTIVE")
-  qrCodeUrl                String?
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime                   @default(now()) @updatedAt
-  inventories              StandInventory[]
-  stand                    Stand                      @relation(fields: [standId], references: [id], onDelete: Cascade)
-  orders                   StandOrder[]
-  StandPerformanceSnapshot StandPerformanceSnapshot[]
-  StandRefillOrder         StandRefillOrder[]
-
-  @@index([city, country], map: "StandLocation_city_country_index")
-  @@index([standId], map: "StandLocation_standId_index")
-}
-
-model StandUnit {
-  id                  String                   @id @default(cuid())
-  standPartnerId      String
-  code                String?
-  locationDescription String?
-  status              String?                  @default("ACTIVE")
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
-  standId             String?
-  activities          StandActivityLog[]
-  inventories         StandInventory[]
-  snapshots           StandInventorySnapshot[]
-  salesRecords        StandSalesRecord[]
-  stand               Stand?                   @relation(fields: [standId], references: [id])
-  standPartner        StandPartner             @relation(fields: [standPartnerId], references: [id])
-
-  @@index([standId], map: "StandUnit_standId_index")
-}
-
-model StandInventory {
-  id              String         @id @default(cuid())
-  standUnitId     String
-  productId       String
-  quantity        Int            @default(0)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  standLocationId String?
-  status          String         @default("ACTIVE")
-  lastRefillAt    DateTime?
-  product         BrandProduct   @relation(fields: [productId], references: [id])
-  standLocation   StandLocation? @relation(fields: [standLocationId], references: [id])
-  standUnit       StandUnit      @relation(fields: [standUnitId], references: [id])
-
-  @@index([standLocationId], map: "StandInventory_standLocationId_index")
-}
-
-model StandInventorySnapshot {
-  id          String    @id @default(cuid())
-  standUnitId String
-  snapshotAt  DateTime
-  dataJson    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  standUnit   StandUnit @relation(fields: [standUnitId], references: [id])
-}
-
-model StandOrder {
-  id              String           @id @default(cuid())
-  brandId         String?
-  standPartnerId  String
-  status          String?
-  total           Decimal?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  standId         String?
-  standLocationId String?
-  orderSource     String?
-  brand           Brand?           @relation(fields: [brandId], references: [id])
-  stand           Stand?           @relation(fields: [standId], references: [id])
-  standLocation   StandLocation?   @relation(fields: [standLocationId], references: [id])
-  standPartner    StandPartner     @relation(fields: [standPartnerId], references: [id])
-  items           StandOrderItem[]
-
-  @@index([standId], map: "StandOrder_standId_index")
-  @@index([standLocationId], map: "StandOrder_standLocationId_index")
-}
-
-model StandOrderItem {
-  id        String       @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Decimal
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  order     StandOrder   @relation(fields: [orderId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
-}
-
-model StandActivityLog {
-  id          String    @id @default(cuid())
-  standUnitId String
-  activity    String?
-  metaJson    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  standUnit   StandUnit @relation(fields: [standUnitId], references: [id])
-}
-
-model StandSalesRecord {
-  id          String        @id @default(cuid())
-  standUnitId String
-  productId   String?
-  quantity    Int?
-  amount      Decimal?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  product     BrandProduct? @relation(fields: [productId], references: [id])
-  standUnit   StandUnit     @relation(fields: [standUnitId], references: [id])
-}
-
-model StandReward {
-  id             String       @id @default(cuid())
-  standPartnerId String
-  description    String?
-  points         Int?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  standPartner   StandPartner @relation(fields: [standPartnerId], references: [id])
-}
-
-model StandAIInsight {
-  id             String       @id @default(cuid())
-  standPartnerId String
-  summary        String?
-  details        String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  standPartner   StandPartner @relation(fields: [standPartnerId], references: [id])
-}
-
-model StandPackage {
-  id                      String   @id @default(cuid())
-  brandId                 String?
-  standId                 String?
-  name                    String
-  description             String?
-  inventoryThresholdsJson String?
-  pricingJson             String?
-  allowedProductsJson     String?
-  status                  String   @default("ACTIVE")
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @default(now()) @updatedAt
-  Brand                   Brand?   @relation(fields: [brandId], references: [id])
-  stand                   Stand?   @relation(fields: [standId], references: [id])
-
-  @@index([brandId], map: "StandPackage_brandId_index")
-  @@index([standId], map: "StandPackage_standId_index")
-}
-
-model StandLoyaltyLedger {
-  id             String       @id @default(cuid())
-  standPartnerId String
-  standId        String?
-  tierId         String?
-  points         Int          @default(0)
-  bonusEvents    Int          @default(0)
-  balance        Int          @default(0)
-  lastAdjustedAt DateTime?
-  notes          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @default(now()) @updatedAt
-  Stand          Stand?       @relation(fields: [standId], references: [id])
-  standPartner   StandPartner @relation(fields: [standPartnerId], references: [id])
-
-  @@index([standId], map: "StandLoyaltyLedger_standId_index")
-  @@index([standPartnerId], map: "StandLoyaltyLedger_standPartnerId_index")
-}
-
-model StandBonusTrigger {
-  id             String       @id @default(cuid())
-  standPartnerId String
-  standId        String?
-  eventType      String
-  bonusAmount    Decimal?     @db.Decimal
-  approvedById   String?
-  status         String       @default("PENDING")
-  notes          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @default(now()) @updatedAt
-  User           User?        @relation(fields: [approvedById], references: [id])
-  Stand          Stand?       @relation(fields: [standId], references: [id])
-  standPartner   StandPartner @relation(fields: [standPartnerId], references: [id])
-
-  @@index([standId], map: "StandBonusTrigger_standId_index")
-  @@index([standPartnerId], map: "StandBonusTrigger_standPartnerId_index")
-}
-
-model StandPerformanceSnapshot {
-  id              String         @id @default(cuid())
-  brandId         String?
-  standId         String?
-  standLocationId String?
-  period          String?
-  metricsJson     String?
-  note            String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @default(now()) @updatedAt
-  Brand           Brand?         @relation(fields: [brandId], references: [id])
-  stand           Stand?         @relation(fields: [standId], references: [id])
-  StandLocation   StandLocation? @relation(fields: [standLocationId], references: [id])
-
-  @@index([brandId], map: "StandPerformanceSnapshot_brandId_index")
-  @@index([standId], map: "StandPerformanceSnapshot_standId_index")
-  @@index([standLocationId], map: "StandPerformanceSnapshot_standLocationId_index")
-}
-
-model StandRefillOrder {
-  id              String            @id @default(cuid())
-  brandId         String?
-  standId         String?
-  standLocationId String?
-  partnerId       String?
-  status          String            @default("PLANNED")
-  expectedAt      DateTime?
-  completedAt     DateTime?
-  carrierInfoJson String?
-  source          String?
-  notes           String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @default(now()) @updatedAt
-  items           StandRefillItem[]
-  Brand           Brand?            @relation(fields: [brandId], references: [id])
-  Partner         Partner?          @relation(fields: [partnerId], references: [id])
-  stand           Stand?            @relation(fields: [standId], references: [id])
-  StandLocation   StandLocation?    @relation(fields: [standLocationId], references: [id])
-
-  @@index([brandId], map: "StandRefillOrder_brandId_index")
-  @@index([standId], map: "StandRefillOrder_standId_index")
-  @@index([standLocationId], map: "StandRefillOrder_standLocationId_index")
-}
-
-model StandRefillItem {
-  id            String           @id @default(cuid())
-  refillOrderId String
-  productId     String
-  quantity      Int
-  cost          Decimal?         @db.Decimal
-  refillSource  String?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @default(now()) @updatedAt
-  BrandProduct  BrandProduct     @relation(fields: [productId], references: [id])
-  refillOrder   StandRefillOrder @relation(fields: [refillOrderId], references: [id], onDelete: Cascade)
-}
-
-model Affiliate {
-  id               String                 @id @default(cuid())
-  brandId          String?
-  userId           String?
-  personId         String?
-  tierId           String?
-  code             String?                @unique
-  type             String?
-  channel          String?
-  status           String?                @default("ACTIVE")
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
-  brand            Brand?                 @relation(fields: [brandId], references: [id])
-  person           Person?                @relation(fields: [personId], references: [id])
-  tier             AffiliateTier?         @relation(fields: [tierId], references: [id])
-  user             User?                  @relation(fields: [userId], references: [id])
-  aiInsights       AffiliateAIInsight[]
-  links            AffiliateLink[]
-  mediaKits        AffiliateMediaKit[]
-  payouts          AffiliatePayout[]
-  performance      AffiliatePerformance[]
-  sales            AffiliateSale[]
-  ownedWhiteLabels WhiteLabelBrand[]      @relation("WL_AffiliateOwner")
-  conversions      AffiliateConversion[]  @relation("AffiliateConversionToAffiliate")
-}
-
-model AffiliateLink {
-  id          String    @id @default(cuid())
-  affiliateId String
-  linkCode    String    @unique
-  targetUrl   String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
-}
-
-model AffiliatePerformance {
-  id          String    @id @default(cuid())
-  affiliateId String
-  period      String?
-  clicks      Int       @default(0)
-  orders      Int       @default(0)
-  revenue     Decimal?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
-}
-
-model AffiliateSale {
-  id          String        @id @default(cuid())
-  affiliateId String
-  productId   String?
-  orderValue  Decimal?
-  commission  Decimal?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  affiliate   Affiliate     @relation(fields: [affiliateId], references: [id])
-  product     BrandProduct? @relation(fields: [productId], references: [id])
-}
-
-model AffiliateConversion {
-  id          String    @id @default(cuid())
-  brandId     String?
-  affiliateId String
-  orderId     String?
-  amount      Decimal?
-  currency    String?
-  metadata    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  affiliate   Affiliate @relation("AffiliateConversionToAffiliate", fields: [affiliateId], references: [id])
-  brand       Brand?    @relation("AffiliateConversionToBrand", fields: [brandId], references: [id])
-}
-
-model AffiliatePayout {
-  id          String    @id @default(cuid())
-  affiliateId String
-  amount      Decimal?
-  currency    String?
-  status      String?
-  paidAt      DateTime?
-  requestedAt DateTime  @default(now())
-  resolvedAt  DateTime?
-  method      String?
-  notes       String?
-  brandId     String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
-  brand       Brand?    @relation("AffiliatePayoutToBrand", fields: [brandId], references: [id])
-}
-
-model AffiliateTier {
-  id         String      @id @default(cuid())
-  brandId    String?
-  name       String
-  rulesJson  String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  affiliates Affiliate[]
-  brand      Brand?      @relation(fields: [brandId], references: [id])
-}
-
-model AffiliateMediaKit {
-  id          String    @id @default(cuid())
-  affiliateId String
-  assetsJson  String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
-}
-
-model AffiliateAIInsight {
-  id          String    @id @default(cuid())
-  affiliateId String
-  summary     String?
-  details     String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
-}
-
-model LoyaltyProgram {
-  id           String               @id @default(cuid())
-  brandId      String?
-  name         String
-  type         String?
-  description  String?
-  status       String               @default("ACTIVE")
-  rulesJson    String?
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  tiers        LoyaltyTier[]
-  customers    LoyaltyCustomer[]
-  brand        Brand?               @relation(fields: [brandId], references: [id])
-  rewards      LoyaltyReward[]
-  transactions LoyaltyTransaction[]
-  redemptions  RewardRedemption[]
-}
-
-model LoyaltyTier {
-  id                  String            @id @default(cuid())
-  brandId             String?
-  programId           String
-  name                String
-  minPoints           Int
-  maxPoints           Int?
-  benefitsDescription String?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  program             LoyaltyProgram    @relation(fields: [programId], references: [id])
-  brand               Brand?            @relation("LoyaltyTierToBrand", fields: [brandId], references: [id])
-  customers           LoyaltyCustomer[] @relation("CustomerTiers")
-}
-
-model LoyaltyCustomer {
-  id            String                 @id @default(cuid())
-  brandId       String?
-  userId        String?
-  personId      String?
-  programId     String
-  tierId        String?
-  pointsBalance Int                    @default(0)
-  tier          String?
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @updatedAt
-  behaviors     LoyaltyBehaviorEvent[]
-  brand         Brand?                 @relation(fields: [brandId], references: [id])
-  person        Person?                @relation(fields: [personId], references: [id])
-  program       LoyaltyProgram         @relation(fields: [programId], references: [id])
-  user          User?                  @relation(fields: [userId], references: [id])
-  referrals     LoyaltyReferral[]      @relation("ReferralReferrer")
-  transactions  LoyaltyTransaction[]
-  redemptions   RewardRedemption[]
-  tierInfo      LoyaltyTier?           @relation(fields: [tierId], references: [id], name: "CustomerTiers")
-}
-
-model LoyaltyTransaction {
-  id           String          @id @default(cuid())
-  brandId      String?
-  customerId   String
-  programId    String
-  userId       String?
-  pointsChange Int
-  reason       String?
-  sourceEntity String?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  brand        Brand?          @relation(fields: [brandId], references: [id])
-  customer     LoyaltyCustomer @relation(fields: [customerId], references: [id])
-  program      LoyaltyProgram  @relation(fields: [programId], references: [id])
-  user         User?           @relation(fields: [userId], references: [id])
-}
-
-model LoyaltyReward {
-  id          String             @id @default(cuid())
-  brandId     String?
-  programId   String?
-  name        String
-  description String?
-  costPoints  Int?
-  pointsCost  Int?
-  rewardType  String?
-  payloadJson String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  brand       Brand?             @relation(fields: [brandId], references: [id])
-  program     LoyaltyProgram?    @relation(fields: [programId], references: [id])
-  redemptions RewardRedemption[]
-}
-
-model RewardRedemption {
-  id           String          @id @default(cuid())
-  customerId   String
-  rewardId     String?
-  programId    String?
-  pointsSpent  Int
-  status       String?
-  metadataJson String?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  customer     LoyaltyCustomer @relation(fields: [customerId], references: [id])
-  program      LoyaltyProgram? @relation(fields: [programId], references: [id])
-  reward       LoyaltyReward?  @relation(fields: [rewardId], references: [id])
-}
-
-model LoyaltyReferral {
-  id               String          @id @default(cuid())
-  referrerId       String
-  referredPersonId String?
-  status           String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  referredPerson   Person?         @relation("ReferralPerson", fields: [referredPersonId], references: [id])
-  referrer         LoyaltyCustomer @relation("ReferralReferrer", fields: [referrerId], references: [id])
-}
-
-model LoyaltyBehaviorEvent {
-  id         String          @id @default(cuid())
-  customerId String
-  eventType  String
-  metaJson   String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  customer   LoyaltyCustomer @relation(fields: [customerId], references: [id])
-}
-
-model Warehouse {
-  id                 String                 @id @default(cuid())
-  brandId            String?
-  name               String
-  location           String?
-  type               String?
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
-  items              InventoryItem[]
-  transactions       InventoryTransaction[]
-  reorderSuggestions ReorderSuggestion[]
-  shipmentsOut       Shipment[]             @relation("Shipment_fromWarehouse")
-  shipmentsIn        Shipment[]             @relation("Shipment_toWarehouse")
-  stockAdjustments   StockAdjustment[]
-  stockTransfersFrom StockTransfer[]        @relation("StockTransfer_fromWarehouse")
-  stockTransfersTo   StockTransfer[]        @relation("StockTransfer_toWarehouse")
-  brand              Brand?                 @relation(fields: [brandId], references: [id])
-}
-
-model InventoryItem {
-  id          String       @id @default(cuid())
-  brandId     String?
-  warehouseId String
-  productId   String
-  quantity    Int          @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  brand       Brand?       @relation(fields: [brandId], references: [id])
-  product     BrandProduct @relation(fields: [productId], references: [id])
-  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
-
-  @@index([brandId])
-  @@index([warehouseId])
-  @@index([productId])
-  @@index([createdAt])
-}
-
-model InventoryTransaction {
-  id          String       @id @default(cuid())
-  brandId     String?
-  warehouseId String
-  productId   String
-  type        String
-  quantity    Int
-  reason      String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  brand       Brand?       @relation(fields: [brandId], references: [id])
-  product     BrandProduct @relation(fields: [productId], references: [id])
-  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
-
-  @@index([brandId])
-  @@index([warehouseId])
-  @@index([productId])
-  @@index([createdAt])
-}
-
-model StockAdjustment {
-  id          String       @id @default(cuid())
-  brandId     String?
-  productId   String
-  warehouseId String?
-  quantity    Int
-  reason      String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  brand       Brand?       @relation(fields: [brandId], references: [id])
-  product     BrandProduct @relation(fields: [productId], references: [id])
-  warehouse   Warehouse?   @relation(fields: [warehouseId], references: [id])
-
-  @@index([brandId])
-  @@index([productId])
-  @@index([warehouseId])
-}
-
-model StockTransfer {
-  id              String              @id @default(cuid())
-  brandId         String?
-  fromWarehouseId String?
-  toWarehouseId   String?
-  status          String?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  brand           Brand?              @relation(fields: [brandId], references: [id])
-  fromWarehouse   Warehouse?          @relation("StockTransfer_fromWarehouse", fields: [fromWarehouseId], references: [id])
-  toWarehouse     Warehouse?          @relation("StockTransfer_toWarehouse", fields: [toWarehouseId], references: [id])
-  items           StockTransferItem[]
-}
-
-model StockTransferItem {
-  id              String        @id @default(cuid())
-  stockTransferId String
-  productId       String
-  quantity        Int
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  product         BrandProduct  @relation(fields: [productId], references: [id])
-  stockTransfer   StockTransfer @relation(fields: [stockTransferId], references: [id])
-}
-
-model ReorderSuggestion {
-  id             String       @id @default(cuid())
-  brandId        String?
-  productId      String
-  warehouseId    String?
-  suggestedQty   Int
-  reason         String?
-  lifecycleStage String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  brand          Brand?       @relation(fields: [brandId], references: [id])
-  product        BrandProduct @relation(fields: [productId], references: [id])
-  warehouse      Warehouse?   @relation(fields: [warehouseId], references: [id])
-}
-
-model PurchaseOrder {
-  id         String              @id @default(cuid())
-  brandId    String?
-  supplierId String?
-  status     String?
-  total      Decimal?
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
-  brand      Brand?              @relation(fields: [brandId], references: [id])
-  items      PurchaseOrderItem[]
-}
-
-model PurchaseOrderItem {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  productId       String
-  quantity        Int
-  cost            Decimal
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  product         BrandProduct  @relation(fields: [productId], references: [id])
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-}
-
-model Shipment {
-  id              String         @id @default(cuid())
-  brandId         String?
-  fromWarehouseId String?
-  toWarehouseId   String?
-  status          String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  brand           Brand?         @relation(fields: [brandId], references: [id])
-  fromWarehouse   Warehouse?     @relation("Shipment_fromWarehouse", fields: [fromWarehouseId], references: [id])
-  toWarehouse     Warehouse?     @relation("Shipment_toWarehouse", fields: [toWarehouseId], references: [id])
-  items           ShipmentItem[]
-}
-
-model ShipmentItem {
-  id         String       @id @default(cuid())
-  shipmentId String
-  productId  String
-  quantity   Int
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  product    BrandProduct @relation(fields: [productId], references: [id])
-  shipment   Shipment     @relation(fields: [shipmentId], references: [id])
-}
-
-model InventoryKPIRecord {
-  id        String   @id @default(cuid())
-  brandId   String?
-  period    String?
-  metrics   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model Invoice {
-  id           String        @id @default(cuid())
-  brandId      String?
-  customerType String
-  customerId   String?
-  status       String?
-  totalNet     Decimal?
-  totalGross   Decimal?
-  currency     String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  brand        Brand?        @relation(fields: [brandId], references: [id])
-  items        InvoiceItem[]
-  payments     Payment[]
-  EInvoice     EInvoice[]
-}
-
-model EInvoice {
-  id               String   @id @default(cuid())
-  invoiceId        String
-  invoice          Invoice  @relation(fields: [invoiceId], references: [id])
-  format           String // 'XRECHNUNG' | 'ZUGFERD'
-  xmlData          String
-  validationErrors Json?
-  validated        Boolean  @default(false)
-  peppolSent       Boolean  @default(false)
-  peppolMessageId  String?
-  createdAt        DateTime @default(now())
-
-  @@index([invoiceId])
-}
-
-model InvoiceItem {
-  id           String       @id @default(cuid())
-  invoiceId    String
-  productId    String
-  quantity     Int
-  unitPriceNet Decimal
-  vatPct       Decimal?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
-  product      BrandProduct @relation(fields: [productId], references: [id])
-}
-
-model Payment {
-  id        String   @id @default(cuid())
-  brandId   String?
-  invoiceId String
-  amount    Decimal?
-  method    String?
-  status    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
-}
-
-model Expense {
-  id        String   @id @default(cuid())
-  brandId   String?
-  category  String
-  amount    Decimal?
-  currency  String?
-  note      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model FinanceExpense {
-  id          String   @id @default(cuid())
-  brandId     String
-  category    String
-  amount      Decimal
-  currency    String
-  incurredAt  DateTime
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  brand       Brand    @relation(fields: [brandId], references: [id])
-
-  @@index([brandId])
-}
-
-model RevenueRecord {
-  id          String        @id @default(cuid())
-  brandId     String?
-  productId   String?
-  channel     String?
-  amount      Decimal?
-  currency    String?
-  periodStart DateTime?
-  periodEnd   DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  brand       Brand?        @relation(fields: [brandId], references: [id])
-  product     BrandProduct? @relation(fields: [productId], references: [id])
-  CrmCustomer CrmCustomer[]
-}
-
-model FinanceInvoice {
-  id         String    @id @default(cuid())
-  brandId    String
-  customerId String?
-  externalId String?
-  amount     Decimal
-  currency   String
-  status     String    @default("draft")
-  issuedAt   DateTime?
-  dueAt      DateTime?
-  paidAt     DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  brand      Brand     @relation(fields: [brandId], references: [id])
-
-  @@index([brandId])
-}
-
-model ProgramPayout {
-  id        String   @id @default(cuid())
-  brandId   String?
-  program   String?
-  amount    Decimal?
-  status    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model TaxProfile {
-  id        String   @id @default(cuid())
-  brandId   String?
-  country   String?
-  vatRate   Decimal?
-  rulesJson String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model FinancialKPIRecord {
-  id        String   @id @default(cuid())
-  brandId   String?
-  period    String?
-  metrics   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model BudgetPlan {
-  id          String             @id @default(cuid())
-  brandId     String?
-  name        String
-  period      String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  allocations BudgetAllocation[]
-  brand       Brand?             @relation(fields: [brandId], references: [id])
-}
-
-model BudgetAllocation {
-  id           String     @id @default(cuid())
-  budgetPlanId String
-  category     String?
-  amount       Decimal?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  budgetPlan   BudgetPlan @relation(fields: [budgetPlanId], references: [id])
-}
-
-model WhiteLabelBrand {
-  id               String                @id @default(cuid())
-  brandId          String?
-  ownerPartnerId   String?
-  ownerAffiliateId String?
-  name             String
-  slug             String                @unique
-  status           String?
-  settingsJson     String?
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  aiInsights       WhiteLabelAIInsight[]
-  brand            Brand?                @relation(fields: [brandId], references: [id])
-  ownerAffiliate   Affiliate?            @relation("WL_AffiliateOwner", fields: [ownerAffiliateId], references: [id])
-  ownerPartner     Partner?              @relation("WL_PartnerOwner", fields: [ownerPartnerId], references: [id])
-  contracts        WhiteLabelContract[]
-  orders           WhiteLabelOrder[]
-  pricing          WhiteLabelPricing[]
-  products         WhiteLabelProduct[]
-  store            WhiteLabelStore?
-}
-
-model WhiteLabelProduct {
-  id               String                @id @default(cuid())
-  wlBrandId        String
-  baseProductId    String?
-  name             String
-  sku              String?               @unique
-  lifecycleStage   String?               @default("concept")
-  distributionJson String?
-  seoJson          String?
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  orderItems       WhiteLabelOrderItem[]
-  pricingRecords   WhiteLabelPricing[]
-  baseProduct      BrandProduct?         @relation(fields: [baseProductId], references: [id])
-  wlBrand          WhiteLabelBrand       @relation(fields: [wlBrandId], references: [id])
-}
-
-model WhiteLabelPricing {
-  id          String             @id @default(cuid())
-  wlBrandId   String
-  productId   String?
-  pricingJson String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  product     WhiteLabelProduct? @relation(fields: [productId], references: [id])
-  wlBrand     WhiteLabelBrand    @relation(fields: [wlBrandId], references: [id])
-}
-
-model WhiteLabelOrder {
-  id        String                @id @default(cuid())
-  wlBrandId String
-  status    String?
-  total     Decimal?
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt
-  wlBrand   WhiteLabelBrand       @relation(fields: [wlBrandId], references: [id])
-  items     WhiteLabelOrderItem[]
-}
-
-model WhiteLabelOrderItem {
-  id        String             @id @default(cuid())
-  orderId   String
-  productId String?
-  quantity  Int
-  price     Decimal
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  order     WhiteLabelOrder    @relation(fields: [orderId], references: [id])
-  product   WhiteLabelProduct? @relation(fields: [productId], references: [id])
-}
-
-model WhiteLabelContract {
-  id        String          @id @default(cuid())
-  wlBrandId String
-  termsJson String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  wlBrand   WhiteLabelBrand @relation(fields: [wlBrandId], references: [id])
-}
-
-model WhiteLabelAIInsight {
-  id        String          @id @default(cuid())
-  wlBrandId String
-  summary   String?
-  details   String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  wlBrand   WhiteLabelBrand @relation(fields: [wlBrandId], references: [id])
-}
-
-model WhiteLabelStore {
-  id         String          @id @default(cuid())
-  wlBrandId  String          @unique
-  configJson String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  wlBrand    WhiteLabelBrand @relation(fields: [wlBrandId], references: [id])
-}
-
-model AutomationEvent {
-  id                String   @id @default(cuid())
-  brandId           String?
-  name              String
-  sourceOS          String?
-  payloadSchemaJson String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  brand             Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model AutomationRule {
-  id             String                       @id @default(cuid())
-  brandId        String?
-  name           String
-  description    String?
-  state          AutomationRuleLifecycleState @default(DRAFT)
-  enabled        Boolean                      @default(true)
-  triggerEvent   String?
-  triggerType    String?
-  actionsJson    Json?
-  conditionsJson Json?
-  createdAt      DateTime                     @default(now())
-  updatedAt      DateTime                     @updatedAt
-  createdById    String?
-  updatedById    String?
-  lastRunAt      DateTime?
-  lastRunStatus  String?
-  brand          Brand?                       @relation(fields: [brandId], references: [id])
-  versions       AutomationRuleVersion[]
-  automationRuns AutomationRun[]
-  executionLogs  AutomationExecutionLog[]
-  auditLogs      AutomationAuditLog[]
-}
-
-model AutomationRuleVersion {
-  id                  String                       @id @default(cuid())
-  ruleId              String
-  versionNumber       Int
-  triggerEvent        String
-  conditionConfigJson Json
-  actionsConfigJson   Json
-  metaSnapshotJson    Json?
-  createdAt           DateTime                     @default(now())
-  createdById         String?
-  state               AutomationRuleLifecycleState @default(DRAFT)
-  rule                AutomationRule               @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  runs                AutomationRun[]
-
-  @@unique([ruleId, versionNumber])
-}
-
-model AutomationExecutionLog {
-  id           String         @id @default(cuid())
-  ruleId       String
-  eventName    String?
-  status       String
-  resultJson   String?
-  errorMessage String?
-  runAt        DateTime       @default(now())
-  rule         AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-}
-
-model AutomationApprovalDecision {
-  id           String                      @id @default(cuid())
-  suggestionId String?
-  suggestion   AISuggestion?               @relation(fields: [suggestionId], references: [id])
-  status       AutomationApprovalStatus    @default(PENDING)
-  snapshotHash String
-  environment  String
-  approvedById String?
-  approvedAt   DateTime?
-  expiresAt    DateTime?
-  revokedAt    DateTime?
-  createdAt    DateTime                    @default(now())
-  updatedAt    DateTime                    @updatedAt
-  executions   AutomationExecutionLedger[]
-  incidents    AutomationIncident[]
-
-  @@index([status])
-}
-
-model AutomationExecutionLedger {
-  id                 String                              @id @default(cuid())
-  approvalDecisionId String
-  approvalDecision   AutomationApprovalDecision          @relation(fields: [approvalDecisionId], references: [id], onDelete: Cascade)
-  suggestionId       String?
-  snapshotHash       String
-  environment        String
-  executedById       String
-  executedBy         User                                @relation(fields: [executedById], references: [id], onDelete: Cascade)
-  executedAt         DateTime                            @default(now())
-  result             AutomationExecutionResult
-  errorCode          String?
-  errorMessage       String?
-  actionType         String
-  actionPayloadJson  Json?
-  metadataJson       Json?
-  incidents          AutomationIncident[]
-  rollbackExecutions AutomationRollbackExecutionLedger[]
-
-  @@index([approvalDecisionId])
-  @@index([executedById])
-}
-
-model AutomationBrandKillSwitch {
-  brandId       String    @id
-  tenantId      String?
-  enabled       Boolean   @default(false)
-  reason        String?
-  activatedById String?
-  activatedAt   DateTime?
-  deactivatedAt DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  brand         Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
-}
-
-model AutomationIncident {
-  incidentId                String                              @id @default(cuid())
-  type                      AutomationIncidentType
-  severity                  AutomationIncidentSeverity
-  status                    AutomationIncidentStatus            @default(OPEN)
-  description               String?
-  detectedAt                DateTime                            @default(now())
-  detectedBy                AutomationDetectionSource
-  detectedById              String?
-  metadataJson              Json?
-  relatedExecutionId        String?
-  relatedExecution          AutomationExecutionLedger?          @relation(fields: [relatedExecutionId], references: [id])
-  relatedApprovalDecisionId String?
-  relatedApprovalDecision   AutomationApprovalDecision?         @relation(fields: [relatedApprovalDecisionId], references: [id])
-  mitigationNotesJson       Json?
-  resolutionNotesJson       Json?
-  mitigatedAt               DateTime?
-  resolvedAt                DateTime?
-  createdAt                 DateTime                            @default(now())
-  updatedAt                 DateTime                            @updatedAt
-  executionKillSwitches     AutomationExecutionKillSwitch[]
-  rollbackExecutions        AutomationRollbackExecutionLedger[]
-
-  @@index([relatedExecutionId])
-  @@index([relatedApprovalDecisionId])
-}
-
-model AutomationExecutionKillSwitch {
-  id            String                              @id @default(cuid())
-  targetId      String
-  targetType    AutomationExecutionKillSwitchTarget
-  reason        String
-  isActive      Boolean                             @default(true)
-  activatedById String?
-  activatedAt   DateTime                            @default(now())
-  incidentId    String?
-  incident      AutomationIncident?                 @relation(fields: [incidentId], references: [incidentId])
-  createdAt     DateTime                            @default(now())
-  updatedAt     DateTime                            @updatedAt
-
-  @@index([targetId, targetType])
-  @@index([incidentId])
-}
-
-model AutomationRollbackExecutionLedger {
-  id                String                    @id @default(cuid())
-  executionId       String
-  execution         AutomationExecutionLedger @relation(fields: [executionId], references: [id], onDelete: Cascade)
-  incidentId        String
-  incident          AutomationIncident        @relation(fields: [incidentId], references: [incidentId])
-  approvedById      String
-  approvedAt        DateTime
-  reason            String
-  snapshotReference String
-  scopeDescription  String
-  status            AutomationRollbackStatus  @default(PENDING)
-  requestedById     String?
-  executedAt        DateTime?
-  metadataJson      Json?
-  createdAt         DateTime                  @default(now())
-  updatedAt         DateTime                  @updatedAt
-
-  @@index([executionId])
-  @@index([incidentId])
-}
-
-model AutomationWorkflow {
-  id        String   @id @default(cuid())
-  brandId   String?
-  name      String
-  stepsJson String?
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model AutomationAuditLog {
-  id                 String         @id @default(cuid())
-  ruleId             String
-  ruleVersionId      String?
-  actorId            String?
-  actionType         String
-  beforeStateJson    Json?
-  afterStateJson     Json?
-  policySnapshotJson Json?
-  violationsJson     Json?
-  reason             String?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  rule               AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-}
-
-model AutomationRun {
-  id               String              @id @default(cuid())
-  ruleId           String
-  ruleVersionId    String
-  eventName        String
-  eventId          String?
-  status           AutomationRunStatus @default(PENDING)
-  startedAt        DateTime?
-  finishedAt       DateTime?
-  summaryJson      Json?
-  errorJson        Json?
-  triggerEventJson Json?
-  conditionsJson   Json?
-  actionsJson      Json?
-  ruleMetaJson     Json?
-  dedupKey         String?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-
-  rule        AutomationRule        @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  ruleVersion AutomationRuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
-  actionRuns  AutomationActionRun[]
-
-  @@index([ruleId])
-  @@index([ruleVersionId])
-  @@index([eventId])
-}
-
-model AutomationActionRun {
-  id               String                    @id @default(cuid())
-  runId            String
-  actionIndex      Int
-  actionType       String
-  status           AutomationActionRunStatus @default(PENDING)
-  attemptCount     Int                       @default(0)
-  nextAttemptAt    DateTime?
-  dedupKey         String                    @unique
-  actionConfigJson Json
-  resultJson       Json?
-  errorJson        Json?
-  startedAt        DateTime?
-  finishedAt       DateTime?
-  summary          String?
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
-
-  run AutomationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-
-  @@index([runId])
-}
-
-model AutomationLog {
-  id          String   @id @default(cuid())
-  brandId     String?
-  eventName   String?
-  ruleId      String?
-  workflowId  String?
-  result      String?
-  detailsJson String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  brand       Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model ActivityLog {
-  id        String   @id @default(cuid())
-  brandId   String?
-  userId    String?
-  module    String?
-  type      String
-  source    String?
-  severity  String?
-  metaJson  String?
-  createdAt DateTime @default(now())
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-
-  @@index([brandId])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model ScheduledJob {
-  id             String    @id @default(cuid())
-  brandId        String?
-  name           String
-  cronExpression String
-  lastRunAt      DateTime?
-  nextRunAt      DateTime?
-  status         String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  brand          Brand?    @relation(fields: [brandId], references: [id])
-}
-
-model Notification {
-  id         String    @id @default(cuid())
-  brandId    String?
-  userId     String?
-  channel    String
-  title      String
-  body       String
-  status     String?   @default("unread")
-  metaJson   String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  type       String?
-  dataJson   String?
-  readAt     DateTime?
-  archivedAt DateTime?
-  brand      Brand?    @relation(fields: [brandId], references: [id])
-  user       User?     @relation(fields: [userId], references: [id])
-
-  @@index([brandId])
-  @@index([userId])
-}
-
-model NotificationChannel {
-  id        String   @id @default(cuid())
-  brandId   String?
-  name      String
-  type      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model NotificationTemplate {
-  id            String   @id @default(cuid())
-  brandId       String?
-  code          String   @unique
-  channel       String
-  version       Int      @default(1)
-  subject       String?
-  body          String?
-  variablesJson String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  brand         Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model KnowledgeDocument {
-  id         String             @id @default(cuid())
-  brandId    String?
-  title      String
-  categoryId String?
-  productId  String?
-  campaignId String?
-  content    String?
-  summary    String?
-  sourceType String?
-  language   String?
-  fileUrl    String?
-  storageKey String?
-  faqJson    String?
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  brand      Brand?             @relation(fields: [brandId], references: [id])
-  category   KnowledgeCategory? @relation(fields: [categoryId], references: [id])
-  product    BrandProduct?      @relation(fields: [productId], references: [id])
-  campaign   Campaign?          @relation(fields: [campaignId], references: [id])
-  tags       KnowledgeTag[]
-}
-
-model KnowledgeCategory {
-  id        String              @id @default(cuid())
-  brandId   String?
-  name      String
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  brand     Brand?              @relation(fields: [brandId], references: [id])
-  documents KnowledgeDocument[]
-}
-
-model KnowledgeTag {
-  id         String            @id @default(cuid())
-  documentId String
-  name       String
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-  document   KnowledgeDocument @relation(fields: [documentId], references: [id])
-}
-
-model KnowledgeSource {
-  id        String   @id @default(cuid())
-  brandId   String?
-  type      String?
-  reference String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model AIAgentConfig {
-  id         String   @id @default(cuid())
-  brandId    String?
-  name       String   @unique
-  osScope    String?
-  configJson String?
-  enabled    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  brand      Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model AIInsight {
-  id         String   @id @default(cuid())
-  brandId    String?
-  os         String?
-  entityType String?
-  entityId   String?
-  summary    String?
-  details    String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  brand      Brand?   @relation(fields: [brandId], references: [id])
-}
-
-model AIReport {
-  id          String    @id @default(cuid())
-  brandId     String?
-  title       String
-  scope       String?
-  periodStart DateTime?
-  periodEnd   DateTime?
-  content     String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  brand       Brand?    @relation(fields: [brandId], references: [id])
-}
-
-model AIExecutionLog {
-  id               String            @id @default(cuid())
-  runId            String
-  agentName        String?
-  namespace        String?
-  model            String?
-  provider         String?
-  status           AIExecutionStatus
-  riskLevel        AIRiskLevel?
-  latencyMs        Int?
-  promptTokens     Int?
-  completionTokens Int?
-  totalTokens      Int?
-  costUsd          Float?
-  promptPreview    String?
-  outputPreview    String?
-  errorMessage     String?
-  brandId          String?
-  tenantId         String?
-  metadata         Json?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  brand            Brand?            @relation(fields: [brandId], references: [id])
-  tenant           Tenant?           @relation(fields: [tenantId], references: [id])
+  sender    User?    @relation(fields: [senderId], references: [id])
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+}
+
+model User {
+  id                       String                      @id @default(cuid())
+  email                    String                      @unique
+  password                 String
+  role                     String                      @default("USER")
+  status                   String                      @default("ACTIVE")
+  tenantId                 String?
+  brandId                  String?
+  rolesJson                Json?
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+  tenant                   Tenant?                     @relation("TenantUsers", fields: [tenantId], references: [id])
+  brand                    Brand?                      @relation("BrandUsers", fields: [brandId], references: [id])
+  activityLogs             ActivityLog[]
+  affiliates               Affiliate[]
+  auditLogs                AuditLog[]
+  loyaltyCustomers         LoyaltyCustomer[]
+  loyaltyTransactions      LoyaltyTransaction[]
+  notifications            Notification[]
+  partnerUsers             PartnerUser[]
+  salesReps                SalesRep[]
+  influencerDiscoveryTasks InfluencerDiscoveryTask[]   @relation("InfluencerDiscoveryRequestedBy")
+  assignedTickets          Ticket[]                    @relation("TicketAssignedTo")
+  createdTickets           Ticket[]                    @relation("TicketCreatedBy")
+  ticketAssignments        TicketAssignment[]
+  ticketMessages           TicketMessage[]
+  onboardingProfiles       TenantOnboardingProfile[]   @relation("UserOnboardingProfiles")
+  planChanges              TenantPlanChange[]          @relation("PlanChangeChangedBy")
+  automationExecutions     AutomationExecutionLedger[]
 
-  @@index([brandId])
   @@index([tenantId])
-  @@index([namespace])
-  @@index([agentName])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model AIMonitoringEvent {
-  id        String               @id @default(cuid())
-  category  AIMonitoringCategory
-  status    String?
-  metric    Json?
-  agentName String?
-  engine    String?
-  namespace String?
-  riskLevel AIRiskLevel?
-  brandId   String?
-  tenantId  String?
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  brand     Brand?               @relation(fields: [brandId], references: [id])
-  tenant    Tenant?              @relation(fields: [tenantId], references: [id])
-
-  @@index([category])
-  @@index([brandId])
-  @@index([tenantId])
-  @@index([createdAt])
-}
-
-model AISafetyEvent {
-  id        String            @id @default(cuid())
-  type      AISafetyEventType
-  action    String?
-  ruleId    String?
-  runId     String?
-  agentName String?
-  namespace String?
-  riskLevel AIRiskLevel?
-  decision  String?
-  detail    Json?
-  brandId   String?
-  tenantId  String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  brand     Brand?            @relation(fields: [brandId], references: [id])
-  tenant    Tenant?           @relation(fields: [tenantId], references: [id])
-
-  @@index([type])
-  @@index([brandId])
-  @@index([tenantId])
-  @@index([createdAt])
-}
-
-model AIPromptFirewallRule {
-  id           String         @id @default(cuid())
-  name         String
-  matcherType  String
-  matcherValue String
-  action       AIPromptAction
-  reason       String?
-  severity     AIRiskLevel?
-  active       Boolean        @default(true)
-  tags         String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-}
-
-model AISafetyConstraint {
-  id                    String   @id @default(cuid())
-  code                  String   @unique
-  scope                 String?
-  description           String?
-  ruleJson              String?
-  allowedActionsJson    String?
-  restrictedDomainsJson String?
-  riskScore             Int?
-  active                Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model AIBannedAction {
-  id          String       @id @default(cuid())
-  code        String       @unique
-  description String?
-  severity    AIRiskLevel?
-  scope       String?
-  mitigation  String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
-
-model AIAgentBudget {
-  id               String   @id @default(cuid())
-  agentName        String
-  brandId          String?
-  tenantId         String?
-  dailyBudgetUsd   Float?
-  monthlyBudgetUsd Float?
-  tokenLimit       Int?
-  alertThreshold   Float?   @default(0.8)
-  active           Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  brand            Brand?   @relation(fields: [brandId], references: [id])
-  tenant           Tenant?  @relation(fields: [tenantId], references: [id])
-
-  @@unique([agentName, brandId, tenantId])
-  @@index([brandId])
-  @@index([tenantId])
-}
-
-model VirtualOfficeMeeting {
-  id              String                    @id @default(cuid())
-  brandId         String?
-  topic           String
-  scope           String?
-  summary         String?
-  details         String?
-  departmentsJson String?
-  agendaJson      String?
-  actionItemsJson String?
-  risksJson       String?
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
-  brand           Brand?                    @relation(fields: [brandId], references: [id])
-  actionItems     VirtualOfficeActionItem[]
-
   @@index([brandId])
 }
 
@@ -3305,231 +2340,23 @@ model VirtualOfficeActionItem {
   @@index([meetingId])
 }
 
-model SocialMention {
-  id         String        @id @default(cuid())
-  brandId    String?
-  productId  String?
-  platform   String
-  author     String?
-  keyword    String?
-  content    String?
-  sentiment  String?
-  url        String?
-  occurredAt DateTime?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  brand      Brand?        @relation(fields: [brandId], references: [id])
-  product    BrandProduct? @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-}
-
-model SocialTrend {
-  id            String        @id @default(cuid())
-  brandId       String?
-  productId     String?
-  topic         String
-  platform      String?
-  score         Float?
-  trendDataJson String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  brand         Brand?        @relation(fields: [brandId], references: [id])
-  product       BrandProduct? @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-}
-
-model InfluencerProfile {
-  id                String                   @id @default(cuid())
-  brandId           String?
-  handle            String
-  platform          String
-  followers         Int?
-  engagementRate    Float?
-  profileUrl        String?
-  tags              String?
-  displayName       String?
-  category          String?
-  country           String?
-  language          String?
-  contactEmail      String?
-  audienceJson      String?
-  authenticityScore Float?
-  fakeFollowerRisk  Float?
-  marketFitScore    Float?
-  engagementScore   Float?
-  status            String?                  @default("active")
-  riskNotes         String?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-  brand             Brand?                   @relation(fields: [brandId], references: [id])
-  statSnapshots     InfluencerStatSnapshot[]
-  negotiations      InfluencerNegotiation[]
-  campaignLinks     InfluencerCampaignLink[]
-}
-
-model InfluencerStatSnapshot {
-  id                 String            @id @default(cuid())
-  influencerId       String
-  brandId            String?
-  followers          Int?
-  engagementRate     Float?
-  fakeFollowerPct    Float?
-  audienceMatchScore Float?
-  marketFitScore     Float?
-  authenticityScore  Float?
-  avgViews           Int?
-  metricsJson        String?
-  collectedAt        DateTime          @default(now())
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  influencer         InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
-  brand              Brand?            @relation("BrandToInfluencerStatSnapshot", fields: [brandId], references: [id])
-
-  @@index([influencerId])
-  @@index([brandId])
-}
-
-model InfluencerDiscoveryTask {
-  id                String   @id @default(cuid())
-  brandId           String?
-  query             String?
-  categories        String?
-  platforms         String?
-  status            String?  @default("queued")
-  resultCount       Int?
-  requestedByUserId String?
-  findingsJson      String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  brand             Brand?   @relation("BrandToInfluencerDiscoveryTask", fields: [brandId], references: [id])
-  requestedBy       User?    @relation("InfluencerDiscoveryRequestedBy", fields: [requestedByUserId], references: [id])
-
-  @@index([brandId])
-  @@index([requestedByUserId])
-}
-
-model InfluencerNegotiation {
-  id              String             @id @default(cuid())
+model VirtualOfficeMeeting {
+  id              String                    @id @default(cuid())
   brandId         String?
-  influencerId    String?
-  status          String?            @default("draft")
-  lastSuggestedAt DateTime?
-  termsJson       String?
-  notes           String?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  brand           Brand?             @relation("BrandToInfluencerNegotiation", fields: [brandId], references: [id])
-  influencer      InfluencerProfile? @relation(fields: [influencerId], references: [id])
+  topic           String
+  scope           String?
+  summary         String?
+  details         String?
+  departmentsJson String?
+  agendaJson      String?
+  actionItemsJson String?
+  risksJson       String?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  brand           Brand?                    @relation(fields: [brandId], references: [id])
+  actionItems     VirtualOfficeActionItem[]
 
   @@index([brandId])
-  @@index([influencerId])
-}
-
-model InfluencerCampaignLink {
-  id              String            @id @default(cuid())
-  brandId         String?
-  influencerId    String
-  campaignId      String?
-  role            String?
-  trackingUrl     String?
-  performanceJson String?
-  status          String?           @default("active")
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  brand           Brand?            @relation("BrandToInfluencerCampaignLink", fields: [brandId], references: [id])
-  influencer      InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
-  campaign        Campaign?         @relation("CampaignToInfluencerCampaignLink", fields: [campaignId], references: [id])
-
-  @@index([brandId])
-  @@index([influencerId])
-  @@index([campaignId])
-}
-
-model CompetitorSocialReport {
-  id         String        @id @default(cuid())
-  brandId    String?
-  productId  String?
-  competitor String?
-  period     String?
-  summary    String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  brand      Brand?        @relation(fields: [brandId], references: [id])
-  product    BrandProduct? @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-}
-
-model AudienceInsight {
-  id        String           @id @default(cuid())
-  brandId   String?
-  segmentId String?
-  summary   String?
-  dataJson  String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  brand     Brand?           @relation(fields: [brandId], references: [id])
-  segment   AudienceSegment? @relation(fields: [segmentId], references: [id])
-}
-
-model Ticket {
-  id               String             @id @default(cuid())
-  brandId          String?
-  createdByUserId  String?
-  contactId        String?
-  assignedToUserId String?
-  status           String?
-  channel          String?
-  locale           String?
-  source           String?
-  priority         String?
-  category         String?
-  metadataJson     String?
-  closedAt         DateTime?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  assignedTo       User?              @relation("TicketAssignedTo", fields: [assignedToUserId], references: [id])
-  brand            Brand?             @relation(fields: [brandId], references: [id])
-  createdBy        User?              @relation("TicketCreatedBy", fields: [createdByUserId], references: [id])
-  assignments      TicketAssignment[]
-  messages         TicketMessage[]
-  tags             TicketTag[]
-  voiceSessions    VoiceSession[]
-}
-
-model TicketMessage {
-  id        String   @id @default(cuid())
-  ticketId  String
-  senderId  String?
-  content   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sender    User?    @relation(fields: [senderId], references: [id])
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-}
-
-model TicketTag {
-  id        String   @id @default(cuid())
-  ticketId  String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-}
-
-model TicketAssignment {
-  id        String   @id @default(cuid())
-  ticketId  String
-  userId    String?
-  brandId   String?
-  role      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  brand     Brand?   @relation(fields: [brandId], references: [id])
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model VoiceSession {
@@ -3573,54 +2400,45 @@ model VoiceTranscript {
   @@index([sessionId])
 }
 
-model OperationsTask {
-  id        String    @id @default(cuid())
-  brandId   String?
-  title     String
+model WhiteLabelBrand {
+  id               String                @id @default(cuid())
+  brandId          String?
+  ownerPartnerId   String?
+  ownerAffiliateId String?
+  name             String
+  slug             String                @unique
+  status           String?
+  settingsJson     String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  brand            Brand?                @relation(fields: [brandId], references: [id])
+  ownerAffiliate   Affiliate?            @relation("WL_AffiliateOwner", fields: [ownerAffiliateId], references: [id])
+  ownerPartner     Partner?              @relation("WL_PartnerOwner", fields: [ownerPartnerId], references: [id])
+  orders           WhiteLabelOrder[]
+  products         WhiteLabelProduct[]
+}
+
+model WhiteLabelOrder {
+  id        String                @id @default(cuid())
+  wlBrandId String
   status    String?
-  dueDate   DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  brand     Brand?    @relation(fields: [brandId], references: [id])
+  total     Decimal?
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  wlBrand   WhiteLabelBrand       @relation(fields: [wlBrandId], references: [id])
 }
 
-enum AISuggestionStatus {
-  pending
-  approved
-  rejected
-  executed
-  failed
-}
-
-model AISuggestion {
-  id       String @id @default(cuid())
-  tenantId String
-  brandId  String
-
-  agent          String
-  domain         String
-  suggestionType String
-  riskLevel      String
-
-  status               AISuggestionStatus @default(pending)
-  requiredApprovalRole String
-
-  inputSnapshotJson  String
-  proposedOutputJson String
-
-  approvedByUserId String?
-  approvedAt       DateTime?
-  executedAt       DateTime?
-  failureReason    String?
-
-  correlationId String
-
-  createdAt         DateTime                     @default(now())
-  updatedAt         DateTime                     @updatedAt
-  approvalDecisions AutomationApprovalDecision[]
-
-  @@index([tenantId])
-  @@index([brandId])
-  @@index([status])
-  @@index([correlationId])
+model WhiteLabelProduct {
+  id               String                @id @default(cuid())
+  wlBrandId        String
+  baseProductId    String?
+  name             String
+  sku              String?               @unique
+  lifecycleStage   String?               @default("concept")
+  distributionJson String?
+  seoJson          String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  baseProduct      BrandProduct?         @relation(fields: [baseProductId], references: [id])
+  wlBrand          WhiteLabelBrand       @relation(fields: [wlBrandId], references: [id])
 }
