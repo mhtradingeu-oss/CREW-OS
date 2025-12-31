@@ -93,7 +93,7 @@ export async function findRecentTickets(brandId: string, limit = 5) {
     take: limit,
     include: {
       messages: { orderBy: { createdAt: "desc" }, take: 3 },
-      tags: true,
+      // tags: true, // Removed: not in schema
     },
   });
 }
@@ -108,7 +108,7 @@ export async function findTicketWithMessages(ticketId: string, options?: { order
         },
         options?.take ? { take: options.take } : {},
       ),
-      tags: true,
+      // tags: true, // Removed: not in schema
     },
   });
 }

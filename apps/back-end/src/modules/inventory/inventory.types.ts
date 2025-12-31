@@ -87,8 +87,6 @@ export interface CreateInventoryAdjustmentInput {
 
 export interface InventoryAdjustmentResult {
   inventoryItem: InventoryItemDTO;
-  transaction: InventoryTransactionDTO;
-  adjustment: StockAdjustmentDTO;
 }
 
 export interface InventoryEventPayload {

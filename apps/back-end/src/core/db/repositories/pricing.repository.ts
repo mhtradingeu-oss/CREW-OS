@@ -108,6 +108,12 @@ export type PricingUpdateInput = Prisma.ProductPricingUncheckedUpdateInput;
 export type DraftCreateInput = Prisma.ProductPriceDraftUncheckedCreateInput;
 export type DraftUpdateInput = Prisma.ProductPriceDraftUncheckedUpdateInput;
 export type CompetitorPriceCreateInput = Prisma.CompetitorPriceUncheckedCreateInput;
+export type CompetitorPriceUniqueInput = {
+  productId: string;
+  competitor: string;
+  marketplace?: string | null;
+  country?: string | null;
+};
 export type PricingHistoryCreateInput = Prisma.AIPricingHistoryUncheckedCreateInput;
 export type AIInsightCreateInput = Prisma.AIInsightUncheckedCreateInput;
 export type LearningJournalCreateInput = Prisma.AILearningJournalUncheckedCreateInput;
@@ -249,6 +255,41 @@ export async function listCompetitorPrices(
       take: pagination.take,
     }),
   ]);
+}
+
+export async function findCompetitorPriceRecords(
+  where: Prisma.CompetitorPriceWhereInput,
+  pagination: { skip: number; take: number },
+): Promise<[number, CompetitorPricePayload[]]> {
+  return prisma.$transaction([
+    prisma.competitorPrice.count({ where }),
+    prisma.competitorPrice.findMany({
+      where,
+      select: competitorSelect,
+      orderBy: { collectedAt: "desc" },
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+  ]);
+}
+
+export async function upsertCompetitorPriceRecord(
+  where: CompetitorPriceUniqueInput,
+  data: CompetitorPriceCreateInput,
+): Promise<CompetitorPricePayload> {
+  return prisma.competitorPrice.upsert({
+    where: {
+      productId_competitor_marketplace_country: {
+        productId: where.productId,
+        competitor: where.competitor,
+        marketplace: typeof where.marketplace === 'string' ? where.marketplace : '',
+        country: typeof where.country === 'string' ? where.country : '',
+      },
+    },
+    create: data,
+    update: data,
+    select: competitorSelect,
+  });
 }
 
 // Logs / History / Insights / LearningJournal

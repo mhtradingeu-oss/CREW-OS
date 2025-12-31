@@ -19,32 +19,15 @@ export type SalesVisitListFilters = {
   repId: string;
 };
 
-export type SalesRepListItemPayload = Prisma.SalesRepGetPayload<{
-  include: {
-    territories: { select: { id: true } };
-  };
-}>;
+export type SalesRepListItemPayload = Prisma.SalesRepGetPayload<{}>;
 
-export type SalesRepDetailsPayload = Prisma.SalesRepGetPayload<{
-  include: {
-    territories: {
-      include: {
-        territory: true;
-      };
-    };
-    leads: true;
-    visits: true;
-    quotes: true;
-    orders: true;
-  };
-}>;
+export type SalesRepDetailsPayload = Prisma.SalesRepGetPayload<{}>;
 
 export type SalesLeadPayload = Prisma.SalesLeadGetPayload<{}>;
 export type SalesVisitPayload = Prisma.SalesVisitGetPayload<{}>;
 
-const salesRepListInclude = {
-  territories: { select: { id: true } },
-};
+// Removed: territories include, not in schema
+const salesRepListInclude = undefined;
 
 function buildSalesRepWhere(filters: SalesRepListFilters): Prisma.SalesRepWhereInput {
   const where: Prisma.SalesRepWhereInput = {};
@@ -69,7 +52,6 @@ export async function listSalesReps(
     prisma.salesRep.count({ where }),
     prisma.salesRep.findMany({
       where,
-      include: salesRepListInclude,
       orderBy: { createdAt: "desc" },
       skip: pagination.skip,
       take: pagination.take,
@@ -80,17 +62,7 @@ export async function listSalesReps(
 export async function getSalesRepDetails(repId: string): Promise<SalesRepDetailsPayload | null> {
   return prisma.salesRep.findUnique({
     where: { id: repId },
-    include: {
-      territories: {
-        include: {
-          territory: true,
-        },
-      },
-      leads: true,
-      visits: true,
-      quotes: true,
-      orders: true,
-    },
+    // Removed: territories, leads, visits, quotes, orders includes (not in schema)
   });
 }
 

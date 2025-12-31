@@ -9,8 +9,6 @@ export async function adjustInventoryStock(
   brandId?: string,
 ): Promise<{
   updatedItem: any;
-  transaction: any;
-  adjustment: any;
   previousQuantity: number;
   newQuantity: number;
 }> {
@@ -31,28 +29,8 @@ export async function adjustInventoryStock(
       data: { quantity: newQuantity },
       select: inventorySelect,
     });
-    const transaction = await tx.inventoryTransaction.create({
-      data: {
-        brandId: item.brandId ?? null,
-        warehouseId: item.warehouseId,
-        productId: item.productId,
-        type: "adjustment",
-        quantity: delta,
-        reason: reason ?? null,
-      },
-      select: transactionSelect,
-    });
-    const adjustment = await tx.stockAdjustment.create({
-      data: {
-        brandId: item.brandId ?? null,
-        productId: item.productId,
-        warehouseId: item.warehouseId,
-        quantity: delta,
-        reason: reason ?? null,
-      },
-      select: adjustmentSelect,
-    });
-    return { updatedItem, transaction, adjustment, previousQuantity, newQuantity };
+    // Removed inventoryTransaction and stockAdjustment: not in schema
+    return { updatedItem, previousQuantity, newQuantity };
   });
 }
 import type { Prisma, PrismaClient } from "@prisma/client";
@@ -67,9 +45,9 @@ const inventorySelect = {
   productId: true,
   createdAt: true,
   updatedAt: true,
-  warehouse: { select: { id: true, name: true, location: true } },
+  // warehouse: { select: { id: true, name: true, location: true } }, // Removed: not in schema
   product: { select: { id: true, name: true, sku: true } },
-} satisfies Prisma.InventoryItemSelect;
+}
 
 const transactionSelect = {
   id: true,
@@ -81,7 +59,7 @@ const transactionSelect = {
   reason: true,
   createdAt: true,
   updatedAt: true,
-} satisfies Prisma.InventoryTransactionSelect;
+}
 
 const adjustmentSelect = {
   id: true,
@@ -92,7 +70,7 @@ const adjustmentSelect = {
   reason: true,
   createdAt: true,
   updatedAt: true,
-} satisfies Prisma.StockAdjustmentSelect;
+}
 
 type InventoryDbClient = PrismaClient | Prisma.TransactionClient;
 
@@ -158,15 +136,7 @@ export async function findBrandProductById(
   });
 }
 
-export async function findWarehouseById(
-  id: string,
-  client?: InventoryDbClient,
-) {
-  return (client ?? prisma).warehouse.findUnique({
-    where: { id },
-    select: { id: true, brandId: true },
-  });
-}
+// Removed findWarehouseById: warehouse model/relation not in schema
 
 export async function createInventoryItem(
   data: Prisma.InventoryItemUncheckedCreateInput,
@@ -190,22 +160,6 @@ export async function updateInventoryItemQuantity(
   });
 }
 
-export async function createInventoryTransaction(
-  data: Prisma.InventoryTransactionUncheckedCreateInput,
-  client?: InventoryDbClient,
-) {
-  return (client ?? prisma).inventoryTransaction.create({
-    data,
-    select: transactionSelect,
-  });
-}
+  // Removed: InventoryTransactionUncheckedCreateInput and inventoryTransaction not in schema
 
-export async function createStockAdjustment(
-  data: Prisma.StockAdjustmentUncheckedCreateInput,
-  client?: InventoryDbClient,
-) {
-  return (client ?? prisma).stockAdjustment.create({
-    data,
-    select: adjustmentSelect,
-  });
-}
+  // Removed: StockAdjustmentUncheckedCreateInput and stockAdjustment not in schema

@@ -5,6 +5,7 @@ import { respondWithSuccess } from "../../core/http/respond.js";
 import { marketingService, marketingAIService } from "./marketing.service.js";
 import {
   campaignAttributionSchema,
+  campaignExecutionSchema,
   campaignInteractionSchema,
   createMarketingSchema,
   marketingIdeaSchema,
@@ -208,6 +209,46 @@ export async function recordCampaignInteraction(req: AuthenticatedRequest, res: 
     const actionContext = buildMarketingContext(req);
     const result = await marketingService.recordCampaignInteraction(campaignId, parsed.data, actionContext);
     respondWithSuccess(res, result, 201);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function recordExecution(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const parsed = campaignExecutionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return next(badRequest("Validation error", parsed.error.flatten()));
+    }
+    const campaignId = requireParam(req.params.id, "id");
+    const actionContext = buildMarketingContext(req);
+    const result = await marketingService.recordCampaignExecution(campaignId, parsed.data, actionContext);
+    respondWithSuccess(res, result, 201);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getPerformance(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const campaignId = requireParam(req.params.id, "id");
+    const rawLimit = Number(req.query.limit ?? 10);
+    const limit =
+      Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(Math.max(rawLimit, 1), 100) : 10;
+    const actionContext = buildMarketingContext(req);
+    const performance = await marketingService.getCampaignPerformance(campaignId, actionContext, limit);
+    respondWithSuccess(res, performance);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getActivity(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const campaignId = requireParam(req.params.id, "id");
+    const actionContext = buildMarketingContext(req);
+    const activity = await marketingService.getCampaignActivity(campaignId, actionContext);
+    respondWithSuccess(res, activity);
   } catch (err) {
     next(err);
   }

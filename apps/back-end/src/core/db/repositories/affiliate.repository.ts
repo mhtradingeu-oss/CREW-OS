@@ -13,14 +13,6 @@ const affiliateSelect: PrismaSelect<typeof prisma.affiliate.findMany> = {
   status: true,
   createdAt: true,
   updatedAt: true,
-  tier: {
-    select: {
-      id: true,
-      brandId: true,
-      name: true,
-      rulesJson: true,
-    },
-  },
 };
 
 const linkSelect: PrismaSelect<typeof prisma.affiliateLink.findMany> = {

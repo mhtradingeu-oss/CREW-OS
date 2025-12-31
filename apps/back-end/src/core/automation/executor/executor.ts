@@ -16,6 +16,7 @@ import {
   updateRuleLastRun,
 } from "../../db/repositories/automation-run.repository.js";
 import { logger } from "../../logger.js";
+import { prisma } from "../../prisma.js";
 import { emitEvent } from "../../events/event-bus.js";
 import { safeTruncate } from "../../ai/pipeline/pipeline-utils.js";
 
@@ -320,6 +321,14 @@ export async function executeAutomationActions({
   });
   await updateRuleLastRun(rule.id, finalStatus);
 
+  await persistAutomationLog({
+    rule,
+    event,
+    runId: runRecord.id,
+    status: finalStatus,
+    actions: summaries,
+  });
+
   return {
     ruleId: rule.id,
     ruleVersionId: rule.ruleVersionId,
@@ -385,4 +394,39 @@ async function executeWithTimeout<T>(promise: Promise<T>, timeoutMs: number) {
       clearTimeout(timer);
     }
   }
+}
+
+type PersistAutomationLogParams = {
+  rule: AutomationRuleMatch;
+  event: DomainEvent;
+  runId: string;
+  status: AutomationRunStatus;
+  actions: AutomationActionSummary[];
+};
+
+async function persistAutomationLog(params: PersistAutomationLogParams) {
+  const brandId = params.rule.brandId ?? params.event.meta?.brandId ?? null;
+  const correlationId = params.event.meta?.correlationId ?? params.event.meta?.requestId ?? null;
+  const details = {
+    runId: params.runId,
+    eventId: params.event.id,
+    correlationId,
+    actions: params.actions.map((action) => ({
+      actionIndex: action.actionIndex,
+      actionType: action.actionType,
+      status: action.status,
+      deduped: action.deduped ?? false,
+      error: action.error ?? null,
+      reason: action.reason ?? null,
+    })),
+  };
+  await prisma.automationLog.create({
+    data: {
+      brandId,
+      eventName: params.event.type,
+      ruleId: params.rule.id,
+      result: params.status,
+      detailsJson: JSON.stringify(details),
+    },
+  });
 }

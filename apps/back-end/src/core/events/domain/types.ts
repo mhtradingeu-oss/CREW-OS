@@ -70,6 +70,24 @@ export type DomainEventPayloadMap =
       errors: number,
       fallbacks: number,
     },
+    "marketing.campaign.execution.recorded": {
+      campaignId: string,
+      campaignName?: string,
+      brandId?: string,
+      action: string,
+      executedAt: string,
+      metrics: {
+        impressions?: number | null;
+        clicks?: number | null;
+        spend?: number | null;
+        conversions?: number | null;
+        revenue?: number | null;
+      };
+      notes?: string;
+      contentDocumentId?: string | null;
+      actorUserId?: string;
+      tenantId?: string;
+    },
   };
 export type DomainEventName = keyof DomainEventPayloadMap;
 
@@ -99,4 +117,6 @@ export type DomainEventPublishPayload<T extends DomainEventName = DomainEventNam
   type: T;
   payload: DomainEventPayloadMap[T];
   meta?: DomainEventMeta;
+  id?: string;
+  occurredAt?: Date;
 };

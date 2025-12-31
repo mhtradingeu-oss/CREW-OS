@@ -14,6 +14,11 @@ const mockPrisma = {
       Promise.resolve({ ...args?.data, id: args?.where?.id ?? "mock-id" }),
     ),
   },
+  crmTask: {
+    create: jest.fn((args: Parameters<RealPrisma["crmTask"]["create"]>[0]) =>
+      Promise.resolve({ id: "mock-crm-task", ...args?.data }),
+    ),
+  },
   $transaction: jest.fn(async (callback: TransactionCallback) => {
     if (typeof callback === "function") {
       return await callback(mockPrisma as RealPrisma);

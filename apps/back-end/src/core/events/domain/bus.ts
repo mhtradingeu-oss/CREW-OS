@@ -13,11 +13,12 @@ const ALL_DOMAIN_EVENTS = Symbol("ALL_DOMAIN_EVENTS");
 
 
 function createDomainEvent<T extends DomainEventName>(payload: DomainEventPublishPayload<T>): DomainEvent<T> {
+  const { id, occurredAt, ...rest } = payload;
   return {
-    id: randomUUID(),
-    occurredAt: new Date(),
-    ...payload,
-  };
+    id: id ?? randomUUID(),
+    occurredAt: occurredAt ?? new Date(),
+    ...rest,
+  } as DomainEvent<T>;
 }
 
 export function publishDomainEvent<T extends DomainEventName>(payload: DomainEventPublishPayload<T>): DomainEvent<T> {

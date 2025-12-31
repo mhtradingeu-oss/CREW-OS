@@ -3,7 +3,7 @@ import type { ActionConfig } from "../../../modules/automation/automation.types.
 import type { ActionMetadata } from "./metadata.js";
 import { z } from "zod";
 
-export type ActionType = "INTERNAL_LOG";
+export type ActionType = "INTERNAL_LOG" | "CRM_TASK_FROM_MARKETING_EXECUTION";
 
 export interface ActionContext<TConfig extends Record<string, unknown> = Record<string, unknown>> {
   runId: string;

@@ -15,6 +15,10 @@ export enum MarketingEvents {
   INTERACTION_LOGGED = "marketing.campaign.interaction.logged",
 }
 
+export const MarketingDomainEvents = {
+  CAMPAIGN_EXECUTION_RECORDED: "marketing.campaign.execution.recorded" as const,
+};
+
 export async function emitMarketingCreated(
   payload: MarketingCampaignEventPayload,
   context?: EventContext,

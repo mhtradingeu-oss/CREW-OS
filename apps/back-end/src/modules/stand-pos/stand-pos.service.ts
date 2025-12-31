@@ -179,7 +179,7 @@ class StandPosService {
             inventories: { include: { product: { select: { id: true, name: true } } } },
           },
         },
-        packages: true,
+        // packages: true, // Removed: not in schema
       },
     });
 
