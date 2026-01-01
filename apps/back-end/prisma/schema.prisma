@@ -7,27 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 enum AIExecutionStatus {
+  PENDING
+  RUNNING
   SUCCESS
-  ERROR
-  BLOCKED
-  FALLBACK
-  RETRY
-}
-
-enum AIRiskLevel {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum AIMonitoringCategory {
-  ENGINE_HEALTH
-  AGENT_ACTIVITY
-  TOKEN_USAGE
-  PERFORMANCE_METRIC
-  SYSTEM_ALERT
+  FAILED
 }
 
 enum AIPromptAction {
@@ -35,6 +20,7 @@ enum AIPromptAction {
   BLOCK
   SANITIZE
 }
+
 
 enum AISafetyEventType {
   PROMPT_FIREWALL
@@ -163,32 +149,10 @@ model AIAgentBudget {
   tenant           Tenant?  @relation(fields: [tenantId], references: [id])
 
   @@unique([agentName, brandId, tenantId])
-  @@index([brandId])
-  @@index([tenantId])
+  @@index([createdAt])
 }
 
-model AIAgentConfig {
-  id         String   @id @default(cuid())
-  brandId    String?
-  name       String   @unique
-  osScope    String?
-  configJson String?
-  enabled    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  brand      Brand?   @relation(fields: [brandId], references: [id])
-}
 
-model AIBannedAction {
-  id          String       @id @default(cuid())
-  code        String       @unique
-  description String?
-  severity    AIRiskLevel?
-  scope       String?
-  mitigation  String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
 
 model AIExecutionLog {
   id               String            @id @default(cuid())
@@ -219,7 +183,6 @@ model AIExecutionLog {
   @@index([tenantId])
   @@index([namespace])
   @@index([agentName])
-  @@index([status])
   @@index([createdAt])
 }
 
@@ -859,7 +822,8 @@ model Brand {
   FinanceExpense              FinanceExpense[]
   FinanceInvoice              FinanceInvoice[]
   voiceSessions               VoiceSession[]
-}
+  warehouses                  Warehouse[]
+  }
 
 model BrandAIConfig {
   id                   String   @id @default(cuid())
@@ -885,6 +849,7 @@ model BrandCategory {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   brand       Brand?         @relation(fields: [brandId], references: [id])
+
   products    BrandProduct[]
 }
 
@@ -1090,6 +1055,8 @@ model CompetitorPrice {
   updatedAt   DateTime     @updatedAt
   brand       Brand?       @relation(fields: [brandId], references: [id])
   product     BrandProduct @relation(fields: [productId], references: [id])
+  warehouseId String
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
 
   @@unique([productId, competitor, marketplace, country])
   @@index([productId])
@@ -1335,21 +1302,87 @@ model InfluencerStatSnapshot {
   @@index([brandId])
 }
 
+
+enum InventoryTransactionType {
+  ADJUSTMENT
+  SALE
+  RESTOCK
+  TRANSFER
+  RETURN
+}
+
+enum ReorderSuggestionStatus {
+  OPEN
+  RESOLVED
+}
+
 model InventoryItem {
-  id          String       @id @default(cuid())
-  brandId     String?
-  warehouseId String
-  productId   String
-  quantity    Int          @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  brand       Brand?       @relation(fields: [brandId], references: [id])
-  product     BrandProduct @relation(fields: [productId], references: [id])
+  id                String               @id @default(cuid())
+  brandId           String?
+  warehouseId       String
+  productId         String
+  quantity          Int                  @default(0)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  brand             Brand?               @relation(fields: [brandId], references: [id])
+  product           BrandProduct         @relation(fields: [productId], references: [id])
+  warehouse         Warehouse            @relation(fields: [warehouseId], references: [id])
+  transactions      InventoryTransaction[] @relation("InventoryItemToTransaction")
+  reorderSuggestions ReorderSuggestion[]   @relation("InventoryItemToReorderSuggestion")
 
   @@index([brandId])
   @@index([warehouseId])
   @@index([productId])
   @@index([createdAt])
+}
+
+model Warehouse {
+  id                String                @id @default(cuid())
+  brandId           String?
+  name              String
+  location          String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  brand             Brand?                @relation(fields: [brandId], references: [id])
+  inventoryItems    InventoryItem[]
+  transactions      InventoryTransaction[]
+  reorderSuggestions ReorderSuggestion[]
+  competitorPrices  CompetitorPrice[]
+}
+
+model InventoryTransaction {
+  id                String                   @id @default(cuid())
+  warehouseId       String
+  inventoryItemId   String
+  type              InventoryTransactionType
+  quantity          Int
+  reason            String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  warehouse         Warehouse               @relation(fields: [warehouseId], references: [id])
+  inventoryItem     InventoryItem           @relation(fields: [inventoryItemId], references: [id], name: "InventoryItemToTransaction")
+  stockAdjustment   StockAdjustment?
+}
+
+model StockAdjustment {
+  id                      String                @id @default(cuid())
+  inventoryTransactionId   String               @unique
+  adjustmentReason        String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  inventoryTransaction    InventoryTransaction  @relation(fields: [inventoryTransactionId], references: [id])
+}
+
+model ReorderSuggestion {
+  id                String                  @id @default(cuid())
+  warehouseId       String
+  inventoryItemId   String
+  status            ReorderSuggestionStatus @default(OPEN)
+  suggestedQty      Int
+  createdAt         DateTime                @default(now())
+  resolvedAt        DateTime?
+  warehouse         Warehouse               @relation(fields: [warehouseId], references: [id])
+  inventoryItem     InventoryItem           @relation(fields: [inventoryItemId], references: [id], name: "InventoryItemToReorderSuggestion")
 }
 
 model Invoice {
@@ -1609,6 +1642,14 @@ model Partner {
   ownedWhiteLabels WhiteLabelBrand[]    @relation("WL_PartnerOwner")
 }
 
+model PartnerOrder {
+  id String @id @default(cuid())
+  brandId String
+  partnerId String
+  brand Brand @relation(fields: [brandId], references: [id])
+  partner Partner @relation(fields: [partnerId], references: [id])
+}
+
 model PartnerContract {
   id        String    @id @default(cuid())
   partnerId String
@@ -1620,41 +1661,36 @@ model PartnerContract {
   partner   Partner   @relation(fields: [partnerId], references: [id])
 }
 
-model PartnerOrder {
-  id        String             @id @default(cuid())
-  brandId   String?
-  partnerId String
-  status    String?
-  total     Decimal?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  brand     Brand?             @relation(fields: [brandId], references: [id])
-  partner   Partner            @relation(fields: [partnerId], references: [id])
-  items     PartnerOrderItem[]
+
+// STUBS FOR MISSING TYPES
+enum AIRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AIMonitoringCategory {
+  PLACEHOLDER
+}
+
+model AIAgentConfig {
+  id String @id @default(cuid())
+  brandId String
+  brand Brand @relation(fields: [brandId], references: [id])
 }
 
 model PartnerOrderItem {
-  id        String       @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Decimal
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  order     PartnerOrder @relation(fields: [orderId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
+  id String @id @default(cuid())
+  brandProductId String
+  brandProduct BrandProduct @relation(fields: [brandProductId], references: [id])
 }
 
 model PartnerPricing {
-  id        String       @id @default(cuid())
+  id String @id @default(cuid())
   partnerId String
-  productId String
-  netPrice  Decimal?
-  currency  String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  partner   Partner      @relation(fields: [partnerId], references: [id])
-  product   BrandProduct @relation(fields: [productId], references: [id])
+  brandProductId String
+  partner Partner @relation(fields: [partnerId], references: [id])
+  brandProduct BrandProduct @relation(fields: [brandProductId], references: [id])
 }
 
 model PartnerTier {
