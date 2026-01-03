@@ -43,6 +43,7 @@ import { notificationRouter } from "./modules/notification/index.js";
 import { platformOpsRouter } from "./modules/platform-ops/index.js";
 import { aiMonitoringRouter } from "./modules/ai-monitoring/index.js";
 import { aiSafetyRouter } from "./modules/ai-safety/index.js";
+import aiSuggestionRouter from "./modules/ai-suggestions/ai-suggestion.routes.js";
 import { mediaStudioRouter } from "./modules/media-studio/index.js";
 import { whiteLabelConfiguratorRouter } from "./modules/white-label-configurator/index.js";
 import { onboardingRouter } from "./modules/onboarding/index.js";
@@ -98,6 +99,7 @@ export function createApp() {
   app.use("/api/ai/crew", aiRateLimiter, aiCrewRouter);
   // AI Crew Advisory Session Composition (advisory-only, safe)
   app.use("/api/v1/ai/crew/advisory", aiRateLimiter, advisorySessionRouter);
+  app.use("/api/v1/ai-suggestions", aiRateLimiter, aiSuggestionRouter);
   app.use("/api/v1/media", aiRateLimiter, requireFeature("mediaStudio"), featureTelemetry("mediaStudio"), mediaStudioRouter);
   app.use(
     "/api/v1/white-label-configurator",
