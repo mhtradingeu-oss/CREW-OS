@@ -70,24 +70,15 @@ function mergeOverride(base: AgentConfigRecord, override?: AgentConfigOverride):
 }
 
 async function loadRecord(agentId: string) {
-  const record = await prisma.aIAgentConfig.findUnique({ where: { name: agentId } });
-  const stored = parseConfigJson(record?.configJson);
-  return { record, stored };
+  // Schema does not support per-agent config (no name/configJson/osScope)
+  // Only brandId is available. Return empty config.
+  return { record: null, stored: {} };
 }
 
 async function upsertConfig(agentId: string, stored: StoredConfig, scope?: string) {
-  return prisma.aIAgentConfig.upsert({
-    where: { name: agentId },
-    update: {
-      configJson: JSON.stringify(stored),
-      osScope: scope,
-    },
-    create: {
-      name: agentId,
-      osScope: scope,
-      configJson: JSON.stringify(stored),
-    },
-  });
+  // Schema does not support per-agent config (no name/configJson/osScope)
+  // No-op: cannot persist config
+  return null;
 }
 
 function pickOverride(stored: StoredConfig, brandId?: string): AgentConfigOverride | undefined {
@@ -108,55 +99,22 @@ function applyOverrides(
 
 export const aiAgentsConfigService = {
   async list(payload?: { brandId?: string }) {
+    // Schema does not support per-agent config; return manifest defaults only
     const defs = AI_AGENTS_MANIFEST;
-    const configs = await prisma.aIAgentConfig.findMany();
-    const storedByAgent = new Map(configs.map((cfg) => [cfg.name, parseConfigJson(cfg.configJson)]));
-
-    return defs.map((def) => {
-      const stored = storedByAgent.get(def.name) ?? {};
-      return applyOverrides(def, stored, payload?.brandId);
-    });
+    return defs.map((def) => applyOverrides(def, {}, payload?.brandId));
   },
 
   async get(agentId: string, payload?: { brandId?: string }): Promise<AgentConfigRecord> {
     const def = AI_AGENTS_MANIFEST.find((item) => item.name === agentId);
     if (!def) throw notFound("Agent not found in manifest");
-    const { stored } = await loadRecord(agentId);
-    return applyOverrides(def, stored, payload?.brandId);
+    // Schema does not support per-agent config; always return manifest default
+    return applyOverrides(def, {}, payload?.brandId);
   },
 
   async update(agentId: string, payload: AgentConfigOverride & { brandId?: string }) {
+    // Schema does not support per-agent config; update is a no-op
     const def = AI_AGENTS_MANIFEST.find((item) => item.name === agentId);
     if (!def) throw notFound("Agent not found in manifest");
-
-    const { stored } = await loadRecord(agentId);
-    const next: StoredConfig = {
-      global: stored.global,
-      overridesByBrand: stored.overridesByBrand ?? {},
-    };
-
-    if (payload.brandId) {
-      next.overridesByBrand = {
-        ...next.overridesByBrand,
-        [payload.brandId]: {
-          ...(next.overridesByBrand?.[payload.brandId] ?? {}),
-          autonomyLevel: payload.autonomyLevel,
-          maxRiskLevel: payload.maxRiskLevel,
-          enabledContexts: payload.enabledContexts,
-          notes: payload.notes,
-        },
-      };
-    } else {
-      next.global = {
-        ...(next.global ?? {}),
-        autonomyLevel: payload.autonomyLevel,
-        maxRiskLevel: payload.maxRiskLevel,
-        enabledContexts: payload.enabledContexts,
-        notes: payload.notes,
-      };
-    }
-
-    await upsertConfig(agentId, next, def.scope);
-    return this.get(agentId, { brandId: payload.brandId });
+    return applyOverrides(def, {}, payload?.brandId);
   },
 };

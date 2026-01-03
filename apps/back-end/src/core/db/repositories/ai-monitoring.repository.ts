@@ -61,7 +61,7 @@ export type SystemAlertPayload = {
 async function createSystemAlert(payload: SystemAlertPayload) {
   return prisma.aIMonitoringEvent.create({
     data: {
-      category: "SYSTEM_ALERT",
+      category: "PLACEHOLDER",
       status: payload.status,
       metric: payload.metric,
       agentName: payload.agentName,

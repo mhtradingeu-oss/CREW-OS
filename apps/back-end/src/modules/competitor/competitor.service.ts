@@ -165,6 +165,7 @@ export const competitorService = {
           priceGross: price,
           currency,
           collectedAt: new Date(),
+          warehouseId: (product as any).warehouseId ?? (brand as any).defaultWarehouseId ?? "default-warehouse", // safe fallback
         };
         const record = await upsertCompetitorPriceRecord(
           {
@@ -267,6 +268,7 @@ export const competitorService = {
       priceNet: input.price,
       currency: input.currency,
       collectedAt: new Date().toISOString(),
+      warehouseId: (product as any).warehouseId ?? "default-warehouse", // safe fallback
     });
     await emitCompetitorPriceUpdated({
       competitorId: record.competitor,

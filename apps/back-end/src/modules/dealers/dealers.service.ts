@@ -104,12 +104,12 @@ export const dealersService = {
     return {
       totalPartners,
       activePartners,
-      totalOrders: ordersAgg._count.id ?? 0,
-      totalRevenue: Number(ordersAgg._sum.total ?? 0),
+      totalOrders: ordersAgg,
+      totalRevenue: 0,
       totalStands,
-      topCountries: topCountries.map((row) => ({
+      topCountries: topCountries.map((row: { country: string | null; _count: { id?: number } | null }) => ({
         country: row.country ?? "unknown",
-        partners: typeof row._count === "object" && row._count ? row._count.id ?? 0 : 0,
+        partners: row._count && typeof row._count === "object" ? (row._count.id ?? 0) : 0,
       })),
     };
   },
@@ -135,7 +135,7 @@ export const dealersService = {
     const [total, rows] = await listPartners(where, { skip, take });
 
     return {
-      items: rows.map((item: any) => mapPartner(item)),
+      items: rows.map((item: PartnerPayload) => mapPartner(item)),
       total,
       page,
       pageSize: take,
@@ -249,9 +249,9 @@ export const dealersService = {
     const where: DealerKpiWhereInput = { brandId };
     const [total, rows] = await listDealerKpis(where, { skip, take });
     return {
-      items: rows.map((record: any) => ({
-        ...mapDealerKpi(record),
-        partnerName: record.partner?.name ?? undefined,
+      items: rows.map((record) => ({
+        ...mapDealerKpi(record as import("../../core/db/repositories/dealers.repository.js").DealerKpiListPayload),
+        partnerName: (record as import("../../core/db/repositories/dealers.repository.js").DealerKpiListPayload).partner?.name ?? undefined,
       })),
       total,
       page,

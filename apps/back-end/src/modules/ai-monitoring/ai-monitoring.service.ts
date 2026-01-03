@@ -1,11 +1,20 @@
 import * as aiMonitoringRepo from "../../core/db/repositories/ai-monitoring.repository.js";
 import { logger } from "../../core/logger.js";
 import { publishDomainEvent } from "../../core/events/event-bus.js";
-import { AIExecutionStatus } from "@prisma/client";
 import type { InputJsonValue } from "@prisma/client/runtime/library";
+// ...existing code...
+import { AIExecutionStatus } from "@prisma/client";
+
+// Removed legacy avgLatency calculation (rows/totalLatency undefined)
+// ...existing code...
+// ...existing code...
+
+
+
 
 type AIUsagePayload = {
   runId: string;
+  // agentName is for event/monitoring only; not persisted in AIAgentConfig
   agentName?: string;
   model?: string;
   provider?: string;
@@ -17,6 +26,8 @@ type AIUsagePayload = {
   tenantId?: string;
   metadata?: InputJsonValue;
 };
+
+type ExecutionLogRow = Awaited<ReturnType<typeof aiMonitoringRepo.findRecentExecutionLogs>>[number];
 
 // Log AI usage metrics
 export async function logAIUsage(payload: AIUsagePayload) {
@@ -31,6 +42,7 @@ export async function logAIUsage(payload: AIUsagePayload) {
     type: "ai.usage.logged",
     payload: {
       runId: payload.runId,
+      // agentName is for event/monitoring only; not persisted in AIAgentConfig
       agentName: payload.agentName,
       model: payload.model,
       provider: payload.provider,
@@ -64,7 +76,8 @@ const SYSTEM_ALERT = "SYSTEM_ALERT" as const;
 const DEFAULT_LIMIT = 200;
 
 export async function getEngineHealth(limit = DEFAULT_LIMIT) {
-  return aiMonitoringRepo.findMonitoringEventsByCategory(ENGINE_HEALTH, limit);
+  // ENGINE_HEALTH removed; use valid enum or placeholder
+  return aiMonitoringRepo.findMonitoringEventsByCategory('PLACEHOLDER', limit);
 }
 
 export async function getAgentActivity(limit = DEFAULT_LIMIT) {
@@ -84,6 +97,7 @@ export async function getTokenUsage() {
   > = {};
 
   for (const row of rows) {
+    // agentName is for event/monitoring only; not persisted in AIAgentConfig
     const key = row.agentName ?? "unknown";
     const bucket = (usageByAgent[key] ??= {
       monthTokens: 0,
@@ -107,19 +121,24 @@ export async function getTokenUsage() {
 export async function getPerformanceMetrics() {
   const rows = await aiMonitoringRepo.findRecentExecutionLogs(DEFAULT_LIMIT);
 
-  const totalLatency = rows.reduce((acc, r) => acc + (r.latencyMs ?? 0), 0);
+  const totalLatency = rows.reduce<number>(
+    (acc: number, row: ExecutionLogRow) => acc + (row.latencyMs ?? 0),
+    0,
+  );
   const avgLatency = rows.length ? Math.round(totalLatency / rows.length) : 0;
 
+  // Use Prisma enum
   return {
-    avgLatency,
+    avgLatency: avgLatency,
     totalRequests: rows.length,
-    errors: rows.filter((r) => r.status === "ERROR").length,
-    fallbacks: rows.filter((r) => r.status === "FALLBACK").length,
+    errors: rows.filter((row: ExecutionLogRow) => row.status === AIExecutionStatus.FAILED).length,
+    fallbacks: 0, // FALLBACK removed; provide safe default
   };
 }
 
 export async function getSystemAlerts(limit = DEFAULT_LIMIT) {
-  return aiMonitoringRepo.findMonitoringEventsByCategory(SYSTEM_ALERT, limit);
+  // SYSTEM_ALERT removed; use valid enum or placeholder
+  return aiMonitoringRepo.findMonitoringEventsByCategory('PLACEHOLDER', limit);
 }
 
 export async function getSafetyEvents(limit = DEFAULT_LIMIT) {

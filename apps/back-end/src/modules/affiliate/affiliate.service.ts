@@ -114,6 +114,10 @@ import type {
 } from "./affiliate.types.js";
 import * as cuid from "@paralleldrive/cuid2";
 
+type AffiliateListWhere = Parameters<typeof affiliateRepository.listAffiliates>[0];
+type AffiliatePayoutUpdates = Parameters<typeof affiliateRepository.changePayoutStatus>[1];
+type AffiliateLinkRecord = Awaited<ReturnType<typeof affiliateRepository.listLinks>>[number];
+
 // Selects/types are now in repository
 
 // Mapping helpers removed; handled in controller/service if needed
@@ -210,7 +214,7 @@ export const affiliateService = {
   async listAffiliates(params: AffiliateListParams): Promise<AffiliateListResponse> {
     const { brandId, search, status, tierId, page = 1, pageSize = 20 } = params;
     const { skip, take } = buildPagination({ page, pageSize });
-    const where: any = { brandId };
+    const where: AffiliateListWhere = { brandId };
     if (search) {
       where.OR = [
         { code: { contains: search, mode: "insensitive" } },
@@ -221,7 +225,7 @@ export const affiliateService = {
     if (status) where.status = status;
     if (tierId) where.tierId = tierId;
     const [total, rows] = await affiliateRepository.listAffiliates(where, skip, take);
-    const ids = rows.map((row: any) => row.id);
+    const ids = rows.map((row: { id: string }) => row.id);
     // Aggregate stats
     const [perfRows, salesRows, payoutRows] = await Promise.all([
       affiliateRepository.aggregatePerformance(ids),
@@ -229,7 +233,11 @@ export const affiliateService = {
       affiliateRepository.aggregatePayouts(ids),
     ]);
     // Map stats
-    const perfMap = new Map(ids.map((id: string) => [id, { clicks: 0, orders: 0, revenue: 0 }]));
+    interface PerfStats { clicks: number; orders: number; revenue: number; }
+    interface SalesStats { commission: number; }
+    interface PayoutStats { paid: number; pending: number; }
+
+    const perfMap = new Map<string, PerfStats>(ids.map((id: string) => [id, { clicks: 0, orders: 0, revenue: 0 }]));
     for (const row of perfRows) {
       perfMap.set(row.affiliateId, {
         clicks: row._sum.clicks ?? 0,
@@ -237,13 +245,13 @@ export const affiliateService = {
         revenue: Number(row._sum.revenue ?? 0),
       });
     }
-    const salesMap = new Map(ids.map((id: string) => [id, { commission: 0 }]));
+    const salesMap = new Map<string, SalesStats>(ids.map((id: string) => [id, { commission: 0 }]));
     for (const row of salesRows) {
       salesMap.set(row.affiliateId, { commission: Number(row._sum.commission ?? 0) });
     }
-    const payoutMap = new Map(ids.map((id: string) => [id, { paid: 0, pending: 0 }]));
+    const payoutMap = new Map<string, PayoutStats>(ids.map((id: string) => [id, { paid: 0, pending: 0 }]));
     for (const row of payoutRows) {
-      const current = payoutMap.get(row.affiliateId) ?? { paid: 0, pending: 0 };
+      const current: PayoutStats = payoutMap.get(row.affiliateId) ?? { paid: 0, pending: 0 };
       const sum = Number(row._sum.amount ?? 0);
       if (row.status === "PAID") current.paid += sum;
       else if (row.status === "PENDING") current.pending += sum;
@@ -266,8 +274,8 @@ export const affiliateService = {
       total,
       page,
       pageSize: take,
-      items: rows.map((row: any) => ({
-        ...row,
+      items: rows.map((row) => ({
+        ...mapAffiliateToDTO(row),
         stats: enrichStats(row.id),
       })),
     };
@@ -377,7 +385,7 @@ export const affiliateService = {
     await this.getAffiliateById(affiliateId, brandId); // ensure exists
       const links = await affiliateRepository.listLinks(affiliateId);
       // Fix affiliateId type for DTO
-      return links.map(mapAffiliateLinkToDTO);
+      return links.map((link: AffiliateLinkRecord) => mapAffiliateLinkToDTO(link));
   },
 
   async createLink(input: AffiliateLinkCreateInput): Promise<AffiliateLinkDTO> {
@@ -493,7 +501,7 @@ export const affiliateService = {
     const payout = await affiliateRepository.changePayoutStatus(payoutId, {}); // Fetch only
     if (!payout) throw notFound("Payout not found");
     // TODO: Add brand access check if needed
-    const updates: any = {
+    const updates: AffiliatePayoutUpdates = {
       status,
       resolvedAt: new Date(),
       notes: notes ?? undefined,

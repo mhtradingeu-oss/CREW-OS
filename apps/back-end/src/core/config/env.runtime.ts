@@ -99,10 +99,17 @@ function resolveEnvFilePath() {
       ? [".env.test", ".env.test.local", ...baseCandidates]
       : baseCandidates;
 
-  for (const candidate of candidates) {
-    const candidatePath = path.join(backendRoot, candidate);
-    if (existsSync(candidatePath)) {
-      return candidatePath;
+  const searchRoots = [backendRoot];
+  if (backendRoot !== cwd) {
+    searchRoots.push(cwd);
+  }
+
+  for (const root of searchRoots) {
+    for (const candidate of candidates) {
+      const candidatePath = path.join(root, candidate);
+      if (existsSync(candidatePath)) {
+        return candidatePath;
+      }
     }
   }
 

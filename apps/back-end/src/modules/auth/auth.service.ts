@@ -23,7 +23,7 @@ const planSelect = {
   key: true,
   name: true,
   description: true,
-  featuresJson: true,
+  features: true,
 } satisfies Prisma.PlanSelect;
 
 const tenantSelect = {
@@ -295,18 +295,11 @@ function buildPlanInfo(plan?: Prisma.PlanGetPayload<{ select: typeof planSelect 
   const tier = validTiers.includes(definition.key as PlanTier)
     ? (definition.key as PlanTier)
     : "free";
-  // Ensure featuresJson is a string or null
-  let featuresRaw: string | null | undefined = null;
-  if (typeof plan?.featuresJson === "string") {
-    featuresRaw = plan.featuresJson;
-  } else if (plan?.featuresJson != null) {
-    featuresRaw = JSON.stringify(plan.featuresJson);
-  }
   return {
     key: tier,
     name: plan?.name ?? definition.name,
     description: plan?.description ?? definition.description,
-    features: parsePlanFeatures(featuresRaw, definition.features),
+    features: definition.features,
   };
 }
 

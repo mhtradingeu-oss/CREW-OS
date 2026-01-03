@@ -1,3 +1,82 @@
+/// Intelligence Analytics Table: FeatureUsageDaily (read-only, analytics aggregation)
+model FeatureUsageDaily {
+  /// Primary key
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id")
+  featureCode  String   @map("featureCode")
+  planKey      String   @map("planKey")
+  tenantId     String?  @map("tenantId")
+  brandId      String?  @map("brandId")
+  partnerId    String?  @map("partnerId")
+  routePath    String   @map("routePath")
+  usageDate    DateTime @db.Date @map("usageDate")
+  usageCount   Int      @default(1) @map("usageCount")
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @default(now()) @map("updatedAt")
+
+  @@unique([featureCode, planKey, tenantId, brandId, partnerId, routePath, usageDate], map: "FeatureUsageDaily_unique")
+  @@map("FeatureUsageDaily")
+}
+
+/// Intelligence Analytics Table: PlanIntelligenceInsight (read-only, async, safe)
+model PlanIntelligenceInsight {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id")
+  planKey      String   @map("planKey")
+  featureCode  String   @map("featureCode")
+  tenantId     String?  @map("tenantId")
+  brandId      String?  @map("brandId")
+  partnerId    String?  @map("partnerId")
+  insightType  String   @map("insightType")
+  insightJson  Json     @map("insightJson")
+  detectedAt   DateTime @default(now()) @map("detectedAt")
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @default(now()) @map("updatedAt")
+
+  @@map("PlanIntelligenceInsight")
+}
+
+/// Intelligence Analytics Table: AICrewRecommendation (read-only, async, safe)
+model AICrewRecommendation {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id")
+  crew         String   @map("crew")
+  recommendationType String @map("recommendationType")
+  rationale    String?  @map("rationale")
+  confidence   Float?   @map("confidence")
+  riskLevel    String?  @map("riskLevel")
+  insightId    String?  @map("insightId")
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @default(now()) @map("updatedAt")
+
+  @@map("AICrewRecommendation")
+}
+model ActionSuggestion {
+  id              String   @id @default(cuid())
+  insightId       String? // Link to PlanIntelligenceInsight or similar
+  recommendationId String? // Link to AICrewRecommendation or similar
+  tenantId        String?
+  brandId         String?
+  partnerId       String?
+  featureCode     String?
+  insightType     String?
+  crew            String?
+  suggestedAction String
+  rationale       String?
+  confidence      Float?
+  riskLevel       String?
+  // These fields are reserved for future human-in-the-loop workflows and are not active.
+  acknowledgedAt  DateTime?
+  dismissedAt     DateTime?
+  decisionReason  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([brandId])
+  @@index([partnerId])
+  @@index([featureCode])
+  @@index([insightType])
+  @@index([crew])
+  @@index([createdAt])
+}
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -1667,7 +1746,9 @@ enum AIRiskLevel {
   LOW
   MEDIUM
   HIGH
+  CRITICAL
 }
+
 
 enum AIMonitoringCategory {
   PLACEHOLDER
@@ -1745,17 +1826,55 @@ model Person {
 }
 
 model Plan {
-  id              String             @id @default(cuid())
-  key             String             @unique
-  name            String
-  description     String?
-  featuresJson    Json?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  tenants         Tenant[]
+  id          String     @id @default(cuid())
+  key         String     @unique
+  name        String
+  description String?
+  scope       PlanScope  // ⬅️ مهم جدًا
+  isActive    Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  tenants     Tenant[]
+
+  features    PlanFeature[]  // ⬅️ الجديد
+
   planChangesFrom TenantPlanChange[] @relation("PlanChangeFrom")
   planChangesTo   TenantPlanChange[] @relation("PlanChangeTo")
 }
+
+model Feature {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plans       PlanFeature[]
+}
+
+model PlanFeature {
+  id         String   @id @default(cuid())
+  planId     String
+  featureId  String
+  enabled    Boolean  @default(true)
+
+  plan       Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature    Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  @@unique([planId, featureId])
+}
+
+enum PlanScope {
+  TENANT
+  BRAND
+  PARTNER
+  WHITE_LABEL
+}
+
 
 model Policy {
   id        String   @id @default(cuid())
@@ -1871,7 +1990,10 @@ model RolePermission {
   updatedAt    DateTime   @updatedAt
   permission   Permission @relation(fields: [permissionId], references: [id])
   role         Role       @relation(fields: [roleId], references: [id])
+
+  @@unique([roleId, permissionId])
 }
+
 
 model SalesLead {
   id             String          @id @default(cuid())

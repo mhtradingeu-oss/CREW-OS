@@ -5,6 +5,7 @@ import { validateBody } from "../../core/http/middleware/validate.js";
 import { createDealersSchema, updateDealersSchema } from "./dealers.validators.js";
 import { dealerAiInsightSchema } from "./dealers.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
 
 const router = Router();
 
@@ -41,6 +42,7 @@ router.post(
   "/ai/insights",
   requirePermission("dealers:stats"),
   requireFeature("dealer"),
+  featureTelemetry("dealer"),
   validateBody(dealerAiInsightSchema),
   controller.aiInsights,
 );

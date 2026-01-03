@@ -11,6 +11,7 @@ import {
   campaignExecutionSchema,
 } from "./marketing.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
 
 const router = Router();
 
@@ -52,12 +53,14 @@ router.post(
   "/ai/generate",
   requirePermission(["ai:marketing", "marketing:update"]),
   requireFeature("marketing"),
+  featureTelemetry("marketing"),
   controller.generateContent,
 );
 router.post(
   "/ai/seo",
   requirePermission(["ai:marketing", "marketing:update"]),
   requireFeature("marketing"),
+  featureTelemetry("marketing"),
   controller.generateSeo,
 );
 router.post(

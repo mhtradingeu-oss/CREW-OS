@@ -1,6 +1,6 @@
 import request from 'supertest';
-import { createApp } from '../../../app';
-import { prisma } from '../../../core/prisma';
+import { createApp } from '../../../app.js';
+import { prisma } from '../../../core/prisma.js';
 
 
 describe('AI Autonomy Integration', () => {

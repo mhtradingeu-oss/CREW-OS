@@ -34,9 +34,9 @@ function parseFeaturesJson(value: unknown): Partial<PlanFeatureSet> | null {
 
 function mergeFeatures(planKey: PlanKey, featuresJson?: unknown, overridesJson?: unknown): PlanFeatureSet {
   const base = getPlanDefinition(planKey).features;
-  const parsed = parseFeaturesJson(featuresJson);
+  // featuresJson removed; use PlanFeature/PlanFeatureSet from schema
   const overrides = parseFeaturesJson(overridesJson);
-  const merged = { ...base, ...(parsed ?? {}), ...(overrides ?? {}) };
+  const merged = { ...base, ...(overrides ?? {}) };
   return normalizeFeatureAliases(merged);
 }
 
@@ -55,7 +55,7 @@ export async function resolvePlanContext(params: ResolveParams): Promise<PlanCon
       select: {
         id: true,
         planOverridesJson: true,
-        plan: { select: { key: true, name: true, featuresJson: true } },
+        plan: { select: { key: true, name: true, features: true } },
       },
     });
 
@@ -65,7 +65,7 @@ export async function resolvePlanContext(params: ResolveParams): Promise<PlanCon
       return {
         planKey,
         planName: tenant.plan.name ?? planDef.name,
-        features: mergeFeatures(planKey, tenant.plan.featuresJson, tenant.planOverridesJson),
+        features: mergeFeatures(planKey, tenant.plan.features, tenant.planOverridesJson),
         tenantId: tenant.id,
         brandId,
         source: "database",
@@ -82,7 +82,7 @@ export async function resolvePlanContext(params: ResolveParams): Promise<PlanCon
           select: {
             id: true,
             planOverridesJson: true,
-            plan: { select: { key: true, name: true, featuresJson: true } },
+            plan: { select: { key: true, name: true, features: true } },
           },
         },
       },
@@ -94,7 +94,7 @@ export async function resolvePlanContext(params: ResolveParams): Promise<PlanCon
       return {
         planKey,
         planName: brand.tenant.plan.name ?? planDef.name,
-        features: mergeFeatures(planKey, brand.tenant.plan.featuresJson, brand.tenant.planOverridesJson),
+        features: mergeFeatures(planKey, brand.tenant.plan.features, brand.tenant.planOverridesJson),
         tenantId: brand.tenant.id,
         brandId: brand.id,
         source: "database",

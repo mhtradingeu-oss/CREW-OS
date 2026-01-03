@@ -1,11 +1,12 @@
-// types/express-request-context.d.ts
-import 'express';
-
-declare module 'express' {
-  interface Request {
-    context?: {
-      correlationId?: string;
-      // Add other context fields here as needed
-    };
+declare global {
+  namespace Express {
+    interface Request {
+      context?: {
+        correlationId?: string;
+        [key: string]: unknown;
+      };
+    }
   }
 }
+
+export {};

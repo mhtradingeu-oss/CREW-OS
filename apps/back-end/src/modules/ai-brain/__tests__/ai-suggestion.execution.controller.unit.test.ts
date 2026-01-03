@@ -3,18 +3,18 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { conflict, forbidden } from "../../../core/http/errors.js";
 import type { AuthenticatedRequest } from "../../../core/http/http-types.js";
-import type { ExecuteAiSuggestionRequest } from "../../ai-suggestions/ai-suggestion.execution.validators";
+import type { ExecuteAiSuggestionRequest } from "../../ai-suggestions/ai-suggestion.execution.validators.js";
 import type {
   ExecuteAutomationActionRequest,
   ExecuteAutomationActionResponse,
-} from "../../automation/automation.execution.types";
+} from "../../automation/automation.execution.types.js";
 
 const mockExecute = jest.fn() as jest.MockedFunction<
   (payload: ExecuteAutomationActionRequest, userId: string) => Promise<ExecuteAutomationActionResponse>
 >;
 
 const automationServiceModulePath = pathToFileURL(
-  path.join(process.cwd(), "src/modules/automation/automation.execution.service.ts"),
+  path.join(process.cwd(), "src/modules/automation/automation.execution.service"),
 ).href;
 
 jest.unstable_mockModule(
@@ -25,10 +25,10 @@ jest.unstable_mockModule("@paralleldrive/cuid2", () => ({
   createId: () => "mock-execution-id",
 }));
 
-let executeSuggestion: typeof import("../../ai-suggestions/ai-suggestion.controller").executeSuggestion;
+let executeSuggestion: typeof import("../../ai-suggestions/ai-suggestion.controller.js").executeSuggestion;
 
 beforeAll(async () => {
-  const controller = await import("../../ai-suggestions/ai-suggestion.controller");
+  const controller = await import("../../ai-suggestions/ai-suggestion.controller.js");
   executeSuggestion = controller.executeSuggestion;
 });
 

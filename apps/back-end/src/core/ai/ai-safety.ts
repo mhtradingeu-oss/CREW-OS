@@ -1,3 +1,11 @@
+// Local interface to resolve never[] type issues (see test stabilization instructions)
+interface AIBannedActionLike {
+  id: string;
+  code?: string | null;
+  scope?: string | null;
+  severity?: string | null;
+  description?: string | null;
+}
 import { forbidden } from "../http/errors.js";
 import {
   findActiveFirewallRules,
@@ -5,10 +13,23 @@ import {
   findBannedActions,
 } from "../db/repositories/ai-safety.repository.js";
 import type { AIMessage } from "../ai-service/ai-client.js";
-import { recordSafetyEvent, type RiskLevel } from "./ai-monitoring.js";
+import { recordSafetyEvent } from "./ai-monitoring.js";
+import type { RiskLevel } from "./ai-monitoring.js";
+const mapSeverityToRiskLevel = (value?: string | null): RiskLevel | undefined => {
+  switch (value) {
+    case "LOW":
+    case "MEDIUM":
+    case "HIGH":
+    case "CRITICAL":
+      return value;
+    default:
+      return undefined;
+  }
+};
 
 export type SafetyContext = {
   namespace?: string;
+  // agentName is for event/monitoring only; not persisted in AIAgentConfig
   agentName?: string;
   brandId?: string | null;
   tenantId?: string | null;
@@ -72,9 +93,10 @@ export async function applyPromptFirewall(
         action: "BLOCK",
         ruleId: rule.id,
         runId: context.runId,
+        // agentName is for event/monitoring only; not persisted in AIAgentConfig
         agentName: context.agentName,
         namespace: context.namespace,
-        riskLevel: rule.severity ?? "HIGH",
+        riskLevel: mapSeverityToRiskLevel(rule.severity),
         decision: "blocked",
         detail: { matcherType: rule.matcherType, matcherValue: rule.matcherValue },
         brandId: context.brandId,
@@ -92,9 +114,10 @@ export async function applyPromptFirewall(
         action: "SANITIZE",
         ruleId: rule.id,
         runId: context.runId,
+        // agentName is for event/monitoring only; not persisted in AIAgentConfig
         agentName: context.agentName,
         namespace: context.namespace,
-        riskLevel: rule.severity ?? "MEDIUM",
+        riskLevel: mapSeverityToRiskLevel(rule.severity),
         decision: "sanitized",
         detail: { matcherType: rule.matcherType, matcherValue: rule.matcherValue },
         brandId: context.brandId,
@@ -127,6 +150,7 @@ export async function enforceSafetyConstraints(context: SafetyContext) {
         action: "BLOCK",
         ruleId: constraint.id,
         runId: context.runId,
+        // agentName is for event/monitoring only; not persisted in AIAgentConfig
         agentName: context.agentName,
         namespace: context.namespace,
         riskLevel: "HIGH",
@@ -141,7 +165,7 @@ export async function enforceSafetyConstraints(context: SafetyContext) {
 }
 
 export async function enforceBannedActions(context: SafetyContext) {
-  const banned = await findBannedActions();
+  const banned: AIBannedActionLike[] = await findBannedActions();
   if (!banned.length) return;
   const actions = context.requestedActions ?? (context.namespace ? [context.namespace] : []);
   for (const action of actions) {
@@ -154,9 +178,10 @@ export async function enforceBannedActions(context: SafetyContext) {
         action,
         ruleId: hit.id,
         runId: context.runId,
+        // agentName is for event/monitoring only; not persisted in AIAgentConfig
         agentName: context.agentName,
         namespace: context.namespace,
-        riskLevel: hit.severity ?? "HIGH",
+        riskLevel: mapSeverityToRiskLevel(hit.severity),
         decision: "blocked",
         detail: { scope: hit.scope, description: hit.description },
         brandId: context.brandId,

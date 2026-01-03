@@ -3,6 +3,7 @@ import * as controller from "./pricing.controller.js";
 import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
 import {
   competitorPriceSchema,
   createPricingDraftSchema,
@@ -39,6 +40,7 @@ router.post(
   "/product/:productId/ai/suggest",
   requirePermission(["ai:pricing", "pricing:update"]),
   requireFeature("pricing"),
+  featureTelemetry("pricing"),
   validateBody(pricingSuggestionSchema),
   controller.suggestPrice,
 );
@@ -46,6 +48,7 @@ router.post(
   "/product/:productId/ai/plan",
   requirePermission(["ai:pricing", "pricing:update"]),
   requireFeature("pricing"),
+  featureTelemetry("pricing"),
   validateBody(pricingSuggestionSchema),
   controller.aiPlan,
 );

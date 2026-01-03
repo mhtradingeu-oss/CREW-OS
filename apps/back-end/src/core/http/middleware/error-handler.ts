@@ -1,5 +1,3 @@
-import "../../../../types/express-request-context.d.ts";
-
 import type { Request, Response, NextFunction } from "express";
 import { ApiError } from "../errors.js";
 import { isProdLikeEnv } from "../../config/env.js";

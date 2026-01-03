@@ -10,6 +10,7 @@ import {
   knowledgeBaseQaSchema,
 } from "./knowledge-base.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
 
 const router = Router();
 
@@ -38,6 +39,7 @@ router.post(
   "/:id/ai/qa",
   requirePermission(["knowledge-base:summarize", "knowledge-base:update"]),
   requireFeature("operations"),
+  featureTelemetry("operations"),
   validateBody(knowledgeBaseQaSchema),
   controller.aiQa,
 );

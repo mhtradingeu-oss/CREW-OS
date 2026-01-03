@@ -17,13 +17,13 @@ export async function seedPlans() {
       update: {
         name: plan.name,
         description: plan.description,
-        featuresJson: plan.features,
+        // features: plan.features, // Remove: must use PlanFeature relation
       },
       create: {
         key: plan.key,
         name: plan.name,
         description: plan.description,
-        featuresJson: plan.features,
+          scope: "BRAND",
       },
     });
   }

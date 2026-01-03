@@ -1,6 +1,5 @@
 import {
-  findAgentConfigByName,
-  findAgentConfigByScope,
+  findAgentConfigByBrandId,
   findBrandContext,
   findDefaultAgentConfig,
   findRestrictionPolicies,
@@ -330,16 +329,9 @@ export class AiOrchestrator {
     );
   }
 
-  private async getAgent(brandId: unknown, scopeOrName: string) {
-    const agent =
-      (await findAgentConfigByName({
-        brandId: brandId as string | undefined,
-        name: scopeOrName,
-      })) ??
-      (await findAgentConfigByScope({
-        brandId: brandId as string | undefined,
-        osScope: scopeOrName,
-      }));
+  private async getAgent(brandId: unknown, _scopeOrName: string) {
+    const normalizedBrandId = typeof brandId === "string" ? brandId : undefined;
+    const agent = await findAgentConfigByBrandId({ brandId: normalizedBrandId });
     return agent ?? (await findDefaultAgentConfig());
   }
 

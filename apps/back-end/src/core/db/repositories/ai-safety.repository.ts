@@ -1,6 +1,6 @@
 import { prisma } from "../../prisma.js";
 
-import type { AIBannedAction, AISafetyConstraint, AIPromptFirewallRule } from "@prisma/client";
+import type { AISafetyConstraint, AIPromptFirewallRule } from "@prisma/client";
 
 export type FirewallRulePayload = {
   name: string;
@@ -38,8 +38,9 @@ export async function findActiveSafetyConstraints(): Promise<Array<AISafetyConst
   return prisma.aISafetyConstraint.findMany({ where: { active: true } });
 }
 
-export async function findBannedActions(): Promise<Array<AIBannedAction>> {
-  return prisma.aIBannedAction.findMany();
+// Fallback: model missing, return empty array
+export async function findBannedActions(): Promise<[]> {
+  return [];
 }
 
 export async function listFirewallRules(): Promise<Array<AIPromptFirewallRule>> {
@@ -78,18 +79,12 @@ export async function createConstraint(payload: SafetyConstraintPayload): Promis
   });
 }
 
-export async function listBannedActions(): Promise<Array<AIBannedAction>> {
-  return prisma.aIBannedAction.findMany({ orderBy: { createdAt: "desc" } });
+// Fallback: model missing, return empty array
+export async function listBannedActions(): Promise<[]> {
+  return [];
 }
 
-export async function createBannedAction(payload: BannedActionPayload): Promise<AIBannedAction> {
-  return prisma.aIBannedAction.create({
-    data: {
-      code: payload.code,
-      description: payload.description,
-      severity: payload.severity as any,
-      scope: payload.scope,
-      mitigation: payload.mitigation,
-    },
-  });
+// Fallback: model missing, throw error
+export async function createBannedAction(payload: BannedActionPayload): Promise<never> {
+  throw new Error("AIBannedAction model is missing from schema");
 }

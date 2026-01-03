@@ -119,6 +119,11 @@ export interface PartnerDetailDTO extends PartnerDTO {
   pricingCount: number;
   totalOrders: number;
   totalRevenue: number;
+  totalStands: number;
+  affiliateLinks: number;
+  affiliateRevenue: number;
+  whiteLabelRevenue: number;
+  lastOrderAt?: Date;
 }
 
 export interface PartnerContractDTO {
@@ -162,12 +167,9 @@ export interface PartnerContractUpdateInput {
 export interface PartnerPricingDTO {
   id: string;
   partnerId: string;
-  productId: string;
-  productName?: string;
-  netPrice?: number;
-  currency?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  brandProductId: string;
+  brandProduct: any;
+  partner: any;
 }
 
 export interface PartnerPricingListParams extends PaginationParams {

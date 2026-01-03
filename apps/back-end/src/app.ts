@@ -51,9 +51,12 @@ import { operatorAuditRouter } from "./modules/operator-audit/index.js";
 import { authenticateRequest } from "./core/security/auth-middleware.js";
 import { responseFormatter } from "./core/http/middleware/response-formatter.js";
 import { attachPlanContext, requireFeature } from "./core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "./core/http/middleware/feature-telemetry.js";
 import { csrfProtectionMiddleware } from "./core/security/csrf.js";
 import { cookieParser } from "./core/http/middleware/cookie-parser.js";
 import { healthRouter } from "./modules/health/health.routes.js";
+import { router as internalIntelligenceRouter } from "./modules/intelligence/internal-intelligence.routes.js";
+import { router as actionSuggestionRouter } from "./modules/action-suggestion/index.js";
 
 export function createApp() {
   const app = express();
@@ -73,6 +76,9 @@ export function createApp() {
   app.use(requestLogger);
   app.use("/api/v1", apiRateLimiter);
   app.use("/health", healthRouter); // Handles /health and /ready
+  // Internal observability (admin/ops only, read-only)
+  app.use("/internal/intelligence", internalIntelligenceRouter);
+  app.use("/internal/intelligence", actionSuggestionRouter);
 
   // Rate limiting (Phase 2 baseline) — move to Redis-backed store in Phase 3 for HA.
   const authRateLimiter = createRateLimiter({ limit: 100 });
@@ -87,16 +93,17 @@ export function createApp() {
   app.use(attachPlanContext);
   app.use("/api/v1/ai/safety", aiRateLimiter, aiSafetyRouter);
   app.use("/api/v1/ai/monitoring", aiRateLimiter, aiMonitoringRouter);
-  app.use("/api/v1/ai", aiRateLimiter, requireFeature("advancedAutonomy"), ai_brainRouter);
+  app.use("/api/v1/ai", aiRateLimiter, requireFeature("advancedAutonomy"), featureTelemetry("advancedAutonomy"), ai_brainRouter);
   // AI Crew Advisory (advisory-only, safe)
   app.use("/api/ai/crew", aiRateLimiter, aiCrewRouter);
   // AI Crew Advisory Session Composition (advisory-only, safe)
   app.use("/api/v1/ai/crew/advisory", aiRateLimiter, advisorySessionRouter);
-  app.use("/api/v1/media", aiRateLimiter, requireFeature("mediaStudio"), mediaStudioRouter);
+  app.use("/api/v1/media", aiRateLimiter, requireFeature("mediaStudio"), featureTelemetry("mediaStudio"), mediaStudioRouter);
   app.use(
     "/api/v1/white-label-configurator",
     aiRateLimiter,
     requireFeature("whiteLabelStudio"),
+    featureTelemetry("whiteLabelStudio"),
     whiteLabelConfiguratorRouter,
   );
   app.use("/api/v1/platform-ops", platformOpsRateLimiter, platformOpsRouter);
@@ -109,7 +116,7 @@ export function createApp() {
   app.use("/api/v1/sales-reps", sales_repsRouter);
   app.use("/api/v1/dealers", dealersRouter);
   app.use("/api/v1/partners", partnersRouter);
-  app.use("/api/v1/competitor", requireFeature("competitor"), competitorRouter);
+  app.use("/api/v1/competitor", requireFeature("competitor"), featureTelemetry("competitor"), competitorRouter);
   app.use("/api/v1/stand", standRouter);
   app.use("/api/v1/stand-pos", stand_posRouter);
   app.use("/api/v1/affiliate", affiliateRouter);
@@ -124,7 +131,7 @@ export function createApp() {
   app.use("/api/v1/knowledge", knowledge_baseRouter);
   app.use("/api/v1/security", security_governanceRouter);
   app.use("/api/v1/admin", adminRouter);
-  app.use("/api/v1/influencer", requireFeature("influencerToolkit"), influencer_osRouter);
+  app.use("/api/v1/influencer", requireFeature("influencerToolkit"), featureTelemetry("influencerToolkit"), influencer_osRouter);
   app.use("/api/v1/social-intelligence", social_intelligenceRouter);
   app.use("/api/v1/operations", operationsRouter);
   app.use("/api/v1/support", supportRouter);
