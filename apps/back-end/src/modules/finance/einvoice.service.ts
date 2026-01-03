@@ -11,8 +11,9 @@ import {
   createEInvoice,
   updateEInvoice,
   updateManyEInvoice,
-  findEInvoice
+  findEInvoice,
 } from "../../core/db/repositories/finance.repository.js";
+import type { InvoiceWithItems } from "../../core/db/repositories/finance.repository.js";
 import type { PipelineActor } from "../../core/ai/pipeline/pipeline-types.js";
 import { runEngine, type EInvoiceEngineOutput } from "../../core/ai/engines/einvoice.engine.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
@@ -49,7 +50,7 @@ function normalizeActor(actor?: PipelineActor) {
 
 class EInvoiceService {
 
-  private async loadInvoice(invoiceId: string) {
+  private async loadInvoice(invoiceId: string): Promise<InvoiceWithItems> {
     const invoice = await findInvoiceWithItems(invoiceId);
     if (!invoice) {
       throw notFound("Invoice not found");
@@ -57,7 +58,7 @@ class EInvoiceService {
     return invoice;
   }
 
-  private mapInvoiceToSchema(invoice: Awaited<ReturnType<EInvoiceService["loadInvoice"]>>) {
+  private mapInvoiceToSchema(invoice: InvoiceWithItems) {
     return {
       id: invoice.id,
       currency: invoice.currency ?? invoice.brand?.defaultCurrency ?? "EUR",

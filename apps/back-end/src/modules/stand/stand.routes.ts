@@ -4,6 +4,7 @@ import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { createStandSchema, standAiInsightSchema, updateStandSchema } from "./stand.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.post(
   "/ai/insights",
   requirePermission("stand:read"),
   requireFeature("stand"),
+  featureTelemetry("stand"),
   validateBody(standAiInsightSchema),
   controller.aiInsights,
 );

@@ -1,3 +1,5 @@
+import type { ActivityLogRecord } from "../activity-log/activity-log.types.js";
+
 export interface CreateMarketingInput {
   brandId?: string;
   channelId?: string;
@@ -103,3 +105,55 @@ export interface CampaignTargetPreview {
   totalLeads: number;
   segments: CampaignSegmentPreview[];
 }
+
+export interface CampaignExecutionInput {
+  type: string;
+  executedAt?: Date;
+  contentTitle?: string;
+  content?: string;
+  notes?: string;
+  impressions?: number;
+  clicks?: number;
+  spend?: number;
+  conversions?: number;
+  revenue?: number;
+}
+
+export interface CampaignExecutionRecord {
+  campaignId: string;
+  type: string;
+  executedAt: Date;
+  contentDocumentId?: string;
+  notes?: string;
+  impressions?: number;
+  clicks?: number;
+  spend?: number;
+  conversions?: number;
+  revenue?: number;
+}
+
+export interface CampaignPerformanceLogEntry {
+  date: Date;
+  impressions: number;
+  clicks: number;
+  spend: number;
+  conversions: number;
+  revenue: number;
+}
+
+export interface CampaignPerformanceTotals {
+  impressions: number;
+  clicks: number;
+  spend: number;
+  conversions: number;
+  revenue: number;
+}
+
+export interface CampaignPerformanceRecord {
+  campaignId: string;
+  totals: CampaignPerformanceTotals;
+  lastLoggedAt?: Date;
+  logs: CampaignPerformanceLogEntry[];
+}
+
+export type CampaignActivityRecord = ActivityLogRecord;

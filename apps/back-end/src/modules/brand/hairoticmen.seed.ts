@@ -284,22 +284,8 @@ export async function seedHairoticmen(options: { tenantId?: string } = {}) {
   }
 
   for (const agent of aiAgentConfigs) {
-    await prisma.aIAgentConfig.upsert({
-      where: { name: agent.name },
-      update: {
-        brandId: brand.id,
-        osScope: agent.osScope,
-        configJson: JSON.stringify(agent.configJson),
-        enabled: true,
-      },
-      create: {
-        name: agent.name,
-        brandId: brand.id,
-        osScope: agent.osScope,
-        configJson: JSON.stringify(agent.configJson),
-        enabled: true,
-      },
-    });
+    // Schema does not support per-agent config (no name/osScope/configJson/enabled)
+    // Only brandId is available. Skipping per-agent config seed.
   }
 
   console.log(

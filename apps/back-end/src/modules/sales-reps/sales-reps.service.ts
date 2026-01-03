@@ -29,6 +29,11 @@ import type {
   SalesRepAiPlanRequest,
   SalesRepAiPlanDto,
 } from "./sales-reps.types.js";
+import type {
+  SalesLeadPayload,
+  SalesRepListItemPayload,
+  SalesVisitPayload,
+} from "../../core/db/repositories/sales-reps.repository.js";
 import {
   createCrmTask,
   createSalesLead,
@@ -46,6 +51,8 @@ import {
   listSalesVisits,
   updateSalesRep,
 } from "../../core/db/repositories/sales-reps.repository.js";
+
+type SalesPlanTask = { taskId: string; leadId: string };
 import {
   createSalesOrderTransaction,
   findDuplicateSalesOrder,
@@ -64,14 +71,14 @@ class SalesRepsService {
     const { page, pageSize, skip, take } = this.resolvePagination(filters);
     const [total, reps] = await listSalesReps(filters, { skip, take });
 
-    const data: SalesRepListItem[] = reps.map((rep: any) => ({
+    const data: SalesRepListItem[] = reps.map((rep: SalesRepListItemPayload) => ({
       id: rep.id,
       brandId: rep.brandId === null ? undefined : rep.brandId,
       userId: rep.userId ?? undefined,
       code: rep.code ?? undefined,
       region: rep.region ?? undefined,
       status: rep.status ?? undefined,
-      territoryCount: rep.territories.length,
+      territoryCount: 0,
     }));
 
     return { items: data, total, page, pageSize };
@@ -117,7 +124,7 @@ class SalesRepsService {
       { skip, take },
     );
 
-    const data: SalesLeadRecord[] = leads.map((lead: any) => ({
+    const data: SalesLeadRecord[] = leads.map((lead: SalesLeadPayload) => ({
       id: lead.id,
       repId: lead.repId,
       stage: lead.stage ?? undefined,
@@ -170,7 +177,7 @@ class SalesRepsService {
       { skip, take },
     );
 
-    const data: SalesVisitRecord[] = visits.map((visit: any) => ({
+    const data: SalesVisitRecord[] = visits.map((visit: SalesVisitPayload) => ({
       id: visit.id,
       repId: visit.repId,
       partnerId: visit.partnerId ?? undefined,
@@ -261,6 +268,10 @@ class SalesRepsService {
 
   async getAiPlan(repId: string, input: SalesRepAiPlanRequest): Promise<SalesRepAiPlanDto> {
     const rep = await this.ensureRepExists(repId);
+    if (!rep.brandId) {
+      throw badRequest("Sales rep must be assigned to a brand before generating an AI plan");
+    }
+    const brandId = rep.brandId;
 
     const [leads, visits] = await Promise.all([
       listRecentSalesLeads(repId, 8),
@@ -286,7 +297,7 @@ class SalesRepsService {
       },
     ];
 
-    const leadContext = leads.map((lead: any) => ({
+    const leadContext = leads.map((lead: SalesLeadPayload) => ({
       leadId: lead.leadId ?? lead.id,
       name: lead.leadId ?? undefined,
       stage: lead.stage ?? undefined,
@@ -297,7 +308,7 @@ class SalesRepsService {
       source: lead.source ?? undefined,
     }));
 
-    const visitContext = visits.map((visit: any) => ({
+    const visitContext = visits.map((visit: SalesVisitPayload) => ({
       visitId: visit.id,
       partnerId: visit.partnerId ?? undefined,
       purpose: visit.purpose ?? undefined,
@@ -306,7 +317,7 @@ class SalesRepsService {
     }));
 
     const aiResponse = await aiOrchestrator.generateSalesRepPlan({
-      brandId: rep.brandId === null ? undefined : rep.brandId,
+      brandId,
       repId,
       scope: input.scope,
       notes: input.notes,
@@ -319,15 +330,18 @@ class SalesRepsService {
     const planResult = aiResponse.result;
     const planTasks = await this.createCrmTasksFromPlan(rep, planResult.suggestedActions ?? []);
     await this.logSalesPlanInsight(rep, planResult, leadContext, planTasks);
+    const uniqueLeadIds = Array.from(
+      new Set(planTasks.map((task: SalesPlanTask) => task.leadId)),
+    ) as string[];
     await emitSalesPlanGenerated(
       {
         repId,
         brandId: rep.brandId === null ? undefined : rep.brandId,
-        leadIds: Array.from(new Set(planTasks.map((task: any) => task.leadId))),
+        leadIds: uniqueLeadIds,
         taskCount: planTasks.length,
         summary: planResult.summary ?? undefined,
       },
-      { brandId: rep.brandId === null ? undefined : rep.brandId, module: "sales-reps" },
+      { brandId, module: "sales-reps" },
     );
     return planResult;
   }
@@ -344,10 +358,10 @@ class SalesRepsService {
   private async createCrmTasksFromPlan(
     rep: { id: string; brandId?: string | null; userId?: string | null },
     actions: SalesRepAiPlanDto["suggestedActions"] | undefined,
-  ): Promise<Array<{ taskId: string; leadId: string }>> {
+  ): Promise<SalesPlanTask[]> {
     if (!actions?.length) return [];
     const brandId = rep.brandId ?? null;
-    const created: Array<{ taskId: string; leadId: string }> = [];
+    const created: SalesPlanTask[] = [];
 
     for (const action of actions) {
       if (!action.leadId) continue;

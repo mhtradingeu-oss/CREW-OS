@@ -1,22 +1,20 @@
-import { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma.js";
 
-export async function findAgentConfigByName(params: {
-  brandId?: string | null;
-  name: string;
-}) {
-  return prisma.aIAgentConfig.findFirst({ where: { brandId: params.brandId ?? undefined, name: params.name } });
+export async function findAgentConfigByBrandId(params: { brandId?: string | null }) {
+  // AIAgentConfig supports only (id, brandId, brand). No per-agent configs exist in schema.
+  if (!params.brandId) return null;
+  return prisma.aIAgentConfig.findFirst({
+    where: { brandId: params.brandId ?? undefined },
+  });
 }
 
-export async function findAgentConfigByScope(params: {
-  brandId?: string | null;
-  osScope: string;
-}) {
-  return prisma.aIAgentConfig.findFirst({ where: { brandId: params.brandId ?? undefined, osScope: params.osScope } });
-}
-
+/**
+ * Default config boundary:
+ * Schema does not support per-agent configs (no agentName/agentId/configJson).
+ * "Default" is represented as "no record" OR handled at runtime by a fallback provider.
+ */
 export async function findDefaultAgentConfig() {
-  return prisma.aIAgentConfig.findFirst({ where: { name: "default" } });
+  return null;
 }
 
 export async function findBrandContext(id: string) {

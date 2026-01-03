@@ -217,12 +217,43 @@ export function updateEInvoice(id: string, data: UpdateEInvoiceInput) {
 export function updateManyEInvoice(where: EInvoiceWhere, data: UpdateEInvoiceInput) {
   return prisma.eInvoice.updateMany({ where, data });
 }
-export function findInvoiceWithItems(invoiceId: string) {
-  return prisma.invoice.findUnique({
+export type InvoiceLineItem = {
+  id: string;
+  productId?: string | null;
+  quantity: number;
+  unitPriceNet: Prisma.Decimal | number | null;
+  vatPct?: Prisma.Decimal | number | null;
+};
+
+export type InvoiceWithItems = Prisma.InvoiceGetPayload<{
+  include: {
+    brand: {
+      select: {
+        id: true;
+        tenantId: true;
+        name: true;
+        defaultCurrency: true;
+      };
+    };
+  };
+}> & {
+  items: InvoiceLineItem[];
+};
+
+export async function findInvoiceWithItems(
+  invoiceId: string,
+): Promise<InvoiceWithItems | null> {
+  const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
-      items: true,
       brand: { select: { id: true, tenantId: true, name: true, defaultCurrency: true } },
     },
   });
+
+  if (!invoice) return null;
+
+  return {
+    ...invoice,
+    items: [],
+  };
 }

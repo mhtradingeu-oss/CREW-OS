@@ -10,7 +10,7 @@ export default {
       'ts-jest',
       {
         useESM: true,
-        tsconfig: './tsconfig.jest.json',
+        tsconfig: "<rootDir>/tsconfig.json"
       },
     ],
   },
@@ -21,6 +21,7 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@mh-os/shared$': '<rootDir>/../../packages/shared/src/index.ts',
     '^@mh-os/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
+    '^@paralleldrive/cuid2$': '<rootDir>/__mocks__/@paralleldrive/cuid2.ts',
   },
   modulePathIgnorePatterns: [
     ...IGNORED_ARTIFACT_PATHS.map((dir) => `<rootDir>/${dir}(/.*)?`),
@@ -37,7 +38,6 @@ export default {
     '/metrics\\.routes\\.test\\.ts$',
     '/pricing\\.validators\\.test\\.ts$',
     '/activity-log\\.repository\\.unit\\.test\\.ts$',
-    '/ai-suggestions\\.service\\.test\\.ts$',
     ...IGNORED_ARTIFACT_PATHS.map((dir) => `<rootDir>/${dir}(/.*)?`),
   ],
   // Exclude integration/contract artifacts from the default run

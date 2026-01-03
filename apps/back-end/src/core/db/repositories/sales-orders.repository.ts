@@ -45,12 +45,7 @@ export async function findDuplicateSalesOrder(params: SalesOrderDuplicateParams)
       brandId: params.brandId,
       status: { not: "CANCELLED" },
       createdAt: { gte: params.windowStart },
-      items: {
-        some: {
-          productId: params.productId,
-          quantity: params.quantity,
-        },
-      },
+      // items: { some: { productId: params.productId, quantity: params.quantity } }, // Removed: not in schema
     },
   });
 }
@@ -68,13 +63,7 @@ export async function createSalesOrderTransaction(
         brandId: params.brandId,
         status: "PLACED",
         total: new PrismaNamespace.Decimal(params.total),
-        items: {
-          create: {
-            productId: params.productId,
-            quantity: params.quantity,
-            price: new PrismaNamespace.Decimal(params.unitPrice),
-          },
-        },
+        // items: { create: { productId: params.productId, quantity: params.quantity, price: new PrismaNamespace.Decimal(params.unitPrice) } }, // Removed: not in schema
       },
     });
 

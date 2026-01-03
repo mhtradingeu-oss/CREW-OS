@@ -59,6 +59,7 @@ export type CampaignPayload = Awaited<ReturnType<typeof prisma.campaign.findMany
 export type CampaignTargetSegmentPayload = Awaited<ReturnType<typeof prisma.campaign.findUnique>>;
 export type CampaignAttributionPayload = Awaited<ReturnType<typeof prisma.campaignLeadAttribution.create>>;
 export type CampaignInteractionPayload = Awaited<ReturnType<typeof prisma.campaignInteraction.create>>;
+export type MarketingPerformanceLogPayload = Awaited<ReturnType<typeof prisma.marketingPerformanceLog.findMany>>[number];
 
 export type CampaignTargetSegmentInput = CampaignCreateArgs["data"]["targetSegmentIds"];
 
@@ -123,6 +124,27 @@ async function logPerformance(data: MarketingPerformanceLogCreateInput) {
   await prisma.marketingPerformanceLog.create({ data });
 }
 
+async function findPerformanceLogsByCampaign(campaignId: string, limit = 20) {
+  return prisma.marketingPerformanceLog.findMany({
+    where: { campaignId },
+    orderBy: { date: "desc" },
+    take: limit,
+  });
+}
+
+async function aggregateCampaignPerformance(campaignId: string) {
+  return prisma.marketingPerformanceLog.aggregate({
+    where: { campaignId },
+    _sum: {
+      impressions: true,
+      clicks: true,
+      spend: true,
+      conversions: true,
+      revenue: true,
+    },
+  });
+}
+
 async function findLeadById(leadId: string) {
   return prisma.lead.findUnique({
     where: { id: leadId },
@@ -170,4 +192,6 @@ export const marketingRepository = {
   createCampaignAttribution,
   createCampaignInteraction,
   logAIInsight,
+  findPerformanceLogsByCampaign,
+  aggregateCampaignPerformance,
 };

@@ -309,7 +309,7 @@ export async function indexInventoryItem(itemId: string, scope?: IndexingScope):
     where: { id: itemId },
     include: {
       product: { select: { id: true, name: true, brandId: true, sku: true } },
-      warehouse: { select: { id: true, name: true, location: true } },
+      
       brand: { select: { id: true, tenantId: true } },
     },
   });
@@ -317,9 +317,9 @@ export async function indexInventoryItem(itemId: string, scope?: IndexingScope):
   assertScopeOwnership(item.brandId ?? item.product?.brandId, item.brand?.tenantId, scope);
 
   const content = [
-    `Inventory for ${item.product?.name ?? item.productId}`,
-    `Quantity ${item.quantity}`,
-    item.warehouse ? `Warehouse ${item.warehouse.name}` : undefined,
+      `Inventory for ${item.product?.name ?? item.productId}`,
+      `Quantity ${item.quantity}`,
+      item.warehouseId ? `Warehouse ${item.warehouseId}` : undefined,
   ]
     .filter(Boolean)
     .map(normalizeText)
@@ -330,9 +330,9 @@ export async function indexInventoryItem(itemId: string, scope?: IndexingScope):
     type: "inventory-item",
     brandId: item.brandId ?? item.product?.brandId,
     tenantId: item.brand?.tenantId,
-    title: `${item.product?.name ?? item.productId} @ ${item.warehouse?.name ?? "warehouse"}`,
+    title: `${item.product?.name ?? item.productId} @ ${item.warehouseId ?? "warehouse"}`,
     description: `Quantity ${item.quantity}`,
-    tags: [item.warehouse?.name ?? "", item.product?.sku ?? ""].filter(Boolean),
+    tags: [item.warehouseId ?? "", item.product?.sku ?? ""].filter(Boolean),
     content,
     source: "inventory",
     updatedAt: item.updatedAt,
@@ -342,8 +342,7 @@ export async function indexInventoryItem(itemId: string, scope?: IndexingScope):
       sku: item.product?.sku,
       warehouseId: item.warehouseId,
       quantity: item.quantity,
-      warehouse: item.warehouse?.name,
-      location: item.warehouse?.location,
+
     },
     raw: {
       inventoryItem: item,
@@ -358,9 +357,7 @@ export async function indexCRMClient(clientId: string, scope?: IndexingScope): P
       brand: { select: { id: true, tenantId: true, name: true } },
       person: true,
       company: true,
-      activities: { orderBy: { createdAt: "desc" }, take: 5 },
-      scores: { orderBy: { createdAt: "desc" }, take: 3 },
-      stage: { select: { id: true, name: true } },
+
     },
   });
 
@@ -371,7 +368,7 @@ export async function indexCRMClient(clientId: string, scope?: IndexingScope): P
       lead.person ? `${lead.person.firstName ?? ""} ${lead.person.lastName ?? ""}`.trim() : undefined,
       lead.company?.name,
       lead.status ? `Status ${lead.status}` : undefined,
-      lead.stage ? `Stage ${lead.stage.name}` : undefined,
+      lead.stageId ? `Stage ${lead.stageId}` : undefined,
       lead.score ? `Score ${lead.score}` : undefined,
     ]
       .filter(Boolean)
@@ -386,8 +383,8 @@ export async function indexCRMClient(clientId: string, scope?: IndexingScope): P
       title: lead.person
         ? `${lead.person.firstName ?? ""} ${lead.person.lastName ?? ""}`.trim() || lead.id
         : lead.company?.name ?? lead.id,
-      description: lead.status ?? lead.stage?.name ?? undefined,
-      tags: [lead.stage?.name ?? "", lead.status ?? ""].filter(Boolean),
+      description: lead.status ?? lead.stageId ?? undefined,
+      tags: [lead.stageId ?? "", lead.status ?? ""].filter(Boolean),
       content,
       source: "crm_lead",
       updatedAt: lead.updatedAt,
@@ -396,18 +393,7 @@ export async function indexCRMClient(clientId: string, scope?: IndexingScope): P
         companyId: lead.companyId,
         status: lead.status,
         score: lead.score,
-        stage: lead.stage?.name ?? lead.stageId,
-        activities: lead.activities?.map((act) => ({
-          id: act.id,
-          activity: act.activity,
-          when: toIso(act.createdAt),
-        })),
-        scores: lead.scores?.map((score) => ({
-          id: score.id,
-          score: score.score,
-          reason: score.reason,
-          createdAt: toIso(score.createdAt),
-        })),
+        stage: lead.stageId,
       },
       raw: {
         lead,
@@ -507,7 +493,7 @@ export async function indexPartner(partnerId: string, scope?: IndexingScope): Pr
     include: {
       brand: { select: { id: true, tenantId: true, name: true } },
       tier: { select: { name: true } },
-      performance: { orderBy: { createdAt: "desc" }, take: 1 },
+
     },
   });
   if (!partner) return null;
@@ -525,7 +511,7 @@ export async function indexPartner(partnerId: string, scope?: IndexingScope): Pr
     .map(normalizeText)
     .join(" | ");
 
-  const lastPerformance = partner.performance?.[0];
+
 
   return buildRecord({
     id: partner.id,
@@ -538,16 +524,13 @@ export async function indexPartner(partnerId: string, scope?: IndexingScope): Pr
     content,
     source: "partner",
     updatedAt: partner.updatedAt,
-    metadata: {
-      type: partner.type,
-      tier: partner.tier?.name,
-      status: partner.status,
-      country: partner.country,
-      city: partner.city,
-      performance: lastPerformance
-        ? { period: lastPerformance.period, kpis: lastPerformance.kpiJson }
-        : undefined,
-    },
+      metadata: {
+        type: partner.type,
+        tier: partner.tier?.name,
+        status: partner.status,
+        country: partner.country,
+        city: partner.city,
+      },
     raw: {
       partner,
     },
@@ -628,7 +611,7 @@ export async function indexAffiliate(affiliateId: string, scope?: IndexingScope)
     where: { id: affiliateId },
     include: {
       brand: { select: { id: true, tenantId: true, name: true } },
-      tier: { select: { name: true } },
+     
       person: { select: { firstName: true, lastName: true } },
       performance: { orderBy: { createdAt: "desc" }, take: 1 },
     },
@@ -642,7 +625,7 @@ export async function indexAffiliate(affiliateId: string, scope?: IndexingScope)
     affiliate.type ? `Type ${affiliate.type}` : undefined,
     affiliate.channel ? `Channel ${affiliate.channel}` : undefined,
     affiliate.status ? `Status ${affiliate.status}` : undefined,
-    affiliate.tier ? `Tier ${affiliate.tier.name}` : undefined,
+    affiliate.tierId ? `Tier ${affiliate.tierId}` : undefined,
     perf ? `Recent revenue ${perf.revenue ?? 0}` : undefined,
   ]
     .filter(Boolean)
@@ -664,7 +647,7 @@ export async function indexAffiliate(affiliateId: string, scope?: IndexingScope)
       code: affiliate.code,
       channel: affiliate.channel,
       status: affiliate.status,
-      tier: affiliate.tier?.name,
+      tierId: affiliate.tierId,
       person: affiliate.person
         ? `${affiliate.person.firstName ?? ""} ${affiliate.person.lastName ?? ""}`.trim()
         : undefined,
@@ -687,22 +670,19 @@ export async function indexSalesRepProfile(
     include: {
       brand: { select: { id: true, tenantId: true, name: true } },
       user: { select: { email: true, id: true, role: true } },
-      performance: { orderBy: { createdAt: "desc" }, take: 1 },
-      targets: { orderBy: { createdAt: "desc" }, take: 1 },
-      territories: { select: { territoryId: true } },
+      kpiSnapshots: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
   if (!salesRep) return null;
   assertScopeOwnership(salesRep.brandId ?? salesRep.brand?.id, salesRep.brand?.tenantId, scope);
 
-  const perf = salesRep.performance?.[0];
-  const target = salesRep.targets?.[0];
+  const kpiSnapshot = salesRep.kpiSnapshots?.[0];
   const content = [
     `Sales rep ${salesRep.id}`,
     salesRep.user ? `User ${salesRep.user.email}` : undefined,
     salesRep.region ? `Region ${salesRep.region}` : undefined,
     salesRep.status ? `Status ${salesRep.status}` : undefined,
-    perf ? `Performance ${normalizeText(perf.kpiJson)}` : undefined,
+    kpiSnapshot?.metricsJson ? `Performance ${normalizeText(kpiSnapshot.metricsJson)}` : undefined,
   ]
     .filter(Boolean)
     .map(normalizeText)
@@ -722,9 +702,7 @@ export async function indexSalesRepProfile(
     metadata: {
       region: salesRep.region,
       status: salesRep.status,
-      targets: target?.targetJson,
-      performance: perf?.kpiJson,
-      territories: salesRep.territories?.map((t) => t.territoryId),
+      performance: kpiSnapshot?.metricsJson,
     },
     raw: {
       salesRep,
@@ -1039,7 +1017,7 @@ export async function indexSupportTicket(
       brand: { select: { id: true, tenantId: true, name: true } },
       assignedTo: { select: { id: true, email: true } },
       createdBy: { select: { id: true, email: true } },
-      tags: { select: { name: true } },
+      
       messages: {
         orderBy: { createdAt: "asc" },
         take: 15,
@@ -1050,7 +1028,7 @@ export async function indexSupportTicket(
   if (!ticket) return null;
   assertScopeOwnership(ticket.brandId, undefined, scope);
 
-  const tagNames = ticket.tags?.map((t) => t.name) ?? [];
+
   const messageSummary = ticket.messages
     ?.map((m) => `${m.sender?.email ?? "user"}: ${m.content ?? ""}`)
     .slice(-5)
@@ -1074,7 +1052,7 @@ export async function indexSupportTicket(
     tenantId: undefined,
     title: `Ticket ${ticket.id}`,
     description: ticket.category ?? ticket.status ?? undefined,
-    tags: [ticket.status ?? "", ticket.priority ?? "", ticket.category ?? "", ...tagNames].filter(Boolean),
+    tags: [ticket.status ?? "", ticket.priority ?? "", ticket.category ?? ""].filter(Boolean),
     content,
     source: "support",
     updatedAt: ticket.updatedAt,
@@ -1085,7 +1063,7 @@ export async function indexSupportTicket(
       createdBy: ticket.createdBy?.email,
       assignedTo: ticket.assignedTo?.email,
       messageCount: ticket.messages?.length,
-      tags: tagNames,
+
     },
     raw: {
       ticket,
@@ -1101,7 +1079,7 @@ export async function indexMarketingCampaign(
     where: { id: campaignId },
     include: {
       brand: { select: { id: true, tenantId: true, name: true } },
-      channel: { select: { name: true, type: true } },
+     
       performanceLogs: { orderBy: { date: "desc" }, take: 5 },
     },
   });
@@ -1113,7 +1091,7 @@ export async function indexMarketingCampaign(
     campaign.objective ? `Objective ${campaign.objective}` : undefined,
     campaign.status ? `Status ${campaign.status}` : undefined,
     campaign.budget ? `Budget ${campaign.budget}` : undefined,
-    campaign.channel ? `Channel ${campaign.channel.name}` : undefined,
+    campaign.channelId ? `Channel ${campaign.channelId}` : undefined,
   ]
     .filter(Boolean)
     .map(normalizeText)
@@ -1135,13 +1113,12 @@ export async function indexMarketingCampaign(
     tenantId: campaign.brand?.tenantId,
     title: campaign.name,
     description: campaign.objective ?? undefined,
-    tags: [campaign.status ?? "", campaign.channel?.name ?? "", campaign.channel?.type ?? ""].filter(Boolean),
+    tags: [campaign.status ?? "", campaign.channelId ?? ""].filter(Boolean),
     content,
     source: "marketing",
     updatedAt: campaign.updatedAt,
     metadata: {
-      channel: campaign.channel?.name,
-      channelType: campaign.channel?.type,
+      channelId: campaign.channelId,
       status: campaign.status,
       budget: campaign.budget,
       targetSegmentIds: campaign.targetSegmentIds,

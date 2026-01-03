@@ -84,6 +84,7 @@ function buildEventContext(context?: PricingActionContext): EventContext {
 }
 
 const DEFAULT_CURRENCY = "EUR";
+// These constants are used for event/monitoring labels only. Not for AIAgentConfig lookup.
 const AI_AGENT_NAME = "pricing-ai";
 const AI_PLAN_AGENT_NAME = "pricing-strategist";
 
@@ -660,6 +661,7 @@ async function addCompetitorPrice(
     currency: typeof input.currency === "string" ? input.currency : undefined,
     collectedAt:
       input.collectedAt instanceof Date ? input.collectedAt : input.collectedAt ? new Date(String(input.collectedAt)) : undefined,
+    warehouseId: (product as any).warehouseId ?? "default-warehouse"
   });
 
   const eventContext = buildEventContext({
@@ -794,6 +796,7 @@ async function createAISuggestion(
   await recordMonitoringEvent({
     category: "AGENT_ACTIVITY",
     status: "PRICING_SUGGESTION",
+    // agentName is for event/monitoring only; not persisted in AIAgentConfig
     agentName: AI_AGENT_NAME,
     metric: {
       productId: product.id,
@@ -856,6 +859,7 @@ async function recordAIPlanResult(
   await recordMonitoringEvent({
     category: "AGENT_ACTIVITY",
     status: "PRICING_PLAN",
+    // agentName is for event/monitoring only; not persisted in AIAgentConfig
     agentName: AI_PLAN_AGENT_NAME,
     metric: {
       productId,

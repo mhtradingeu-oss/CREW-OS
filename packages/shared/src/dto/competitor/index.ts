@@ -29,6 +29,7 @@ export interface GetCompetitorPricesInput {
   brandId?: string;
   productId?: string;
   competitorId?: string;
+  market?: string;
   country?: string;
   page?: number;
   pageSize?: number;

@@ -6,4 +6,10 @@ export const prisma = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  crmTask: {
+    create: jest.fn(async ({ data }) => ({
+      id: "mock-crm-task",
+      ...data,
+    })),
+  },
 } as const;

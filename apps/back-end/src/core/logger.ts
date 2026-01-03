@@ -16,6 +16,9 @@ interface LogContext {
 }
 
 
+const ENVIRONMENT = process.env.NODE_ENV || "development";
+const SERVICE_NAME = process.env.SERVICE_NAME || process.env.npm_package_name || "mh-os-superapp-backend";
+
 function log(level: LogLevel, message: string, context: LogContext = {}) {
   if (!LEVELS.includes(level)) level = "info";
   // Only print if level is >= configured log level
@@ -27,7 +30,9 @@ function log(level: LogLevel, message: string, context: LogContext = {}) {
     timestamp: new Date().toISOString(),
     level,
     message,
-    environment: process.env.NODE_ENV || "development",
+    environment: ENVIRONMENT,
+    env: ENVIRONMENT,
+    service: SERVICE_NAME,
     correlationId: context.correlationId || undefined,
     module: context.module || undefined,
   };

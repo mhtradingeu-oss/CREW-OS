@@ -1,7 +1,12 @@
 import { AutomationDetectionSource } from "@prisma/client";
 import { conflict } from "../../http/errors.js";
 import { logger } from "../../logger.js";
-import type { Prisma, AutomationIncidentType, AutomationIncidentSeverity } from "@prisma/client";
+import type {
+  Prisma,
+  AutomationIncidentSeverity,
+  AutomationIncidentStatus,
+  AutomationIncidentType,
+} from "@prisma/client";
 import { AutomationGovernanceRepository } from "../../db/repositories/automation-governance.repository.js";
 import { automationIncidentTotal } from "./metrics.js";
 
@@ -38,7 +43,7 @@ export class AutomationIncidentService {
       metadataJson: input.metadata ?? undefined,
     });
 
-    automationIncidentTotal.inc({
+    this.trackIncidentStatus({
       type: incident.type,
       severity: incident.severity,
       status: incident.status,
@@ -73,6 +78,12 @@ export class AutomationIncidentService {
       mitigatedAt: new Date(),
       mitigationNotesJson: notes ? { notes } : undefined,
     });
+    this.trackIncidentStatus({
+      type: incident.type,
+      severity: incident.severity,
+      status: updated.status,
+    });
+
     logger.info("incident.mitigated", {
       incidentId,
       notes,
@@ -93,11 +104,25 @@ export class AutomationIncidentService {
       resolvedAt: new Date(),
       resolutionNotesJson: notes ? { notes } : undefined,
     });
+    this.trackIncidentStatus({
+      type: incident.type,
+      severity: incident.severity,
+      status: updated.status,
+    });
+
     logger.info("incident.resolved", {
       incidentId,
       notes,
     });
     return updated;
+  }
+
+  private trackIncidentStatus(payload: {
+    type: AutomationIncidentType;
+    severity: AutomationIncidentSeverity;
+    status: AutomationIncidentStatus;
+  }) {
+    automationIncidentTotal.inc(payload);
   }
 }
 

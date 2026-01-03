@@ -109,7 +109,7 @@ class InfluencerOSService {
     if (!scores.items.length) {
       throw badRequest("No influencers available for recommendations");
     }
-    const candidates: InfluencerCandidate[] = scores.items.map((item) => ({
+    const candidates: InfluencerCandidate[] = scores.items.map((item: import("../../core/db/repositories/influencer-os.repository.js").InfluencerScoreRecord) => ({
       influencerId: item.id,
       handle: item.handle,
       platform: item.platform,
@@ -133,8 +133,8 @@ class InfluencerOSService {
       { actor: { permissions: [], role: "SYSTEM" } },
     );
 
-    const ranked = engineOutput.rankings.map((rank) => {
-      const profile = scores.items.find((p) => p.id === rank.influencerId);
+    const ranked = engineOutput.rankings.map((rank: { influencerId: string; score: number; reason: string; predictedSalesImpact?: number }) => {
+      const profile = scores.items.find((p: import("../../core/db/repositories/influencer-os.repository.js").InfluencerScoreRecord) => p.id === rank.influencerId);
       return {
         influencerId: rank.influencerId,
         handle: profile?.handle ?? rank.influencerId,

@@ -18,17 +18,21 @@ export async function scanCompetitorsHandler(
 ) {
   try {
     const payload = req.body as ScanCompetitorsInput;
-    const result = await competitorService.scanCompetitors(payload);
+    const scanInput: ScanCompetitorsInput = {
+      ...payload,
+      brandId: payload.brandId ?? req.user?.brandId,
+    };
+    const result = await competitorService.scanCompetitors(scanInput);
     await publishActivity(
       "competitor",
       "scan",
       {
         entityType: "competitor-scan",
-        metadata: { payload },
+        metadata: { payload: scanInput },
       },
       {
         actorUserId: req.user?.id,
-        brandId: (payload as Record<string, unknown>).brandId as string | undefined ?? req.user?.brandId,
+        brandId: scanInput.brandId,
         tenantId: req.user?.tenantId,
         role: req.user?.role,
         source: "api",
@@ -60,6 +64,7 @@ export async function getCompetitorPricesHandler(
       brandId: typeof req.query.brandId === "string" ? req.query.brandId : undefined,
       productId: typeof req.query.productId === "string" ? req.query.productId : undefined,
       competitorId: typeof req.query.competitorId === "string" ? req.query.competitorId : undefined,
+      market: typeof req.query.market === "string" ? req.query.market : undefined,
       country: typeof req.query.country === "string" ? req.query.country : undefined,
       page,
       pageSize,

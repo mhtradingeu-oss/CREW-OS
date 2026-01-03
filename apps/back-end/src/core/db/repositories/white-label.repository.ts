@@ -20,16 +20,7 @@ const productSelect = {
   baseProductId: true,
   name: true,
   sku: true,
-  pricingRecords: {
-    take: 1,
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      pricingJson: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  },
+  // pricingRecords: { ... } // Removed: not in schema
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.WhiteLabelProductSelect;

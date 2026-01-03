@@ -8,7 +8,7 @@ export const aiAgentsService = {
         brandId: filters.brandId,
         ...(filters.scope ? { osScope: filters.scope } : {}),
       },
-      orderBy: { createdAt: "desc" },
+      // orderBy: { createdAt: "desc" }, // removed, not in schema
     });
   },
   async get(id: string) {
@@ -24,7 +24,10 @@ export const aiAgentsService = {
     enabled?: boolean;
   }) {
     return prisma.aIAgentConfig.create({
-      data: { ...data, configJson: data.configJson ? JSON.stringify(data.configJson) : null },
+      data: {
+        ...data,
+        brandId: typeof data.brandId === 'string' ? data.brandId : '',
+      },
     });
   },
   async update(
@@ -40,7 +43,7 @@ export const aiAgentsService = {
     await aiAgentsService.get(id);
     return prisma.aIAgentConfig.update({
       where: { id },
-      data: { ...data, configJson: data.configJson ? JSON.stringify(data.configJson) : undefined },
+      data: { ...data },
     });
   },
   async remove(id: string) {

@@ -147,6 +147,7 @@ export async function seedPricing() {
           priceGross: competitor.priceNet * 1.19,
           currency: competitor.currency,
           collectedAt: new Date(),
+          warehouseId: "default-warehouse",
         },
       });
     }

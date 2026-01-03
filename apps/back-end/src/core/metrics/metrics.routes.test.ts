@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { metricsRouter } from './metrics.routes';
+import { metricsRouter } from './metrics.routes.js';
 
 describe('/metrics endpoint', () => {
   it('returns 200 and text/plain when enabled', async () => {

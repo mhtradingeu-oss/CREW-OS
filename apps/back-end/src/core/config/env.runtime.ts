@@ -32,6 +32,11 @@ export const envSchema = z.object({
   AI_SUGGESTIONS_ENABLED: z.coerce.boolean().default(false),
   AI_SUGGESTIONS_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   AI_SUGGESTIONS_CACHE_TTL_MS: z.coerce.number().int().positive().default(60_000),
+  AI_READ_ONLY_ENABLED: z.coerce.boolean().default(false),
+  AI_READ_ONLY_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+  AI_READ_ONLY_CACHE_TTL_MS: z.coerce.number().int().positive().default(120_000),
+  AI_READ_ONLY_MAX_ROWS: z.coerce.number().int().positive().default(50),
+  AI_READ_ONLY_MAX_PAYLOAD_BYTES: z.coerce.number().int().positive().default(131072),
 });
 
 export type RuntimeEnv = z.infer<typeof envSchema>;
@@ -94,10 +99,17 @@ function resolveEnvFilePath() {
       ? [".env.test", ".env.test.local", ...baseCandidates]
       : baseCandidates;
 
-  for (const candidate of candidates) {
-    const candidatePath = path.join(backendRoot, candidate);
-    if (existsSync(candidatePath)) {
-      return candidatePath;
+  const searchRoots = [backendRoot];
+  if (backendRoot !== cwd) {
+    searchRoots.push(cwd);
+  }
+
+  for (const root of searchRoots) {
+    for (const candidate of candidates) {
+      const candidatePath = path.join(root, candidate);
+      if (existsSync(candidatePath)) {
+        return candidatePath;
+      }
     }
   }
 

@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { automationIncidentTotal } from "../metrics.js";
 import { AutomationIncidentService } from "../incident.service.js";
 
 describe("AutomationIncidentService", () => {
@@ -7,6 +8,8 @@ describe("AutomationIncidentService", () => {
     getIncidentById: jest.fn(),
     updateIncident: jest.fn(),
   };
+
+  const incSpy = jest.spyOn(automationIncidentTotal, "inc").mockImplementation(() => {});
 
   const service = new AutomationIncidentService(repository as any);
 
@@ -35,10 +38,12 @@ describe("AutomationIncidentService", () => {
     expect(repository.createIncident).toHaveBeenCalled();
   });
 
-  it("marks an OPEN incident as MITIGATED", async () => {
+  it("marks an OPEN incident as MITIGATED and records metrics", async () => {
     repository.getIncidentById.mockResolvedValue({
       incidentId: "inc-1",
       status: "OPEN",
+      type: "AUTOMATION_FAILURE",
+      severity: "HIGH",
     });
     repository.updateIncident.mockResolvedValue({
       incidentId: "inc-1",
@@ -48,25 +53,56 @@ describe("AutomationIncidentService", () => {
     await service.markMitigated("inc-1", "mitigated");
 
     expect(repository.updateIncident).toHaveBeenCalledWith("inc-1", expect.objectContaining({ status: "MITIGATED" }));
+    expect(incSpy).toHaveBeenCalledWith({
+      type: "AUTOMATION_FAILURE",
+      severity: "HIGH",
+      status: "MITIGATED",
+    });
   });
 
   it("throws when trying to mitigate a non-OPEN incident", async () => {
     repository.getIncidentById.mockResolvedValue({
       incidentId: "inc-2",
       status: "RESOLVED",
+      type: "AUTOMATION_FAILURE",
+      severity: "HIGH",
     });
 
     await expect(service.markMitigated("inc-2")).rejects.toThrow();
+    expect(incSpy).not.toHaveBeenCalled();
   });
 
   it("resolves a MITIGATED incident", async () => {
     repository.getIncidentById.mockResolvedValue({
       incidentId: "inc-3",
       status: "MITIGATED",
+      type: "AUTOMATION_FAILURE",
+      severity: "HIGH",
+    });
+    repository.updateIncident.mockResolvedValue({
+      incidentId: "inc-3",
+      status: "RESOLVED",
     });
 
     await service.markResolved("inc-3", "done");
 
     expect(repository.updateIncident).toHaveBeenCalledWith("inc-3", expect.objectContaining({ status: "RESOLVED" }));
+    expect(incSpy).toHaveBeenCalledWith({
+      type: "AUTOMATION_FAILURE",
+      severity: "HIGH",
+      status: "RESOLVED",
+    });
+  });
+
+  it("throws when trying to resolve a non-MITIGATED incident without emitting metrics", async () => {
+    repository.getIncidentById.mockResolvedValue({
+      incidentId: "inc-4",
+      status: "OPEN",
+      type: "AUTOMATION_FAILURE",
+      severity: "LOW",
+    });
+
+    await expect(service.markResolved("inc-4")).rejects.toThrow();
+    expect(incSpy).not.toHaveBeenCalled();
   });
 });

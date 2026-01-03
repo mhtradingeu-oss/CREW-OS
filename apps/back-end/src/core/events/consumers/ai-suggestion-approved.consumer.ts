@@ -5,7 +5,7 @@ import { getSuggestionStatus } from '../../../modules/ai-suggestions/ai-suggesti
 
 /**
  * Handles ai.suggestion.approved events and triggers automation execution if not already processed.
- * @param {import('../event-bus').EventEnvelope<{suggestionId:string,correlationId?:string}>} event
+ * @param {import('../event-bus.js').EventEnvelope<{suggestionId:string,correlationId?:string}>} event
  */
 export function registerAiSuggestionApprovedConsumer() {
   subscribe<{ suggestionId: string }>('ai.suggestion.approved', async (event) => {

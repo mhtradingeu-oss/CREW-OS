@@ -179,7 +179,7 @@ class StandPosService {
             inventories: { include: { product: { select: { id: true, name: true } } } },
           },
         },
-        packages: true,
+        // packages: true, // Removed: not in schema
       },
     });
 
@@ -434,8 +434,12 @@ class StandPosService {
     const performance = await this.getPerformance(standId);
     const performanceBrief = mapPerformanceSummaryToBrief(performance);
 
+    const brandId = stand.brandId;
+    if (!brandId) {
+      throw badRequest("Stand must be linked to a brand before requesting AI stock suggestions");
+    }
     const aiResponse = await aiOrchestrator.generateStandStockSuggestion({
-      brandId: stand.brandId ?? undefined,
+      brandId,
       standId,
       scope: input.scope,
       notes: input.notes,

@@ -28,6 +28,7 @@ import type {
   PlanFeaturesMatrixResponse,
   PlanContextResponse,
 } from "./platform-ops.types.js";
+import type { ActivityLogRecord } from "../activity-log/activity-log.types.js";
 
 const userSelect = {
   id: true,
@@ -40,6 +41,23 @@ const userSelect = {
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.UserSelect;
+
+type PlatformOpsTenantPayload = Awaited<ReturnType<typeof PlatformOpsRepository.listTenants>>[number];
+type PlatformOpsTenantBrand = PlatformOpsTenantPayload["brands"][number];
+type PlatformOpsBrandMetricPayload = Awaited<ReturnType<typeof PlatformOpsRepository.listBrandMetrics>>[number];
+type PlatformOpsRevenueGroupPayload = Awaited<ReturnType<typeof PlatformOpsRepository.groupRevenueByBrand>>[number];
+type PlatformOpsUserPayload = Awaited<ReturnType<typeof PlatformOpsRepository.listUsers>>[number];
+type PlatformOpsBrandSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  totalUsers?: number;
+  totalProducts?: number;
+  totalRevenue?: number;
+};
+type PlatformOpsRBACUserPayload = Awaited<
+  ReturnType<typeof PlatformOpsRepository.listUsersWithRBAC>
+>["users"][number];
 
 class PlatformOpsService {
   constructor(private readonly repo = PlatformOpsRepository) {}
@@ -81,7 +99,7 @@ class PlatformOpsService {
     });
 
     return {
-      data: result.data.map((record) => {
+      data: result.data.map((record: ActivityLogRecord) => {
         const message = this.extractMessage(record.meta) ?? record.type;
         return {
           id: record.id,
@@ -106,16 +124,16 @@ class PlatformOpsService {
     const jobs = await this.repo.listJobs(where);
 
     const lastBackup =
-      jobs.find((job) => job.name.toLowerCase().includes("backup"))?.lastRunAt ??
+      jobs.find((job: PlatformOpsJobRecord) => job.name.toLowerCase().includes("backup"))?.lastRunAt ??
       jobs[0]?.lastRunAt ??
       null;
-    const upcomingWindow = jobs.find((job) => job.nextRunAt)?.nextRunAt ?? null;
+    const upcomingWindow = jobs.find((job: PlatformOpsJobRecord) => job.nextRunAt)?.nextRunAt ?? null;
 
     return {
       policy: "Daily backups + hourly automations",
       lastBackupAt: lastBackup,
       upcomingWindow,
-      jobs: jobs.map((job) => ({
+      jobs: jobs.map((job: PlatformOpsJobRecord) => ({
         id: job.id,
         name: job.name,
         status: job.status,
@@ -130,20 +148,20 @@ class PlatformOpsService {
     const users = await this.repo.listUsers();
 
     const roles: Record<string, number> = {};
-    users.forEach((user) => {
+    users.forEach((user: PlatformOpsUserPayload) => {
       const key = user.role ?? "UNASSIGNED";
       roles[key] = (roles[key] ?? 0) + 1;
     });
 
     const adminCount = users.filter(
-      (user) => user.role === "SUPER_ADMIN" || user.role === "ADMIN",
+      (user: PlatformOpsUserPayload) => user.role === "SUPER_ADMIN" || user.role === "ADMIN",
     ).length;
 
     return {
       totalUsers: users.length,
       adminCount,
       roles,
-      users: users.map((user) => ({
+      users: users.map((user: PlatformOpsUserRecord) => ({
         id: user.id,
         email: user.email,
         role: user.role,
@@ -168,7 +186,7 @@ class PlatformOpsService {
     });
 
     return {
-      data: result.data.map((record) => ({
+      data: result.data.map((record: ActivityLogRecord) => ({
         id: record.id,
         brandId: record.brandId,
         userId: record.userId,
@@ -189,21 +207,25 @@ class PlatformOpsService {
     const tenants = await this.repo.listTenants();
 
     const brandIds = Array.from(
-      new Set(tenants.flatMap((tenant) => tenant.brands.map((brand) => brand.id))),
+      new Set<string>(
+        tenants.flatMap((tenant: PlatformOpsTenantPayload) =>
+          tenant.brands.map((brand: PlatformOpsTenantBrand) => brand.id),
+        ),
+      ),
     );
     const brandMetrics = brandIds.length ? await this.repo.listBrandMetrics(brandIds) : [];
 
     const revenueByBrand = brandIds.length ? await this.repo.groupRevenueByBrand(brandIds) : [];
 
     const revenueMap = new Map<string, number>();
-    revenueByBrand.forEach((entry) => {
+    revenueByBrand.forEach((entry: PlatformOpsRevenueGroupPayload) => {
       if (entry.brandId) {
         revenueMap.set(entry.brandId, Number(entry._sum.amount ?? 0));
       }
     });
 
-    const brandMap = new Map(
-      brandMetrics.map((brand) => [
+    const brandMap = new Map<string, PlatformOpsBrandSummary>(
+      brandMetrics.map((brand: PlatformOpsBrandMetricPayload) => [
         brand.id,
         {
           id: brand.id,
@@ -218,7 +240,7 @@ class PlatformOpsService {
 
     return {
       generatedAt: new Date().toISOString(),
-      data: tenants.map((tenant) => ({
+      data: tenants.map((tenant: PlatformOpsTenantPayload) => ({
         tenantId: tenant.id,
         name: tenant.name,
         slug: tenant.slug,
@@ -226,7 +248,7 @@ class PlatformOpsService {
         planKey: tenant.plan?.key,
         brandCount: tenant._count.brands,
         userCount: tenant._count.users,
-        brands: tenant.brands.map((brand) => {
+        brands: tenant.brands.map((brand: PlatformOpsTenantBrand) => {
           const metrics = brandMap.get(brand.id);
           return {
             brandId: brand.id,
@@ -263,7 +285,7 @@ class PlatformOpsService {
 
     const { total, users } = await this.repo.listUsersWithRBAC(where, skip, take);
 
-    const data = await Promise.all(users.map((user) => this.buildUserRBACRecord(user)));
+    const data = await Promise.all(users.map((user: PlatformOpsRBACUserPayload) => this.buildUserRBACRecord(user)));
 
     return {
       data,

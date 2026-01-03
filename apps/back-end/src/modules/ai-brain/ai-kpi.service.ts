@@ -255,27 +255,37 @@ export const aiKpiService = {
     };
 
     let aiNarrative: KPINarrative | undefined;
-    try {
-      const aiResponse = await aiOrchestrator.generateKpiNarrativeTyped({
-        brandId,
-        metrics: {
-          ...summary,
-          scope,
-          periodStart: start.toISOString(),
-          periodEnd: end.toISOString(),
-        },
-      });
-      const result = aiResponse?.result as Partial<KPINarrative> | undefined;
+    if (brandId) {
+      try {
+        const aiResponse = await aiOrchestrator.generateKpiNarrativeTyped({
+          brandId,
+          metrics: {
+            ...summary,
+            scope,
+            periodStart: start.toISOString(),
+            periodEnd: end.toISOString(),
+          },
+        });
+        const result = aiResponse?.result as Partial<KPINarrative> | undefined;
+        aiNarrative = {
+          overview: result?.overview ?? "AI narrative unavailable",
+          highlights: result?.highlights ?? [],
+          risks: result?.risks ?? [],
+          nextSteps: result?.nextSteps ?? [],
+          severity: result?.severity ?? "low",
+        };
+      } catch {
+        aiNarrative = {
+          overview: "KPI summary generated without AI narrative.",
+          highlights: [],
+          risks: [],
+          nextSteps: [],
+          severity: "low",
+        };
+      }
+    } else {
       aiNarrative = {
-        overview: result?.overview ?? "AI narrative unavailable",
-        highlights: result?.highlights ?? [],
-        risks: result?.risks ?? [],
-        nextSteps: result?.nextSteps ?? [],
-        severity: result?.severity ?? "low",
-      };
-    } catch {
-      aiNarrative = {
-        overview: "KPI summary generated without AI narrative.",
+        overview: "AI narrative skipped because no brand context was provided.",
         highlights: [],
         risks: [],
         nextSteps: [],

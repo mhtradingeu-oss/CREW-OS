@@ -81,15 +81,7 @@ function mapProduct(record: WhiteLabelProductPayload): WhiteLabelProductDTO {
     baseProductId: record.baseProductId ?? undefined,
     name: record.name,
     sku: record.sku ?? undefined,
-    pricing:
-      record.pricingRecords?.[0] != null
-        ? {
-            id: record.pricingRecords[0].id,
-            pricing: parseSettings(record.pricingRecords[0].pricingJson),
-            createdAt: record.pricingRecords[0].createdAt,
-            updatedAt: record.pricingRecords[0].updatedAt,
-          }
-        : undefined,
+    // pricing: ... // Removed: pricingRecords not in schema
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   };

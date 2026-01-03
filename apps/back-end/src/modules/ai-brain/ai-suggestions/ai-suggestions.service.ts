@@ -1,7 +1,7 @@
 import { env } from "../../../core/config/env.js";
 import { logger } from "../../../core/logger.js";
 import { SimpleCache } from "../../../core/ai/ai-utils.js";
-import { buildAIReadOnlySnapshot } from "../ai-read-only/ai-read-only.snapshot.js";
+import { aiReadOnlySnapshotService } from "../ai-read-only/ai-read-only.service.js";
 import { buildSuggestionsFromSnapshot } from "./ai-suggestions.engine.js";
 import { validateSuggestionsPayload } from "./ai-suggestions.guard.js";
 import {
@@ -10,22 +10,8 @@ import {
   AI_SUGGESTIONS_DECLARATION,
 } from "./ai-suggestions.constants.js";
 import type { AISuggestionsReadout } from "./ai-suggestions.types.js";
-import type { AIReadOnlySnapshot } from "../ai-read-only/ai-read-only.types.js";
 
 const cache = new SimpleCache<AISuggestionsReadout>(env.AI_SUGGESTIONS_CACHE_TTL_MS);
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-  if (timeoutMs <= 0) return promise;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeoutPromise = new Promise<T>((_, reject) => {
-    timer = setTimeout(() => {
-      reject(new Error(`AI suggestions ${label} timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-  });
-  return Promise.race([promise, timeoutPromise]).finally(() => {
-    if (timer) clearTimeout(timer);
-  });
-}
 
 export const aiSuggestionsService = {
   async getSuggestions(params: { brandId?: string; correlationId?: string }) {
@@ -42,11 +28,10 @@ export const aiSuggestionsService = {
     const start = Date.now();
 
     try {
-      const snapshot = (await withTimeout(
-        buildAIReadOnlySnapshot(),
-        env.AI_SUGGESTIONS_TIMEOUT_MS,
-        "snapshot",
-      )) as AIReadOnlySnapshot;
+      const snapshot = await aiReadOnlySnapshotService.fetchSnapshot({
+        brandId: params.brandId,
+        correlationId: params.correlationId,
+      });
       const suggestionsPayload = buildSuggestionsFromSnapshot(snapshot);
       const inputPayload = JSON.stringify(snapshot);
       const inputSizeBytes = Buffer.byteLength(inputPayload);
@@ -54,7 +39,7 @@ export const aiSuggestionsService = {
       const payload = {
         version: AI_SUGGESTIONS_VERSION,
         declaration: AI_SUGGESTIONS_DECLARATION,
-        generatedAt: snapshot.generatedAt,
+        generatedAt: snapshot.generatedAt.toISOString(),
         snapshotHash: snapshot.snapshotHash,
         suggestions: suggestionsPayload.suggestions,
         riskFlags: suggestionsPayload.riskFlags,

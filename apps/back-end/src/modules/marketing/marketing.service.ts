@@ -7,6 +7,7 @@ import type {
   CampaignAttributionPayload,
   CampaignInteractionPayload,
   CampaignPayload,
+  MarketingPerformanceLogPayload,
   CampaignTargetSegmentInput,
   CampaignWhereInput,
   InputJsonValue,
@@ -22,21 +23,28 @@ import {
   emitMarketingCreated,
   emitMarketingDeleted,
   emitMarketingUpdated,
+  MarketingDomainEvents,
 } from "./marketing.events.js";
 import type {
   CampaignAttributionEventPayload,
   CampaignAttributionInput,
   CampaignAttributionRecord,
+  CampaignExecutionInput,
+  CampaignExecutionRecord,
   CampaignInteractionEventPayload,
   CampaignInteractionInput,
   CampaignInteractionRecord,
+  CampaignPerformanceRecord,
+  CampaignPerformanceLogEntry,
   CampaignRecord,
   CampaignSegmentPreview,
   CampaignTargetPreview,
+  CampaignActivityRecord,
   CreateMarketingInput,
   MarketingCampaignEventPayload,
   UpdateMarketingInput,
 } from "./marketing.types.js";
+import { knowledgeBaseService } from "../knowledge-base/knowledge-base.service.js";
 import { orchestrateAI, makeCacheKey } from "../../core/ai/orchestrator.js";
 import { marketingPrompt, seoPrompt, captionPrompt } from "../../core/ai/prompt-templates.js";
 import type {
@@ -48,18 +56,31 @@ import type {
   MarketingSeoResult,
 } from "./marketing.ai.types.js";
 import { crmService } from "../crm/crm.service.js";
-import type { EventContext } from "../../core/events/event-bus.js";
+import { activityLogService } from "../activity-log/activity-log.service.js";
+import { publish, publishDomainEvent, type EventContext } from "../../core/events/event-bus.js";
 
 type MarketingActionContext = {
   brandId?: string;
   actorUserId?: string;
+  tenantId?: string;
 };
 
 function buildMarketingEventContext(context?: MarketingActionContext): EventContext {
   return {
     brandId: context?.brandId ?? undefined,
     actorUserId: context?.actorUserId ?? undefined,
+    tenantId: context?.tenantId ?? undefined,
     source: "api",
+  };
+}
+
+function buildMarketingDomainMeta(context?: MarketingActionContext) {
+  return {
+    brandId: context?.brandId ?? undefined,
+    actorUserId: context?.actorUserId ?? undefined,
+    tenantId: context?.tenantId ?? undefined,
+    module: "marketing",
+    source: "marketing",
   };
 }
 
@@ -100,8 +121,8 @@ class MarketingService {
     await this.ensureSlugIsUnique(input.name, brandId);
     const validatedSegments = await this.ensureValidSegments(input.targetSegmentIds, brandId ?? undefined);
     const created = await marketingRepository.createCampaign({
-      brand: brandId ? { connect: { id: brandId } } : undefined,
-      channel: input.channelId ? { connect: { id: input.channelId } } : undefined,
+      brandId: brandId ?? undefined,
+      channelId: input.channelId ?? undefined,
       name: input.name,
       objective: input.objective ?? null,
       budget: input.budget ?? null,
@@ -143,8 +164,8 @@ class MarketingService {
         : existingSegments;
 
     const updated = await marketingRepository.updateCampaign(id, {
-      brand: desiredBrandId ? { connect: { id: desiredBrandId } } : undefined,
-      channel: input.channelId ? { connect: { id: input.channelId } } : undefined,
+      brandId: desiredBrandId ?? undefined,
+      channelId: input.channelId ?? undefined,
       name: input.name ?? existing.name,
       objective: input.objective ?? existing.objective,
       budget: input.budget ?? existing.budget,
@@ -187,7 +208,14 @@ class MarketingService {
 
   async logPerformance(
     campaignId: string,
-    payload: { date: Date; impressions?: number; clicks?: number; spend?: number },
+    payload: {
+      date: Date;
+      impressions?: number;
+      clicks?: number;
+      spend?: number;
+      conversions?: number;
+      revenue?: number;
+    },
   ) {
     await marketingRepository.logPerformance({
       campaign: { connect: { id: campaignId } },
@@ -195,7 +223,138 @@ class MarketingService {
       impressions: payload.impressions ?? null,
       clicks: payload.clicks ?? null,
       spend: payload.spend ?? null,
+      conversions: payload.conversions ?? null,
+      revenue: payload.revenue ?? null,
     });
+  }
+
+  async recordCampaignExecution(
+    campaignId: string,
+    input: CampaignExecutionInput,
+    context?: MarketingActionContext,
+  ): Promise<CampaignExecutionRecord> {
+    const campaign = await marketingRepository.findCampaignById(campaignId);
+    if (!campaign) throw notFound("Campaign not found");
+    this.ensureCampaignAccess(campaign, context);
+    const executedAt = input.executedAt ?? new Date();
+    await this.logPerformance(campaignId, {
+      date: executedAt,
+      impressions: input.impressions,
+      clicks: input.clicks,
+      spend: input.spend,
+      conversions: input.conversions,
+      revenue: input.revenue,
+    });
+    let contentDocumentId: string | undefined;
+    const resolvedBrandId = campaign.brandId ?? context?.brandId;
+    if (resolvedBrandId && input.contentTitle) {
+      const document = await knowledgeBaseService.createDocument({
+        brandId: resolvedBrandId,
+        title: input.contentTitle,
+        content: input.content ?? input.notes ?? undefined,
+        sourceType: "marketing-execution",
+        campaignId,
+      });
+      contentDocumentId = document.id;
+    }
+    await publish(
+      "activity.marketing.execution",
+      {
+        entityType: "campaign",
+        entityId: campaignId,
+        brandId: campaign.brandId ?? undefined,
+        action: input.type,
+        notes: input.notes ?? undefined,
+        metrics: {
+          impressions: input.impressions,
+          clicks: input.clicks,
+          spend: input.spend,
+          conversions: input.conversions,
+          revenue: input.revenue,
+        },
+        executedAt: executedAt.toISOString(),
+        contentDocumentId,
+      },
+      buildMarketingEventContext(context),
+    );
+
+    const domainMeta = buildMarketingDomainMeta({
+      brandId: resolvedBrandId ?? undefined,
+      actorUserId: context?.actorUserId,
+      tenantId: context?.tenantId,
+    });
+    await publishDomainEvent({
+      type: MarketingDomainEvents.CAMPAIGN_EXECUTION_RECORDED,
+      payload: {
+        campaignId,
+        campaignName: campaign.name,
+        brandId: campaign.brandId ?? undefined,
+        action: input.type,
+        executedAt: executedAt.toISOString(),
+        metrics: {
+          impressions: input.impressions ?? null,
+          clicks: input.clicks ?? null,
+          spend: input.spend ?? null,
+          conversions: input.conversions ?? null,
+          revenue: input.revenue ?? null,
+        },
+        notes: input.notes ?? undefined,
+        contentDocumentId: contentDocumentId ?? null,
+        actorUserId: context?.actorUserId ?? undefined,
+        tenantId: context?.tenantId ?? undefined,
+      },
+      meta: domainMeta,
+    });
+    return {
+      campaignId,
+      type: input.type,
+      executedAt,
+      contentDocumentId,
+      notes: input.notes ?? undefined,
+      impressions: input.impressions,
+      clicks: input.clicks,
+      spend: input.spend,
+      conversions: input.conversions,
+      revenue: input.revenue,
+    };
+  }
+
+  async getCampaignPerformance(
+    campaignId: string,
+    context?: MarketingActionContext,
+    limit = 20,
+  ): Promise<CampaignPerformanceRecord> {
+    const campaign = await marketingRepository.findCampaignById(campaignId);
+    if (!campaign) throw notFound("Campaign not found");
+    this.ensureCampaignAccess(campaign, context);
+    const [logs, aggregate] = await Promise.all([
+      marketingRepository.findPerformanceLogsByCampaign(campaignId, limit),
+      marketingRepository.aggregateCampaignPerformance(campaignId),
+    ]);
+    const sum = aggregate._sum ?? {};
+    const entries = logs.map((log) => this.mapPerformanceLogEntry(log));
+    return {
+      campaignId,
+      totals: {
+        impressions: numericValue(sum.impressions),
+        clicks: numericValue(sum.clicks),
+        spend: numericValue(sum.spend),
+        conversions: numericValue(sum.conversions),
+        revenue: numericValue(sum.revenue),
+      },
+      lastLoggedAt: entries[0]?.date,
+      logs: entries,
+    };
+  }
+
+  async getCampaignActivity(
+    campaignId: string,
+    context?: MarketingActionContext,
+  ): Promise<CampaignActivityRecord[]> {
+    const campaign = await marketingRepository.findCampaignById(campaignId);
+    if (!campaign) throw notFound("Campaign not found");
+    this.ensureCampaignAccess(campaign, context);
+    return activityLogService.getByEntity("campaign", campaignId);
   }
 
   async linkLeadToCampaign(
@@ -351,6 +510,23 @@ class MarketingService {
     return undefined;
   }
 
+  private mapPerformanceLogEntry(log: MarketingPerformanceLogPayload): CampaignPerformanceLogEntry {
+    return {
+      date: log.date,
+      impressions: numericValue(log.impressions),
+      clicks: numericValue(log.clicks),
+      spend: numericValue(log.spend),
+      conversions: numericValue(log.conversions),
+      revenue: numericValue(log.revenue),
+    };
+  }
+
+  private ensureCampaignAccess(campaign: CampaignPayload, context?: MarketingActionContext) {
+    if (context?.brandId && campaign.brandId && campaign.brandId !== context.brandId) {
+      throw forbidden("Access denied for this brand");
+    }
+  }
+
   async previewCampaignTargets(
     campaignId: string,
     context?: MarketingActionContext,
@@ -464,6 +640,16 @@ class MarketingService {
 }
 
 export const marketingService = new MarketingService();
+
+type DecimalLike = { toNumber: () => number };
+
+function numericValue(value?: number | DecimalLike | null | undefined): number {
+  if (value == null) return 0;
+  if (typeof value === "object" && value !== null && "toNumber" in value && typeof value.toNumber === "function") {
+    return value.toNumber();
+  }
+  return Number(value);
+}
 
 export const marketingAIService = {
   async generate(payload: MarketingGenerateInput): Promise<MarketingGenerateResult> {

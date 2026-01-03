@@ -1,10 +1,15 @@
 
-import { PrismaClient as PrismaClientType, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "./logger.js";
 import { getNormalizedDatabaseUrl, checkEnvSafety } from "./config/env-guard.js";
+import { enforceReadOnlyMutation } from "./prisma-read-only-guard.js";
+
+type PrismaClientWithCrmTask = PrismaClient & {
+  readonly crmTask: PrismaClient["cRMTask"];
+};
 
 declare global {
-  var prisma: PrismaClientType | undefined;
+  var prisma: PrismaClientWithCrmTask | undefined;
 }
 
 
@@ -24,12 +29,13 @@ const prismaClientOptions: ConstructorParameters<typeof PrismaClient>[0] = {
   },
 };
 
-export const prisma =
-  global.prisma ??
-  new PrismaClient(prismaClientOptions);
+const basePrisma = global.prisma ?? new PrismaClient(prismaClientOptions);
+export const prisma = basePrisma as PrismaClientWithCrmTask;
+ensureCrmTaskAlias(prisma);
 
 if (process.env.NODE_ENV !== "test") {
   prisma.$use(async (params, next) => {
+    enforceReadOnlyMutation(params.action);
     const start = Date.now();
     try {
       const result = await next(params);
@@ -48,6 +54,19 @@ if (process.env.NODE_ENV !== "test") {
 // Prevent multiple instances in dev
 if (process.env.NODE_ENV !== "production") {
   global.prisma = prisma;
+}
+
+function ensureCrmTaskAlias(instance: PrismaClientWithCrmTask) {
+  if (Object.getOwnPropertyDescriptor(instance, "crmTask")) {
+    return;
+  }
+  Object.defineProperty(instance, "crmTask", {
+    configurable: true,
+    enumerable: false,
+    get() {
+      return instance.cRMTask;
+    },
+  });
 }
 
 export type PrismaArgs<T extends (...args: any) => any> = NonNullable<Parameters<T>[0]>;

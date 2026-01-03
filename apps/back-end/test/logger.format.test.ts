@@ -27,7 +27,8 @@ describe("logger structured output", () => {
     expect(entry).toMatchObject({
       level: "info",
       message: "Test message",
-      environment: expect.any(String),
+      env: expect.any(String),
+      service: expect.any(String),
       module: "test",
       correlationId: "abc123",
       timestamp: expect.any(String),

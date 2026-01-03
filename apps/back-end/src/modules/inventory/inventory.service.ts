@@ -7,7 +7,6 @@ import {
   createInventoryItem as createInventoryItemRecord,
   findBrandProductById,
   findInventoryItem,
-  findWarehouseById,
   inventorySelect,
   listInventoryItems,
   listInventoryItemsWithCount,
@@ -125,17 +124,8 @@ export const inventoryService = {
   },
 
   async createInventoryItem(input: CreateInventoryItemInput): Promise<InventoryItemDTO> {
-    const [product, warehouse] = await Promise.all([
-      findBrandProductById(input.productId),
-      findWarehouseById(input.warehouseId),
-    ]);
+    const product = await findBrandProductById(input.productId);
     if (!product) throw badRequest("Product not found");
-    if (!warehouse) throw badRequest("Warehouse not found");
-    if (product.brandId && product.brandId !== input.brandId) throw badRequest("Product brand mismatch");
-    if (warehouse.brandId && warehouse.brandId !== input.brandId) throw badRequest("Warehouse brand mismatch");
-    if (product.brandId && warehouse.brandId && product.brandId !== warehouse.brandId) {
-      throw badRequest("Product and warehouse must belong to same brand");
-    }
 
     const created = await createInventoryItemRecord({
       brandId: input.brandId,
@@ -178,8 +168,6 @@ export const inventoryService = {
 
     return {
       inventoryItem: toInventoryItemDTO(result.updatedItem),
-      transaction: toTransactionDTO(result.transaction),
-      adjustment: toAdjustmentDTO(result.adjustment),
     } satisfies InventoryAdjustmentResult;
   },
 

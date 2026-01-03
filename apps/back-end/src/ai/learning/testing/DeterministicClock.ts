@@ -11,10 +11,12 @@ export class DeterministicClock {
   getNow() {
     return this.now;
   }
+ 
   mockDateNow() {
-    const self = this;
-    jest.spyOn(Date, 'now').mockImplementation(() => self.getNow());
-  }
+  jest.spyOn(Date, 'now').mockImplementation(() => this.getNow());
+}
+ 
+ 
   restore() {
     (Date.now as jest.Mock).mockRestore?.();
   }

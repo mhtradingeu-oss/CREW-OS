@@ -3,6 +3,7 @@ import * as controller from "./support.controller.js";
 import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
 import {
   createTicketSchema,
   addTicketMessageSchema,
@@ -53,6 +54,7 @@ router.post(
   "/tickets/:id/ai/triage",
   requirePermission(["support:read", "support:update"]),
   requireFeature("operations"),
+  featureTelemetry("operations"),
   validateBody(supportTriageSchema),
   controller.triageTicket,
 );
@@ -93,6 +95,7 @@ router.post(
   "/voice/sessions",
   requirePermission(["support:update", "support:create"]),
   requireFeature("voiceIVR"),
+  featureTelemetry("voiceIVR"),
   validateBody(startVoiceSessionSchema),
   controller.startVoiceSession,
 );
@@ -100,12 +103,14 @@ router.get(
   "/voice/sessions/:id",
   requirePermission("support:read"),
   requireFeature("voiceIVR"),
+  featureTelemetry("voiceIVR"),
   controller.getVoiceSession,
 );
 router.post(
   "/voice/sessions/:id/turn",
   requirePermission("support:update"),
   requireFeature("voiceIVR"),
+  featureTelemetry("voiceIVR"),
   validateBody(voiceTurnSchema),
   controller.processVoiceTurn,
 );
@@ -113,6 +118,7 @@ router.post(
   "/voice/sessions/:id/end",
   requirePermission("support:update"),
   requireFeature("voiceIVR"),
+  featureTelemetry("voiceIVR"),
   validateBody(endVoiceSessionSchema),
   controller.endVoiceSession,
 );

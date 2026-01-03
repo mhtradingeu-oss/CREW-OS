@@ -7,6 +7,7 @@ import { automationService } from "./automation.service.js";
 import { createAutomationSchema, updateAutomationSchema } from "./automation.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { parsePagination } from "../../core/http/pagination.js";
+import { getUserPermissions } from "../../core/security/rbac.js";
 
 export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -61,16 +62,24 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
     }
     const id = requireParam(req.params.id, "id");
     // ActivationGate: pre-activate validation (simulate, as update may trigger activation)
+      const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
+      const ruleVersionForGate = {
+        ...parsed.data,
+        state: req.body.state ?? "ACTIVE",
+      };
       const activationViolations = automationService.activationGatePreActivate({
-        ruleVersion: parsed.data,
+        ruleVersion: ruleVersionForGate,
         policyStatus: "ok", // TODO: wire real policy status if available
-        permissions: [],
+        permissions,
       });
     if (activationViolations.length) {
       return res.status(400).json({ code: "activation_gate_failed", message: "ActivationGate failed", details: activationViolations });
     }
     await automationService.update(id, {
-      ...parsed.data,
+      triggerEvent: parsed.data.triggerEvent,
+      conditionConfigJson: parsed.data.conditionConfigJson,
+      actionsConfigJson: parsed.data.actionsConfigJson,
+      metaSnapshotJson: parsed.data.metaSnapshotJson,
       createdById: req.user?.id,
     });
     respondWithSuccess(res, { status: "updated" });

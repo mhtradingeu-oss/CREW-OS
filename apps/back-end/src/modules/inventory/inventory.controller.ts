@@ -72,7 +72,7 @@ export async function createAdjustment(req: AuthenticatedRequest, res: Response,
       "adjustment",
       {
         entityType: "inventory-adjustment",
-        entityId: result.adjustment.id,
+        entityId: result.inventoryItem.id,
         metadata: {
           productId: result.inventoryItem.product.id,
           warehouseId: result.inventoryItem.warehouse.id,

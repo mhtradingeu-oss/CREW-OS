@@ -3,7 +3,7 @@ import { ActivityLogRepository } from '../../../core/db/repositories/activity-lo
 describe('ActivityLogRepository (append-only audit log)', () => {
   it('should only create (append) new audit records, never update or delete', async () => {
     // Spy on prisma create, update, delete
-    const prisma = require('../../../core/prisma.js').prisma;
+    const prisma = require('../../../core/prisma.ts').prisma;
     const createSpy = jest.spyOn(prisma.activityLog, 'create');
     const updateSpy = jest.spyOn(prisma.activityLog, 'update');
     const deleteSpy = jest.spyOn(prisma.activityLog, 'delete');

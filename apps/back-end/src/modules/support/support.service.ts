@@ -91,12 +91,7 @@ const ticketListSelect = {
       updatedAt: true,
     },
   },
-  tags: {
-    select: {
-      id: true,
-      name: true,
-    },
-  },
+  // tags: { select: { id: true, name: true } }, // Removed: not in schema
   assignments: {
     select: {
       id: true,
@@ -331,7 +326,7 @@ export const supportService = {
         { category: { contains: search, mode: "insensitive" } },
         { priority: { contains: search, mode: "insensitive" } },
         { status: { contains: search, mode: "insensitive" } },
-        { tags: { some: { name: { contains: search, mode: "insensitive" } } } },
+        // { tags: { some: { name: { contains: search, mode: "insensitive" } } } }, // Removed: not in schema
         { messages: { some: { content: { contains: search, mode: "insensitive" } } } },
       ];
     }

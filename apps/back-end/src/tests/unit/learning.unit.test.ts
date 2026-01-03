@@ -11,8 +11,8 @@ import { getAuditLog, clearAuditLog } from '../../ai/learning/learning.audit.js'
 describe('Learning Loop Phase 9', () => {
 
   // Deterministic clock for timestamp-based tests
-    var DeterministicClock: any;
-    var clock: any;
+    let DeterministicClock: any;
+    let clock: any;
 
     beforeAll(() => {
       DeterministicClock = require('../../ai/learning/testing/DeterministicClock').DeterministicClock;
