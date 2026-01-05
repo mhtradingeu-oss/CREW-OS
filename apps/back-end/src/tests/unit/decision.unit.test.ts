@@ -1,10 +1,8 @@
-import { jest } from '@jest/globals';
 import { processDecision } from '../../ai/decision/decision.service.js';
-import { DecisionObject } from '../../ai/decision/decision.types.js';
 import { getDecisionAuditLog } from '../../ai/decision/decision.audit.js';
 
 describe('Phase 7 Decision Authority', () => {
-  const baseDecision: Omit<DecisionObject, 'decisionId' | 'createdAt' | 'status'> = {
+  const baseDecision = {
     scope: 'pricing',
     intent: 'DECIDE',
     decision: 'Increase price by 5% on SKU-123',
@@ -17,7 +15,7 @@ describe('Phase 7 Decision Authority', () => {
     risks: ['Competitor reaction'],
   };
 
-  function makeDecision(overrides: Partial<DecisionObject> = {}): DecisionObject {
+  function makeDecision(overrides = {}) {
     return {
       ...baseDecision,
       decisionId: 'dec-' + Math.random().toString(36).slice(2),
@@ -51,13 +49,13 @@ describe('Phase 7 Decision Authority', () => {
   it('enforces supporting agent limit', () => {
     const d = makeDecision({ supportingAgents: ['a', 'b', 'c', 'd'] });
     const { errors } = processDecision(d, 'pricing-primary-agent', ['pricing-primary-agent', ...d.supportingAgents]);
-    expect(errors.some((e: string) => e.includes('Supporting agents exceed'))).toBe(true);
+    expect(errors.some((e) => e.includes('Supporting agents exceed'))).toBe(true);
   });
 
   it('enforces one primary agent per scope', () => {
     const d = makeDecision();
     const { errors } = processDecision(d, 'pricing-primary-agent', ['pricing-primary-agent', 'pricing-primary-agent']);
-    expect(errors.some((e: string) => e.includes('Exactly one primary agent'))).toBe(true);
+    expect(errors.some((e) => e.includes('Exactly one primary agent'))).toBe(true);
   });
 
   it('never executes or triggers side effects', () => {
@@ -80,6 +78,6 @@ describe('Phase 7 Decision Authority', () => {
     const d = makeDecision();
     processDecision(d, 'pricing-primary-agent', ['pricing-primary-agent', ...d.supportingAgents]);
     const log = getDecisionAuditLog();
-    expect(log.some((e: { decisionId: string }) => e.decisionId === d.decisionId)).toBe(true);
+    expect(log.some((entry) => entry.decisionId === d.decisionId)).toBe(true);
   });
 });

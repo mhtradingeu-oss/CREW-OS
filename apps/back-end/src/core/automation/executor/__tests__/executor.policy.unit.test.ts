@@ -1,10 +1,12 @@
-
-import { describe, it, expect, jest } from "@jest/globals";
+import { describe, it, test, expect } from "@jest/globals";
 import { executeAutomationActions } from "../executor.js";
 import * as registry from "../../actions/registry.js";
 
 function mockFn<T extends any[] = any[], R = any>() {
-  const fn = (...args: T): R => { (fn.calls as T[]).push(args); };
+  const fn = (...args: T): R => {
+    ((fn as typeof fn & { calls: T[] }).calls).push(args);
+    return undefined as unknown as R;
+  };
   (fn as any).calls = [] as T[];
   return fn as ((...args: T) => R) & { calls: T[] };
 }
@@ -24,7 +26,12 @@ describe("executor policy gate", () => {
     process.env.AI_MAX_RISK = "CRITICAL";
     await executeAutomationActions({
       rule: { id: "r1", ruleVersionId: "v1", name: "Test Rule", triggerEvent: "AUTH_LOGIN_SUCCESS", actions: [{ type: "INTERNAL_LOG", params: {} }] },
-      event: { type: "AUTH_LOGIN_SUCCESS", payload: { userId: "u", ip: "1.2.3.4", ua: "ua", time: "now" }, context: {} },
+      event: { 
+        id: "event-1", 
+        type: "AUTH_LOGIN_SUCCESS", 
+        payload: { userId: "u", ip: "1.2.3.4", ua: "ua", time: "now" }, 
+        occurredAt: new Date() 
+      },
     });
     expect(execute.calls.length).toBe(0);
     process.env.AI_KILL_SWITCH = "false";
@@ -43,7 +50,12 @@ describe("executor policy gate", () => {
     process.env.AI_MAX_RISK = "CRITICAL";
     await executeAutomationActions({
       rule: { id: "r1", ruleVersionId: "v1", name: "Test Rule", triggerEvent: "AUTH_LOGIN_SUCCESS", actions: [{ type: "INTERNAL_LOG", params: {} }] },
-      event: { type: "AUTH_LOGIN_SUCCESS", payload: { userId: "u", ip: "1.2.3.4", ua: "ua", time: "now" }, context: {} },
+      event: { 
+        id: "event-2",
+        type: "AUTH_LOGIN_SUCCESS", 
+        payload: { userId: "u", ip: "1.2.3.4", ua: "ua", time: "now" },
+        occurredAt: new Date()
+      },
     });
     expect(execute.calls.length).toBe(1);
   });

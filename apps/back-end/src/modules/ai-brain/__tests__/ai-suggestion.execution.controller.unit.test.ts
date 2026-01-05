@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { describe, it, test, expect, beforeAll, beforeEach } from "@jest/globals";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { conflict, forbidden } from "../../../core/http/errors.js";
@@ -17,17 +17,19 @@ const automationServiceModulePath = pathToFileURL(
   path.join(process.cwd(), "src/modules/automation/automation.execution.service"),
 ).href;
 
-jest.unstable_mockModule(
-  automationServiceModulePath,
-  () => ({ automationExecutionService: { execute: mockExecute } }),
-);
-jest.unstable_mockModule("@paralleldrive/cuid2", () => ({
-  createId: () => "mock-execution-id",
-}));
-
 let executeSuggestion: typeof import("../../ai-suggestions/ai-suggestion.controller.js").executeSuggestion;
 
 beforeAll(async () => {
+  await Promise.all([
+    (jest as any).unstable_mockModule(
+      automationServiceModulePath,
+      () => ({ automationExecutionService: { execute: mockExecute } }),
+    ),
+    (jest as any).unstable_mockModule("@paralleldrive/cuid2", () => ({
+      createId: () => "mock-execution-id",
+    })),
+  ]);
+
   const controller = await import("../../ai-suggestions/ai-suggestion.controller.js");
   executeSuggestion = controller.executeSuggestion;
 });

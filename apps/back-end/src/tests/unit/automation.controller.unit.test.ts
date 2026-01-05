@@ -1,19 +1,29 @@
-import { jest } from "@jest/globals";
-import { automationService } from "../../modules/automation/automation.service.js";
-import { update } from "../../modules/automation/automation.controller.js";
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from "@jest/globals";
 
-/**
- * RBAC mock — defined INSIDE jest.mock (ESM-safe)
- */
-jest.mock("../../core/security/rbac.js", () => ({
-  getUserPermissions: jest.fn(),
-}));
+const mockGetUserPermissions = jest.fn();
 
-// ⬇️ سحب الـ mock بعد الـ jest.mock
-import { getUserPermissions } from "../../core/security/rbac.js";
+import type { AutomationService } from "../../modules/automation/automation.service.js";
+import type { Request, Response, NextFunction } from "express";
+import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 
-const mockGetUserPermissions =
-  getUserPermissions as jest.MockedFunction<() => Promise<string[]>>;
+let automationService: AutomationService;
+let update: typeof import("../../modules/automation/automation.controller.js").update;
+
+beforeAll(async () => {
+  await (jest as any).unstable_mockModule("../../core/security/rbac.js", () => ({
+    getUserPermissions: mockGetUserPermissions,
+  }));
+
+  const automationServiceModule = await import(
+    "../../modules/automation/automation.service.js"
+  );
+  automationService = automationServiceModule.automationService;
+
+  const controllerModule = await import(
+    "../../modules/automation/automation.controller.js"
+  );
+  update = controllerModule.update;
+});
 
 const basePayload = {
   ruleId: "ckq0rw2qm0000hau0v7o5g13m",
@@ -28,8 +38,8 @@ const basePayload = {
   state: "ACTIVE",
 };
 
-function createMockReq() {
-  return {
+function createMockReq(): AuthenticatedRequest {
+  const req: any = {
     user: {
       id: "user-1",
       role: "BRAND_OPERATOR",
@@ -38,10 +48,17 @@ function createMockReq() {
     },
     params: { id: basePayload.ruleId },
     body: { ...basePayload },
+    query: {},
   };
+  req.get = jest.fn().mockReturnValue(undefined);
+  req.header = jest.fn().mockReturnValue(undefined);
+  return req;
 }
 
-function createMockRes() {
+function createMockRes(): Partial<Response> & {
+  statusCode: number;
+  body?: unknown;
+} {
   const res: any = {};
   res.statusCode = 200;
   res.body = undefined;
@@ -53,14 +70,14 @@ function createMockRes() {
 
   res.json = jest.fn((payload: unknown) => {
     res.body = payload;
-    return payload;
+    return res;
   });
 
   return res;
 }
 
 describe("automation.controller.update", () => {
-  let updateSpy: ReturnType<typeof jest.spyOn>;
+  let updateSpy: jest.SpiedFunction<AutomationService["update"]>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -78,7 +95,7 @@ describe("automation.controller.update", () => {
     const res = createMockRes();
     const next = jest.fn();
 
-    await update(req as any, res as any, next);
+    await update(req, res as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.body).toEqual({
@@ -96,7 +113,7 @@ describe("automation.controller.update", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("allows activation when permission present", async () => {
+  it("allows activation when permission is present", async () => {
     mockGetUserPermissions.mockResolvedValue([
       "automation:rules:activate",
     ]);
@@ -107,7 +124,7 @@ describe("automation.controller.update", () => {
     const res = createMockRes();
     const next = jest.fn();
 
-    await update(req as any, res as any, next);
+    await update(req, res as Response, next);
 
     expect(updateSpy).toHaveBeenCalledWith(
       basePayload.ruleId,

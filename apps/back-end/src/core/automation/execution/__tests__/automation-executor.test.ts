@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, it, test, expect, beforeAll } from "@jest/globals";
 import { AISuggestionRepository } from '../../../db/repositories/ai-suggestions.repository.js';
 
 // ------------------------------------------------------------------
@@ -11,12 +11,6 @@ const repoMocks: jest.Mocked<AISuggestionRepository> = {
   appendAuditLog: jest.fn(),
 } as any;
 
-jest.unstable_mockModule(
-  '../../../db/repositories/ai-suggestions.repository',
-  () => ({
-    AISuggestionRepository: jest.fn(() => repoMocks),
-  })
-);
 
 // ------------------------------------------------------------------
 // Automation engine mock
@@ -38,24 +32,10 @@ const runAutomationPlanMock = jest.fn(async () => createExecutionOutput());
 // ------------------------------------------------------------------
 const mapSuggestionToExecutionPlan = jest.fn(() => ({ plan: 'mocked' }));
 
-jest.unstable_mockModule(
-  '../automation-plan-mapper',
-  () => ({
-    mapSuggestionToExecutionPlan,
-  })
-);
-
 // ------------------------------------------------------------------
 // Event bus mock (must match real import name)
 // ------------------------------------------------------------------
 const publish = jest.fn();
-
-jest.unstable_mockModule(
-  '../../../events/event-bus',
-  () => ({
-    publish,
-  })
-);
 
 // ------------------------------------------------------------------
 // Import AFTER mocks
@@ -68,6 +48,27 @@ let executeApprovedSuggestion: (
 ) => Promise<any>;
 
 beforeAll(async () => {
+  await Promise.all([
+    (jest as any).unstable_mockModule(
+      '../../../db/repositories/ai-suggestions.repository',
+      () => ({
+        AISuggestionRepository: jest.fn(() => repoMocks),
+      }),
+    ),
+    (jest as any).unstable_mockModule(
+      '../automation-plan-mapper',
+      () => ({
+        mapSuggestionToExecutionPlan,
+      }),
+    ),
+    (jest as any).unstable_mockModule(
+      '../../../events/event-bus',
+      () => ({
+        publish,
+      }),
+    ),
+  ]);
+
   const mod = await import('../automation-executor.js');
   executeApprovedSuggestion = mod.executeApprovedSuggestion;
 });

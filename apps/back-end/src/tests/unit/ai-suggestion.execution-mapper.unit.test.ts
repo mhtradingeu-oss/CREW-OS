@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals';
 import { buildExecutionPlanFromSuggestion } from '../../core/automation/execution/ai-suggestion-plan.js';
 
 describe('buildExecutionPlanFromSuggestion', () => {

@@ -1,4 +1,5 @@
-import type { Prisma } from "@prisma/client";
+import { describe, it, test, expect } from "@jest/globals";
+
 import { env } from "../../../config/env.js";
 import { AutomationRollbackService } from "../rollback.service.js";
 
@@ -124,7 +125,7 @@ describe("AutomationRollbackService", () => {
       reason: "reason",
       snapshotReference: "snap",
       scopeDescription: "scope",
-      metadata: { detail: "info" } as Prisma.InputJsonValue,
+      metadata: { detail: "info" },
     });
 
     expect(governanceRepository.createRollbackExecution).toHaveBeenCalled();

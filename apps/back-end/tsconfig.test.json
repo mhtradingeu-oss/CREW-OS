@@ -1,13 +1,18 @@
 {
-  "extends": "./tsconfig.json",
+  // Test-only TypeScript config for Jest ESM
+  "extends": "./tsconfig.json", // Inherit base backend config
   "compilerOptions": {
-    "outDir": "./.ts-jest",
-    "rootDir": ".",
-    "noEmit": true
+    "outDir": "./.ts-jest", // Output for ts-jest (not used, noEmit=true)
+    "rootDir": ".", // Root is project folder
+    "noEmit": true, // Never emit JS, only typecheck (critical for tests)
+    "isolatedModules": true, // Required for ESM + ts-jest, ensures each file is checked independently
+    "moduleResolution": "NodeNext", // ESM-compatible module resolution
+    "types": ["jest", "node"] // Only include Jest/Node types for test context
   },
   "include": [
-    "src/**/*.ts",
-    "test/**/*.ts",
-    "src/**/__tests__/**/*.ts"
+    "src/**/*.ts", // All source files
+    "test/**/*.ts", // All test files
+    "src/**/__tests__/**/*.ts", // Inline test folders
+    "../../packages/shared/src/**/*.ts" // Shared package (monorepo)
   ]
 }

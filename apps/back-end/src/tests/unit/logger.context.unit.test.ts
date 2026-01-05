@@ -1,7 +1,19 @@
+import { describe, it, test, expect } from "@jest/globals";
+interface LoggerContext {
+  module: string;
+  correlationId: string;
+}
+
+interface Logger {
+  error(message: string, context: LoggerContext): void;
+  warn(message: string, context: LoggerContext): void;
+  info(message: string, context: LoggerContext): void;
+  debug(message: string, context: LoggerContext): void;
+}
 import { logger } from '../../core/logger.js';
 
 describe('logger context enforcement', () => {
-  let spy: jest.SpyInstance;
+  let spy: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>;
   beforeEach(() => {
     spy = jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});

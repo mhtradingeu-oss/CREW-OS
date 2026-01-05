@@ -1,13 +1,17 @@
 
+import { describe, it, test, expect } from "@jest/globals";
+
 describe('Env Safety Guard', () => {
   const OLD_ENV = process.env;
-  let checkEnvSafety: any, getNormalizedDatabaseUrl: any;
+  let checkEnvSafety: typeof import('../../core/config/env-guard').checkEnvSafety;
+  let getNormalizedDatabaseUrl: typeof import('../../core/config/env-guard').getNormalizedDatabaseUrl;
+
 
   beforeEach(async () => {
     jest.resetModules();
     process.env = { ...OLD_ENV };
     // Use dynamic import for ESM compatibility
-    const mod = await import('../../core/config/env-guard.js');
+    const mod = await import('../../core/config/env-guard.ts');
     checkEnvSafety = mod.checkEnvSafety;
     getNormalizedDatabaseUrl = mod.getNormalizedDatabaseUrl;
   });

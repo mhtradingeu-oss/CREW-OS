@@ -1,4 +1,5 @@
-import type { AIReadOnlySnapshot } from "../ai-read-only.types.js";
+import { describe, it, test, expect } from "@jest/globals";
+// import removed: AIReadOnlySnapshot type is not used at runtime
 
 describe("AI read-only snapshot service", () => {
   const DEFAULTS = { ...process.env };

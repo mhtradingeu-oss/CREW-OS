@@ -1,3 +1,11 @@
+import { describe, it, test, expect } from "@jest/globals";
+import { jest } from "@jest/globals";
+import type { Request, Response, NextFunction } from "express";
+
+/* ------------------------------------------------------------------ */
+/* Mocks                                                              */
+/* ------------------------------------------------------------------ */
+
 const mockOperatorService = {
   listSnapshots: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
   listSuggestions: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
@@ -9,20 +17,51 @@ const mockOperatorService = {
   getExecutionDetail: jest.fn(),
 };
 
-const mockRequirePermission = jest.fn((permissions: string | string[]) => () => undefined);
+const mockRequirePermission = jest.fn(
+  (_permission: string) => (_req: Request, _res: Response, next: NextFunction) => next(),
+);
 
-jest.mock("../../modules/operator-audit/operator-audit.service.js", () => ({
-  operatorAuditService: mockOperatorService,
-}));
+/* ------------------------------------------------------------------ */
+/* Loaded modules                                                      */
+/* ------------------------------------------------------------------ */
 
-jest.mock("../../core/security/rbac.js", () => ({
-  ...jest.requireActual<typeof import("../../core/security/rbac.js")>("../../core/security/rbac.js"),
-  requirePermission: mockRequirePermission,
-}));
+let operatorAuditRouter: unknown;
+let listSnapshots: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
-import { operatorAuditRouter } from "../../modules/operator-audit/index.js";
-import { listSnapshots } from "../../modules/operator-audit/operator-audit.controller.js";
+/* ------------------------------------------------------------------ */
+/* Setup                                                              */
+/* ------------------------------------------------------------------ */
+
+beforeAll(async () => {
+  mockRequirePermission.mockClear();
+
+  await jest.unstable_mockModule(
+    "../../modules/operator-audit/operator-audit.service.js",
+    () => ({
+      operatorAuditService: mockOperatorService,
+    }),
+  );
+
+  await jest.unstable_mockModule("../../core/security/rbac.js", () => ({
+    requirePermission: mockRequirePermission,
+  }));
+
+  const indexModule = await import("../../modules/operator-audit/index.js");
+  operatorAuditRouter = indexModule.operatorAuditRouter;
+
+  const controllerModule = await import(
+    "../../modules/operator-audit/operator-audit.controller.js"
+  );
+
+  listSnapshots = controllerModule.listSnapshots;
+});
+
+/* ensure router side-effects execute */
 void operatorAuditRouter;
+
+/* ------------------------------------------------------------------ */
+/* Tests                                                              */
+/* ------------------------------------------------------------------ */
 
 describe("Operator audit router", () => {
   it("attaches audit, approval, automation, and incident guards", () => {
@@ -36,14 +75,23 @@ describe("Operator audit router", () => {
 describe("Brand scoping", () => {
   it("rejects mismatched brand filters before hitting the service", async () => {
     const next = jest.fn();
-    const res = { json: jest.fn() } as any;
+    const res = { json: jest.fn() } as unknown as Response;
+
     const req = {
-      user: { id: "u1", role: "BRAND_OPERATOR", brandId: "brand-x", permissions: ["audit:read"] },
+      user: {
+        id: "u1",
+        role: "BRAND_OPERATOR",
+        brandId: "brand-x",
+        permissions: ["audit:read"],
+      },
       query: { brandId: "other" },
-    } as any;
+    } as unknown as Request;
+
     await listSnapshots(req, res, next);
+
     expect(next).toHaveBeenCalled();
     expect(mockOperatorService.listSnapshots).not.toHaveBeenCalled();
+
     const error = next.mock.calls[0][0];
     expect(error?.status).toBe(403);
   });

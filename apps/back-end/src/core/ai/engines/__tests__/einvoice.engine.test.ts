@@ -1,4 +1,4 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, test, expect } from "@jest/globals";
 import { XRECHNUNG_SKELETON, buildValidationPromptPayload } from "../einvoice.prompts.js";
 import {
   generateEInvoiceSchema,

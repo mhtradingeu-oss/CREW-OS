@@ -5,18 +5,24 @@
  */
 
 import { LearningService } from '../../ai/learning/learning.service.js';
-import { LearningSignal, PerformanceSnapshot } from '../../ai/learning/learning.types.js';
 import { getAuditLog, clearAuditLog } from '../../ai/learning/learning.audit.js';
 
 describe('Learning Loop Phase 9', () => {
-
   // Deterministic clock for timestamp-based tests
-    let DeterministicClock: any;
-    let clock: any;
+  let DeterministicClock: new (epoch: number) => {
+    mockDateNow(): void;
+    restore(): void;
+  };
 
-    beforeAll(() => {
-      DeterministicClock = require('../../ai/learning/testing/DeterministicClock').DeterministicClock;
-    });
+  let clock: {
+    mockDateNow(): void;
+    restore(): void;
+  };
+
+  beforeAll(async () => {
+    const mod = await import('../../ai/learning/testing/DeterministicClock.js');
+    DeterministicClock = mod.DeterministicClock;
+  });
 
   beforeEach(() => {
     clearAuditLog();
@@ -29,7 +35,7 @@ describe('Learning Loop Phase 9', () => {
   });
 
   it('does not modify upstream objects', () => {
-    const signal: LearningSignal = {
+    const signal = {
       type: 'decision_outcome',
       decisionId: 'd1',
       outcome: 'approved',
@@ -37,12 +43,16 @@ describe('Learning Loop Phase 9', () => {
       agentId: 'agentA',
       timestamp: Date.now(),
     };
-    const collected = LearningService.collectSignal(signal);
+
+    const collected = LearningService.collectSignal(
+      signal as unknown as Parameters<typeof LearningService.collectSignal>[0],
+    );
+
     expect(collected).toEqual(signal);
   });
 
   it('is deterministic: same input → same insight', () => {
-    const snapshot: PerformanceSnapshot = {
+    const snapshot = {
       decisionId: 'd2',
       scope: 'risk=medium',
       agentIds: ['agentB'],
@@ -50,11 +60,21 @@ describe('Learning Loop Phase 9', () => {
       finalOutcome: 'rejected',
       timestamp: Date.now(),
     };
-    LearningService.collectSnapshot(snapshot);
+
+    LearningService.collectSnapshot(
+      snapshot as unknown as Parameters<typeof LearningService.collectSnapshot>[0],
+    );
+
     const insights1 = LearningService.analyze();
+
     clearAuditLog();
-    LearningService.collectSnapshot(snapshot);
+
+    LearningService.collectSnapshot(
+      snapshot as unknown as Parameters<typeof LearningService.collectSnapshot>[0],
+    );
+
     const insights2 = LearningService.analyze();
+
     expect(insights1).toEqual(insights2);
   });
 
@@ -65,15 +85,20 @@ describe('Learning Loop Phase 9', () => {
   });
 
   it('audit stores no raw text or PII', () => {
-    const signal: LearningSignal = {
+    const signal2 = {
       type: 'rejection_reason',
       decisionId: 'd3',
       reason: 'policy',
       agentId: 'agentC',
       timestamp: Date.now(),
     };
-    LearningService.collectSignal(signal);
+
+    LearningService.collectSignal(
+      signal2 as unknown as Parameters<typeof LearningService.collectSignal>[0],
+    );
+
     const audit = getAuditLog();
+
     for (const entry of audit) {
       expect(typeof entry.data).not.toBe('string');
     }

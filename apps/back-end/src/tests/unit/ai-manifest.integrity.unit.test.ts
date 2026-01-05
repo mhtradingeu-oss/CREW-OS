@@ -1,4 +1,4 @@
-import { AI_AGENTS_MANIFEST, validateManifestIntegrity, type AIAgentDefinition } from "../../ai/schema/ai-agents-manifest.js";
+import { AI_AGENTS_MANIFEST, validateManifestIntegrity } from "../../ai/schema/ai-agents-manifest.js";
 
 describe("AI agent manifest integrity", () => {
   it("validates the official manifest", () => {
@@ -13,7 +13,7 @@ describe("AI agent manifest integrity", () => {
       scope: "priority-one-operator-test",
       priority: 1,
       autonomyLevel: "operator",
-    } as AIAgentDefinition;
+    };
 
     expect(() => validateManifestIntegrity([...AI_AGENTS_MANIFEST, priorityOverride])).toThrow(
       /priority-1 agents cannot have operator-level autonomy/i,

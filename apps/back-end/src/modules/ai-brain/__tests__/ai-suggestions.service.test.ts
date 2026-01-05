@@ -1,9 +1,4 @@
-beforeAll(() => {
-  process.env.AI_READ_ONLY_ENABLED = "true";
-});
-process.env.AI_READ_ONLY_ENABLED = "true";
-process.env.NODE_ENV = "test";
-
+import { describe, it, test, expect } from "@jest/globals";
 import { env } from "../../../core/config/env.js";
 import { aiSuggestionsService } from "../ai-suggestions/ai-suggestions.service.js";
 import { validateSuggestionsPayload } from "../ai-suggestions/ai-suggestions.guard.js";
@@ -12,6 +7,12 @@ import {
   AI_SUGGESTIONS_DECLARATION,
   AI_SUGGESTIONS_OUTPUT_TYPE,
 } from "../ai-suggestions/ai-suggestions.constants.js";
+
+beforeAll(() => {
+  process.env.AI_READ_ONLY_ENABLED = "true";
+});
+process.env.AI_READ_ONLY_ENABLED = "true";
+process.env.NODE_ENV = "test";
 
 describe("AI suggestions advisory layer", () => {
   beforeEach(() => {

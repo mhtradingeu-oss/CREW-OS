@@ -5,10 +5,8 @@ import {
   validateActionMetadataCompleteness,
   validateActionRegistryIntegrity,
 } from "../../core/automation/actions/validation.js";
-import type { ActionRunner } from "../../core/automation/actions/types.js";
-import type { ActionMetadata } from "../../core/automation/actions/metadata.js";
 
-const validRunner: ActionRunner<Record<string, unknown>> = {
+const validRunner = {
   type: "INTERNAL_LOG",
   schema: z.object({}),
   metadata: {
@@ -28,9 +26,9 @@ describe("Automation action metadata validator", () => {
   });
 
   it("reports schema issues when metadata is incomplete", () => {
-    const invalidRunner: ActionRunner<Record<string, unknown>> = {
+    const invalidRunner = {
       ...validRunner,
-      metadata: { risk: "LOW" } as unknown as ActionMetadata,
+      metadata: { risk: "LOW" },
     };
     const report = auditActionRunners([invalidRunner]);
     expect(report).toHaveLength(1);
@@ -53,9 +51,9 @@ describe("Automation action registry integrity validator", () => {
   });
 
   it("fails when metadata misses required props", () => {
-    const badRunner: ActionRunner<Record<string, unknown>> = {
+    const badRunner = {
       ...validRunner,
-      metadata: { risk: "LOW" } as unknown as ActionMetadata,
+      metadata: { risk: "LOW" },
     };
     expect(() => validateActionRegistryIntegrity([badRunner])).toThrow(/description/);
   });

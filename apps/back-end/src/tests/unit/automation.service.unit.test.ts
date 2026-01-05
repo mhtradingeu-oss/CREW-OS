@@ -1,5 +1,5 @@
-import { jest } from "@jest/globals";
-import { AutomationRunStatus } from "@prisma/client";
+import { describe, it, test, expect } from "@jest/globals";
+
 import { AutomationService } from "../../modules/automation/automation.service.js";
 
 const createService = (db: any) =>
@@ -8,9 +8,9 @@ const createService = (db: any) =>
     pricingService: {},
     publish: async () => undefined,
     publishActivity: async () => undefined,
-    badRequest: (message: string) => new Error(message),
-    notFound: (message: string) => new Error(message),
-    db: db as any,
+    badRequest: (message) => new Error(message),
+    notFound: (message) => new Error(message),
+    db,
   });
 
 describe("AutomationService (unit)", () => {
@@ -38,7 +38,7 @@ describe("AutomationService (unit)", () => {
       count: jest.fn().mockImplementation(() => Promise.resolve(1)),
       findMany: jest.fn().mockImplementation(() => Promise.resolve(rules)),
     };
-    const mockDb: any = {
+    const mockDb = {
       automationRule,
       $transaction: jest.fn().mockImplementation(() => Promise.resolve([1, rules])),
     };
@@ -70,7 +70,7 @@ describe("AutomationService (unit)", () => {
         triggerEvent: null,
       }),
     );
-    const mockDb: any = {
+    const mockDb = {
       automationRule: { create: mockCreate },
     };
 
@@ -111,7 +111,7 @@ describe("AutomationService (unit)", () => {
       metaSnapshotJson: null,
     };
 
-    const mockDb: any = {
+    const mockDb = {
       automationRule: {
         findMany: jest.fn().mockImplementation(() => Promise.resolve([ruleRecord])),
         update: jest.fn().mockImplementation(() => Promise.resolve(ruleRecord)),
@@ -130,7 +130,7 @@ describe("AutomationService (unit)", () => {
         update: jest.fn().mockImplementation(() =>
           Promise.resolve({
             id: "run-1",
-            status: AutomationRunStatus.SUCCESS,
+            status: "SUCCESS",
             startedAt: new Date(),
             finishedAt: new Date(),
           }),

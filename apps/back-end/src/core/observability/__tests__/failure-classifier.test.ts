@@ -1,6 +1,5 @@
-import { jest } from '@jest/globals';
+import { describe, it, test, expect } from "@jest/globals";
 import { classifyFailure, FailureCategory } from '../failure-classifier.js';
-
 describe('classifyFailure', () => {
   it('classifies EXT_ errorCode as RETRYABLE_EXTERNAL', () => {
     expect(classifyFailure({ errorCode: 'EXT_TIMEOUT' })).toBe('RETRYABLE_EXTERNAL');

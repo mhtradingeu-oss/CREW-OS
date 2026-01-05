@@ -55,7 +55,7 @@ import { attachPlanContext, requireFeature } from "./core/http/middleware/plan-g
 import { featureTelemetry } from "./core/http/middleware/feature-telemetry.js";
 import { csrfProtectionMiddleware } from "./core/security/csrf.js";
 import { cookieParser } from "./core/http/middleware/cookie-parser.js";
-import { healthRouter } from "./modules/health/health.routes.js";
+import { healthRouter } from "./core/health/router.js";
 import { router as internalIntelligenceRouter } from "./modules/intelligence/internal-intelligence.routes.js";
 import { router as actionSuggestionRouter } from "./modules/action-suggestion/index.js";
 
@@ -68,6 +68,7 @@ export function createApp() {
   if (process.env.METRICS_ENABLED !== 'false') {
     app.use(metricsRouter);
   }
+  app.use("/health", healthRouter); // Handles /health and /ready
   app.use(cookieParser());
   app.use(correlationIdMiddleware); // Attach correlationId to req.context
   app.use(cors(corsOptions));
@@ -76,7 +77,7 @@ export function createApp() {
   app.use(responseFormatter);
   app.use(requestLogger);
   app.use("/api/v1", apiRateLimiter);
-  app.use("/health", healthRouter); // Handles /health and /ready
+
   // Internal observability (admin/ops only, read-only)
   app.use("/internal/intelligence", internalIntelligenceRouter);
   app.use("/internal/intelligence", actionSuggestionRouter);

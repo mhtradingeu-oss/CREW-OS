@@ -1,19 +1,18 @@
-import { jest } from '@jest/globals';
 import { AISuggestionRepository } from '../../core/db/repositories/ai-suggestions.repository.js';
 
 const mockPrisma = {
   aISuggestion: {
     findMany: jest.fn(() => Promise.resolve([])),
-    update: jest.fn((args: any) => Promise.resolve({ id: args.where?.id ?? 'mock-id', ...args.data })),
+    update: jest.fn((args) => Promise.resolve({ id: args.where?.id ?? 'mock-id', ...args.data })),
   },
 };
 
 describe('AISuggestionRepository (unit, prisma mocked)', () => {
-  let repo: AISuggestionRepository;
+  let repo;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repo = new AISuggestionRepository(mockPrisma as any);
+    repo = new AISuggestionRepository(mockPrisma);
   });
 
   it('calls prisma.aISuggestion.findMany and returns mock result', async () => {

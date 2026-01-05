@@ -1,5 +1,5 @@
 
-import { jest } from '@jest/globals';
+import { describe, it, test, expect } from "@jest/globals";
 import { subscribe } from '../../event-bus.js';
 
 test('ai-suggestion-approved consumer is registered', () => {

@@ -1,3 +1,4 @@
+
 import type { PrismaPromise } from "@prisma/client";
 
 type RealPrisma = typeof import("../prisma.js").prisma;

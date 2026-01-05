@@ -1,3 +1,4 @@
+import { describe, it, test, expect } from "@jest/globals";
 import { publish } from '../../event-bus.js';
 import { registerMockApprovedConsumer } from '../__tests__/ai-suggestion-approved.consumer.test.js';
 

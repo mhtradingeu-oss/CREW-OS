@@ -1,8 +1,10 @@
+import { describe, it, test, expect } from "@jest/globals";
+
 import { AutomationKillSwitchService } from "../kill-switch.service.js";
 import { env } from "../../../config/env.js";
-import type { KillSwitchContext } from "../kill-switch.service.js";
+// import removed: KillSwitchContext type is not used at runtime
 
-const buildContext = (): KillSwitchContext => ({
+const buildContext = () => ({
   module: "test",
   action: "kill-switch",
   correlationId: "cid",

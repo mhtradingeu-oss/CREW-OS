@@ -5,7 +5,7 @@ import { env } from "./core/config/env.js";
 import { initEventHub } from "./bootstrap/event-hub.js";
 import { initPrisma, shutdownPrisma } from "./bootstrap/prisma-runtime.js";
 import { logger } from "./core/logger.js";
-import { healthRouter } from "./modules/health/health.routes.js";
+import { healthRouter } from "./core/health/router.js";
 import { dbCheck } from "./modules/health/readiness-checks.js";
 import http from "http";
 

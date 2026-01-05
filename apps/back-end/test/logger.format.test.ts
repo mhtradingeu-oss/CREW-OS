@@ -1,4 +1,6 @@
-import { logger } from "../src/core/logger";
+import { describe, it, test, expect } from "@jest/globals";
+
+import { logger } from "../src/core/logger.ts";
 
 describe("logger structured output", () => {
   beforeAll(() => {
