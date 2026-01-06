@@ -37,6 +37,19 @@
   - Added the required column `scope` to the `Plan` table without a default value. This is not possible if the table is not empty.
 
 */
+
+-- Corrective migration guard: explicitly opt-in before executing these destructive steps.
+DO $$
+BEGIN
+  IF COALESCE(current_setting('crewos.allow_corrective_migration_action_suggestion', true), 'false') <> 'true' THEN
+    RAISE EXCEPTION '
+      Corrective migration 20260102145652_action_suggestion contains destructive drops (enums, tables, columns).
+      Set crewos.allow_corrective_migration_action_suggestion = ''true'' before applying it in a controlled window.
+    ';
+  END IF;
+END;
+$$;
+
 -- CreateEnum
 CREATE TYPE "InventoryTransactionType" AS ENUM ('ADJUSTMENT', 'SALE', 'RESTOCK', 'TRANSFER', 'RETURN');
 

@@ -112,22 +112,21 @@ const AUTOMATION_SEEDS: AutomationSeedDefinition[] = [
 
 export async function seedAutomationRules() {
   for (const seed of AUTOMATION_SEEDS) {
+    const { Prisma } = await import("@prisma/client");
     const payload = {
-      brandId: null,
       name: seed.name,
       description: seed.description,
       triggerType: "event",
       triggerEvent: seed.triggerEvent,
-      triggerConfigJson: null,
-      conditionConfigJson: null,
-      actionsConfigJson: JSON.stringify({ actions: seed.actions }),
+      actionsJson: JSON.stringify({ actions: seed.actions }),
+      conditionsJson: Prisma.JsonNull,
       enabled: true,
       createdById: null,
       updatedById: null,
     };
 
     const existing = await prisma.automationRule.findFirst({
-      where: { name: seed.name, brandId: null },
+      where: { name: seed.name },
     });
 
     if (existing) {

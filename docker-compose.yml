@@ -33,7 +33,7 @@ services:
       context: .
       dockerfile: apps/back-end/Dockerfile
     command: >
-      sh -c "npm run migrate:deploy && node apps/back-end/dist/server.js"
+      sh -c "npm run db:migrate && node apps/back-end/dist/server.js"
     image: mh-os-superapp-backend
     restart: unless-stopped
     env_file:

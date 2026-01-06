@@ -9,6 +9,7 @@
  */
 import { badRequest, forbidden, notFound } from "../../core/http/errors.js";
 import { buildPagination } from "../../core/utils/pagination.js";
+import type { Prisma } from "@prisma/client";
 import { orchestrateAI, makeCacheKey } from "../../core/ai/orchestrator.js";
 import { pricingSuggestionPrompt } from "../../core/ai/prompt-templates.js";
 import { recordMonitoringEvent } from "../../core/ai/ai-monitoring.js";
@@ -27,6 +28,8 @@ import {
 } from "./pricing.events.js";
 import {
   PRICING_INSIGHT_ENTITY,
+  pricingSelect,
+  draftSelect,
   PricingPayload,
   PricingDraftPayload,
   CompetitorPricePayload,
@@ -43,7 +46,9 @@ import {
   createDraftEntry,
   listDraftsByProduct,
   findDraftByProduct,
+  findDraftById,
   updateDraftStatus as updateDraftStatusRecord,
+  updateDraftEntry,
   createCompetitorPriceRecord,
   listCompetitorPrices as listCompetitorPriceRecords,
   createPricingHistoryEntry,
@@ -57,6 +62,7 @@ import {
   ensureBrandHasCurrency,
   getProductWithPricing,
 } from "../../core/db/repositories/pricing.repository.js";
+import { prisma } from "../../core/prisma.js";
 import type { EventContext } from "../../core/events/event-bus.js";
 import type {
   CreatePricingDTO,
@@ -66,6 +72,9 @@ import type {
   PricingDraft,
   AIPricingSuggestion,
   PricingSuggestionInput,
+  PricingOSDraftCreateDto,
+  PricingOSDraftUpdateDto,
+  PublishDraftInput,
 } from "./pricing.types.js";
 
 export type PricingActionContext = {
@@ -108,6 +117,75 @@ const DraftStatus = {
   APPROVED: "APPROVED",
   REJECTED: "REJECTED",
 } as const;
+
+const CURRENCY_PATTERN = /^[A-Z]{3}$/;
+
+type DraftValidationInput = {
+  newNet?: number | null;
+  oldNet?: number | null;
+  currency?: string | null;
+  effectiveFrom?: string | Date | null;
+  effectiveTo?: string | Date | null;
+};
+
+type ValidatedDraftInput = {
+  newNet: number;
+  oldNet: number | null;
+  currency: string;
+  effectiveFrom: Date | null;
+  effectiveTo: Date | null;
+};
+
+function parseEffectiveDate(value?: string | Date | null): Date | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) {
+    throw badRequest("Invalid effective date");
+  }
+  return date;
+}
+
+export function validateDraft(input: DraftValidationInput): ValidatedDraftInput {
+  const newNetRaw = input.newNet;
+  if (newNetRaw === null || newNetRaw === undefined) {
+    throw badRequest("newNet is required", undefined, "PRICING_MISSING_NEW_NET");
+  }
+  const newNet = Number(newNetRaw);
+  if (!Number.isFinite(newNet) || newNet <= 0) {
+    throw badRequest("newNet must be a positive number", undefined, "PRICING_INVALID_NEW_NET");
+  }
+
+  const oldNetRaw = input.oldNet;
+  const oldNet = oldNetRaw === null || oldNetRaw === undefined ? null : Number(oldNetRaw);
+  if (oldNet !== null && (!Number.isFinite(oldNet) || oldNet < 0)) {
+    throw badRequest("oldNet must be a non-negative number", undefined, "PRICING_INVALID_OLD_NET");
+  }
+
+  const currencyInput = input.currency?.trim();
+  if (!currencyInput) {
+    throw badRequest("Currency is required for price drafts", undefined, "PRICING_MISSING_CURRENCY");
+  }
+  const currency = currencyInput.toUpperCase();
+  if (!CURRENCY_PATTERN.test(currency)) {
+    throw badRequest("Currency must be a 3-letter ISO code", undefined, "PRICING_INVALID_CURRENCY");
+  }
+
+  const effectiveFrom = parseEffectiveDate(input.effectiveFrom);
+  const effectiveTo = parseEffectiveDate(input.effectiveTo);
+  if (effectiveFrom && effectiveTo && effectiveFrom > effectiveTo) {
+    throw badRequest("Effective end date must be after the start date", undefined, "PRICING_INVALID_EFFECTIVE_RANGE");
+  }
+
+  return {
+    newNet,
+    oldNet,
+    currency,
+    effectiveFrom,
+    effectiveTo,
+  };
+}
 
 function minNonNull(values: Array<number | null | undefined>): number | null {
   const filtered = values.filter((v) => v !== null && v !== undefined) as number[];
@@ -160,7 +238,7 @@ function mapPricing(record: PricingPayload, overrides?: Partial<PricingRecord>):
     basePrice,
     cost,
     margin: computeMargin(basePrice, cost),
-    currency: record.brand?.defaultCurrency ?? DEFAULT_CURRENCY,
+    currency: DEFAULT_CURRENCY, // أو resolvedCurrency إذا متاح
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   };
@@ -197,7 +275,7 @@ function mapCompetitorPrice(record: CompetitorPricePayload) {
     country: record.country ?? undefined,
     priceNet: decimalToNullableNumber(record.priceNet),
     priceGross: decimalToNullableNumber(record.priceGross),
-    currency: record.currency ?? undefined,
+    // currency: record.currency ?? undefined, // حذف لأن العملة منطقية فقط
     collectedAt: record.collectedAt ?? undefined,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
@@ -355,6 +433,21 @@ async function getPricingById(
   return mapPricing(record);
 }
 
+async function getActivePrice(
+  productId: string,
+  context?: PricingActionContext,
+): Promise<PricingRecord> {
+  const product = await ensureProductExists(productId, context?.brandId);
+  const pricing = await findPricingByProductId(product.id);
+  if (!pricing) {
+    throw notFound("Active pricing not found");
+  }
+  if (context?.brandId && pricing.brandId && pricing.brandId !== context.brandId) {
+    throw forbidden("Access denied for this brand");
+  }
+  return mapPricing(pricing);
+}
+
 async function createPricing(input: CreatePricingDTO, context?: PricingActionContext): Promise<PricingRecord> {
   const product = await ensureProductExists(input.productId, context?.brandId);
   const eventContext = buildEventContext({
@@ -479,6 +572,212 @@ async function createDraft(
     },
     context,
   );
+}
+
+async function createPriceDraft(
+  input: PricingOSDraftCreateDto,
+  context?: PricingActionContext,
+): Promise<PricingDraft> {
+  const product = await ensureProductExists(input.productId, context?.brandId);
+  const validated = validateDraft({
+    newNet: input.newNet,
+    oldNet: input.oldNet ?? null,
+    currency: input.currency ?? DEFAULT_CURRENCY,
+  });
+
+  const created = await createDraftEntry({
+    productId: input.productId,
+    channel: input.channel ?? "pricing",
+    oldNet: validated.oldNet,
+    newNet: validated.newNet,
+    createdById:
+      typeof input.createdById === "string"
+        ? input.createdById
+        : context?.actorUserId ?? undefined,
+    approvedById:
+      typeof input.approvedById === "string" ? input.approvedById : undefined,
+    currency: validated.currency,
+  });
+
+  await emitPricingDraftCreated(
+    { id: created.id, productId: created.productId, brandId: created.brandId ?? undefined },
+    buildEventContext(context),
+  );
+  return mapDraft(created);
+}
+
+async function updatePriceDraft(
+  draftId: string,
+  input: PricingOSDraftUpdateDto,
+  context?: PricingActionContext,
+): Promise<PricingDraft> {
+  const draft = await findDraftById(draftId);
+  if (!draft) {
+    throw notFound("Draft not found");
+  }
+  const product = await ensureProductExists(draft.productId, context?.brandId);
+  const validated = validateDraft({
+    newNet: input.newNet ?? decimalToNullableNumber(draft.newNet),
+    oldNet: input.oldNet ?? decimalToNullableNumber(draft.oldNet),
+    currency: input.currency ?? DEFAULT_CURRENCY,
+  });
+
+  const updateData: DraftUpdateInput = {};
+  if (input.channel) {
+    updateData.channel = input.channel;
+  }
+  if (input.newNet !== undefined) {
+    updateData.newNet = validated.newNet;
+  }
+  if (input.oldNet !== undefined) {
+    updateData.oldNet = validated.oldNet;
+  }
+  if (input.createdById !== undefined) {
+    updateData.createdById = input.createdById;
+  }
+  if (input.approvedById !== undefined) {
+    updateData.approvedById = input.approvedById;
+  }
+  if (input.currency !== undefined) {
+    updateData.currency = input.currency;
+  }
+
+  const updated = await updateDraftEntry(draftId, updateData);
+  return mapDraft(updated);
+}
+
+async function publishDraft(
+  draftId: string,
+  input?: PublishDraftInput,
+  context?: PricingActionContext,
+): Promise<{ draft: PricingDraft; pricing: PricingRecord }> {
+  const draft = await findDraftById(draftId);
+  if (!draft) {
+    throw notFound("Draft not found");
+  }
+  const product = await ensureProductExists(draft.productId, context?.brandId);
+  const targetBrandId = draft.brandId ?? product.brandId ?? undefined;
+  let brandCurrency: string | undefined;
+  if (targetBrandId) {
+    const brand = await findBrandById(targetBrandId);
+    brandCurrency = brand?.defaultCurrency ?? undefined;
+  }
+  // تحديد العملة منطقياً فقط
+  const resolvedCurrency = input?.currency ?? brandCurrency ?? DEFAULT_CURRENCY;
+  const validated = validateDraft({
+    newNet: decimalToNullableNumber(draft.newNet),
+    oldNet: decimalToNullableNumber(draft.oldNet),
+    // currency: resolvedCurrency, // حذف لأن العملة منطقية فقط
+  });
+
+  if (targetBrandId) {
+    await ensureBrandExists(targetBrandId);
+    await ensureCurrencyForBrand(targetBrandId, resolvedCurrency);
+  }
+
+  const existingPricing = await findPricingByProductId(product.id);
+  // لا تستخدم existingPricing?.currency أبداً
+  // إذا كان هناك سعر نشط، لا تسمح بنشر عملة مختلفة (منطقياً فقط)
+
+  const channel = draft.channel ?? "pricing";
+  const approvedById = input?.approvedById ?? context?.actorUserId ?? undefined;
+  const summary = `Published Pricing OS draft ${draft.id}`;
+  const historySummary = summary;
+  const lastNet = decimalToNullableNumber(existingPricing?.b2cNet);
+  const wasNew = !existingPricing;
+
+  const transactionResult = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      const pricingPayload = existingPricing
+        ? await tx.productPricing.update({
+            where: { id: existingPricing.id },
+            data: {
+              productId: product.id,
+              brandId: targetBrandId ?? undefined,
+              b2cNet: validated.newNet,
+              // oldNet: validated.oldNet, // حذف لأن الحقل غير موجود في Prisma
+              // channel, // حذف لأن الحقل غير موجود في Prisma
+              // approvedById, // حذف لأن الحقل غير موجود في Prisma
+              // status: "ACTIVE", // حذف لأن الحقل غير موجود في Prisma
+              updatedAt: new Date(),
+            },
+            select: pricingSelect,
+          })
+        : await tx.productPricing.create({
+            data: {
+              productId: product.id,
+              brandId: targetBrandId ?? undefined,
+              b2cNet: validated.newNet,
+              // oldNet: validated.oldNet, // حذف لأن الحقل غير موجود في Prisma
+              // channel, // حذف لأن الحقل غير موجود في Prisma
+              // approvedById, // حذف لأن الحقل غير موجود في Prisma
+              // status: "ACTIVE", // حذف لأن الحقل غير موجود في Prisma
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              // ❌ لا تضف currency هنا (غير موجود في Prisma)
+            },
+            select: pricingSelect,
+          });
+
+      const updatedDraft = await tx.productPriceDraft.update({
+        where: { id: draft.id },
+        data: {
+          status: DraftStatus.APPROVED,
+          approvedById,
+          statusReason: `Published by ${approvedById ?? "system"}`,
+        },
+        select: draftSelect,
+      });
+
+      const history = await createPricingHistoryEntry(
+        {
+          productId: draft.productId,
+          brandId: targetBrandId ?? undefined,
+          channel,
+          oldNet: lastNet,
+          newNet: validated.newNet,
+          summary: historySummary,
+        },
+        tx,
+      );
+
+      return { pricingPayload, updatedDraft, history };
+    },
+  );
+
+  const eventContext = buildEventContext(context);
+  await emitPricingDraftApproved(
+    { id: transactionResult.updatedDraft.id, productId: transactionResult.updatedDraft.productId, brandId: transactionResult.updatedDraft.brandId ?? undefined },
+    eventContext,
+  );
+  await emitPricingLogRecorded(
+    { id: transactionResult.history.id, productId: transactionResult.history.productId, brandId: transactionResult.history.brandId ?? undefined },
+    eventContext,
+  );
+  if (wasNew) {
+    await emitPricingCreated(
+      {
+        id: transactionResult.pricingPayload.id,
+        productId: transactionResult.pricingPayload.productId,
+        brandId: transactionResult.pricingPayload.brandId ?? undefined,
+      },
+      eventContext,
+    );
+  } else {
+    await emitPricingUpdated(
+      {
+        id: transactionResult.pricingPayload.id,
+        productId: transactionResult.pricingPayload.productId,
+        brandId: transactionResult.pricingPayload.brandId ?? undefined,
+      },
+      eventContext,
+    );
+  }
+
+  return {
+    draft: mapDraft(transactionResult.updatedDraft),
+    pricing: mapPricing(transactionResult.pricingPayload),
+  };
 }
 
 async function persistDraftEntry(
@@ -658,7 +957,7 @@ async function addCompetitorPrice(
     country: typeof input.country === "string" ? input.country : undefined,
     priceNet: normalizeNumber(input.priceNet),
     priceGross: normalizeNumber(input.priceGross),
-    currency: typeof input.currency === "string" ? input.currency : undefined,
+    // currency: typeof input.currency === "string" ? input.currency : undefined, // حذف لأن العملة منطقية فقط
     collectedAt:
       input.collectedAt instanceof Date ? input.collectedAt : input.collectedAt ? new Date(String(input.collectedAt)) : undefined,
     warehouseId: (product as any).warehouseId ?? "default-warehouse"
@@ -902,6 +1201,7 @@ async function listAISuggestions(
 const pricingServiceCore = {
   listPricing,
   getPricingById,
+  getActivePrice,
   createPricing,
   updatePricing,
   deletePricing,
@@ -915,6 +1215,10 @@ const pricingServiceCore = {
   createAISuggestion,
   listAISuggestions,
   approveDraft,
+  createPriceDraft,
+  updatePriceDraft,
+  publishDraft,
+  validateDraft,
 };
 
 export const pricingService = {

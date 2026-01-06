@@ -5,7 +5,7 @@
   "private": true,
   "prisma": {
     "schema": "apps/back-end/prisma/schema.prisma",
-    "seed": "TS_NODE_PROJECT=tsconfig.base.json node --loader ts-node/esm prisma/seed.ts"
+    "seed": "node scripts/prisma-seed.mjs"
   },
   "engines": {
     "node": ">=20.0.0",
@@ -24,7 +24,7 @@
     "seed:tenants": "node apps/back-end/dist/seeds/tenants.seed.js",
     "lint": "npm run lint -w mh-os-superapp-backend && npm run lint -w mh-os-admin",
     "test:backend-health": "node scripts/test-backend-health.cjs",
-    "migrate:deploy": "cd apps/back-end && npx prisma migrate deploy",
+    "db:migrate": "cd apps/back-end && npx prisma migrate deploy",
     "seed:admin": "node apps/back-end/dist/seeds/admin.seed.js",
     "seed:core": "cd apps/back-end && npm run seed:core",
     "test:integration": "npm run test:integration --workspace=mh-os-superapp-backend"

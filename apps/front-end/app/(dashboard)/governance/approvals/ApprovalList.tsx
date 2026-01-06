@@ -5,7 +5,7 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/lib/auth/auth-context";
+import { useAuth } from "lib/auth/auth-context";
 import { SimpleTable } from "@/components/shell/simple-table";
 import { FilterBar } from "@/components/shell/filter-bar";
 import Link from "next/link";

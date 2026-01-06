@@ -3,8 +3,8 @@
 // It NEVER executes or triggers automation.
 
 import { render, screen } from "@testing-library/react";
-import { ApprovalDetail } from "../ApprovalDetail.tsx";
-import { AuthProvider } from "@/lib/auth/auth-context";
+import ApprovalDetail from "../ApprovalDetail.tsx";
+import { AuthProvider } from "../../../lib/auth/auth-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function renderWithProviders(ui: React.ReactElement) {

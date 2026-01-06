@@ -17,6 +17,7 @@
       "@testing-library/react"
     ],
     "baseUrl": ".",
+    // DO NOT CHANGE: @/* alias is locked for all tools. See README.
     "paths": {
       "@mh-os/shared": [
         "../../packages/shared/dist/index.d.ts"
@@ -24,17 +25,8 @@
       "@mh-os/shared/*": [
         "../../packages/shared/dist/*"
       ],
-      "@/components/*": [
-        "components/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ],
-      "@/app/*": [
-        "app/*"
-      ],
-      "@/types/*": [
-        "types/*"
+      "@/*": [
+        "*"
       ]
     },
     "plugins": [

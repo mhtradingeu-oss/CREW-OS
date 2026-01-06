@@ -29,16 +29,17 @@ afterEach(() => {
 
 describe('ActivityLogRepository (append-only audit log)', () => {
   it('should only create (append) new audit records, never update or delete', async () => {
-    await ActivityLogRepository.appendActivity({
-      name: 'test.event',
-      payload: {
-        entityType: 'TestEntity',
-        entityId: 'E1',
-        action: 'test',
-        metadata: { foo: 'bar' },
-      },
-      context: {},
-      occurredAt: new Date(),
+   await ActivityLogRepository.appendActivity({
+  id: 'test-id-1', // Add this line
+  name: 'test.event',
+  payload: {
+    entityType: 'TestEntity',
+    entityId: 'E1',
+    action: 'test',
+    metadata: { foo: 'bar' },
+  },
+  context: {},
+  occurredAt: new Date(),
     });
 
     expect(mockPrisma.activityLog.create).toHaveBeenCalled();

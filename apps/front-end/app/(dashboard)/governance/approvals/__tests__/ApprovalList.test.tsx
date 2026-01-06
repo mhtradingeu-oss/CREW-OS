@@ -3,11 +3,12 @@
 // It NEVER executes or triggers automation.
 
 import { render, screen } from "@testing-library/react";
-import { ApprovalList } from "../ApprovalList";
-import { AuthProvider } from "@/lib/auth/auth-context";
+import { ApprovalList } from "../ApprovalList.tsx";
+// Update the import path below to match the actual location of auth-context
+import { AuthProvider } from "../../../lib/auth/auth-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-function renderWithProviders(ui: React.ReactElement) {
+function renderWithProviders(ui: React.ReactElement): React.ReactElement {
   const queryClient = new QueryClient();
   return render(
     <QueryClientProvider client={queryClient}>

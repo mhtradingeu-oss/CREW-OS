@@ -26,6 +26,7 @@ import { inventoryRouter } from "./modules/inventory/index.js";
 import { financeRouter } from "./modules/finance/index.js";
 import { white_labelRouter } from "./modules/white-label/index.js";
 import { automationRouter, observabilityRouter as automationObservabilityRouter } from "./modules/automation/index.js";
+import { automationCoreRouter } from "./modules/automation/automation.core.routes.js";
 import { communicationRouter } from "./modules/communication/index.js";
 import { knowledge_baseRouter } from "./modules/knowledge-base/index.js";
 import { security_governanceRouter } from "./modules/security-governance/index.js";
@@ -128,6 +129,7 @@ export function createApp() {
   app.use("/api/v1/finance", financeRouter);
   app.use("/api/v1/white-label", white_labelRouter);
   app.use("/api/v1/automation", automationRouter);
+  app.use("/api/v1/automation/core", automationCoreRouter);
   app.use("/api/v1/automation/observability", automationObservabilityRouter);
   app.use("/api/v1/audit", operatorAuditRouter);
   app.use("/api/v1/communication", communicationRouter);

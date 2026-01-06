@@ -1,5 +1,5 @@
-import { apiFetch } from "./client";
-import type { PaginatedResponse } from "./types";
+import type { Prisma } from "@prisma/client";
+import type { PaginatedResponse } from "./types.js";
 
 export interface StandPartnerDto {
   id: string;

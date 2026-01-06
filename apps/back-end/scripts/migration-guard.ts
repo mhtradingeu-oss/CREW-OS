@@ -1,16 +1,29 @@
-import { env, isProdLikeEnv, isProductionEnv, isStagingEnv } from "../src/core/config/env.js";
+import { env, isProdLikeEnv } from "../src/core/config/env.js";
 
-function ensureMigrationFlag() {
-  if (isProductionEnv && !env.DB_MIGRATION_ALLOW_PRODUCTION) {
-    throw new Error("Production migrations are blocked (set DB_MIGRATION_ALLOW_PRODUCTION=true to confirm).");
+function ensureMigrationFlag(): void {
+  const nodeEnv = env.NODE_ENV;
+
+  if (nodeEnv === "production" && !env.DB_MIGRATION_ALLOW_PRODUCTION) {
+    console.error(
+      "[MIGRATION GUARD] Production migrations are blocked. " +
+        "Set DB_MIGRATION_ALLOW_PRODUCTION=true to proceed."
+    );
+    process.exit(1);
   }
 
-  if (isStagingEnv && !env.DB_MIGRATION_ALLOW_STAGING) {
-    throw new Error("Staging migrations are blocked (set DB_MIGRATION_ALLOW_STAGING=true to confirm).");
+  if (nodeEnv === "staging" && !env.DB_MIGRATION_ALLOW_STAGING) {
+    console.error(
+      "[MIGRATION GUARD] Staging migrations are blocked. " +
+        "Set DB_MIGRATION_ALLOW_STAGING=true to proceed."
+    );
+    process.exit(1);
   }
 
   if (isProdLikeEnv) {
-    console.log(`[mh-os] Database migrations allowed for ${env.NODE_ENV} (${new Date().toISOString()})`);
+    console.log(
+      `[MIGRATION GUARD] Database migrations allowed for ${nodeEnv} ` +
+        `at ${new Date().toISOString()}`
+    );
   }
 }
 

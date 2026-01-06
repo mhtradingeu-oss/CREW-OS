@@ -16,6 +16,3 @@ process.env.DATABASE_URL ||= process.env.DATABASE_URL_TEST;
 
 import { jest } from "@jest/globals";
 (globalThis as any).jest = jest;
-
-// Ensure CommonJS consumers receive a mocked @paralleldrive/cuid2 before any dependency loads it
-await jest.unstable_mockModule("@paralleldrive/cuid2", () => import("./__mocks__/@paralleldrive/cuid2.ts"));
