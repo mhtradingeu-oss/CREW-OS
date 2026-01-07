@@ -6,15 +6,12 @@ import { pricingService } from "./pricing.service.js";
 import {
   competitorPriceSchema,
   createPricingDraftSchema,
-  createPriceDraftSchema,
   createPricingSchema,
   listPricingSchema,
   pricingDraftApprovalSchema,
   pricingSuggestionSchema,
   updatePricingSchema,
-  updatePriceDraftSchema,
   pricingDraftRejectionSchema,
-  publishPriceDraftSchema,
 } from "./pricing.validators.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import type { AuthenticatedRequest } from "../../core/security/rbac.js";
@@ -49,17 +46,6 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function getActivePrice(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  try {
-    const productId = requireParam(req.params.productId, "productId");
-    const actionContext = buildPricingContext(req);
-    const result = await pricingService.getActivePrice(productId, actionContext);
-    respondWithSuccess(res, result);
-  } catch (err) {
-    next(err);
-  }
-}
-
 export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const parsed = createPricingSchema.safeParse(req.body);
@@ -74,81 +60,6 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
       metadata: { productId: item.productId },
     }, actionContext);
     respondWithSuccess(res, item, 201);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function createPriceDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  try {
-    const parsed = createPriceDraftSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(badRequest("Validation error", parsed.error.flatten()));
-    }
-    const actionContext = buildPricingContext(req, parsed.data.brandId);
-    const draft = await pricingService.createPriceDraft(
-      { ...parsed.data, channel: "pricing" },
-      actionContext
-    );
-    await publishActivity("pricing", "draft_created", {
-      entityType: "pricing-draft",
-      entityId: draft.id,
-      metadata: { productId: draft.productId, status: draft.status },
-    }, actionContext);
-    respondWithSuccess(res, draft, 201);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function updatePriceDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  try {
-    const parsed = updatePriceDraftSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(badRequest("Validation error", parsed.error.flatten()));
-    }
-    const actionContext = buildPricingContext(req, parsed.data.brandId);
-    const draft = await pricingService.updatePriceDraft(
-      requireParam(req.params.draftId, "draftId"),
-      {
-        ...parsed.data,
-        channel: parsed.data.channel === "pricing" ? "pricing" : undefined,
-      },
-      actionContext,
-    );
-    await publishActivity("pricing", "draft_updated", {
-      entityType: "pricing-draft",
-      entityId: draft.id,
-      metadata: { productId: draft.productId, status: draft.status },
-    }, actionContext);
-    respondWithSuccess(res, draft);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function publishPriceDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  try {
-    const parsed = publishPriceDraftSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(badRequest("Validation error", parsed.error.flatten()));
-    }
-    const actionContext = buildPricingContext(req);
-    const result = await pricingService.publishDraft(
-      requireParam(req.params.draftId, "draftId"),
-      parsed.data,
-      actionContext,
-    );
-    await publishActivity("pricing", "draft_published", {
-      entityType: "pricing-draft",
-      entityId: result.draft.id,
-      metadata: {
-        productId: result.draft.productId,
-        pricingId: result.pricing.id,
-        status: result.draft.status,
-      },
-    }, actionContext);
-    respondWithSuccess(res, result);
   } catch (err) {
     next(err);
   }

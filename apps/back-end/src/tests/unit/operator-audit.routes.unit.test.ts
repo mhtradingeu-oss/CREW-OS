@@ -1,64 +1,24 @@
-import { describe, it, expect, beforeAll } from "@jest/globals";
+import { describe, it, test, expect } from "@jest/globals";
 import { jest } from "@jest/globals";
-import { Request, Response, NextFunction } from "express";
-
-/* ------------------------------------------------------------------ */
-/* Types                                                              */
-/* ------------------------------------------------------------------ */
-
-type PaginatedResult<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
+import type { Request, Response, NextFunction } from "express";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                              */
 /* ------------------------------------------------------------------ */
 
-const emptyPage = {
-  items: [],
-  total: 0,
-  page: 1,
-  pageSize: 25,
-} as PaginatedResult<unknown>;
-
 const mockOperatorService = {
-  listSnapshots: jest
-    .fn<() => Promise<PaginatedResult<unknown>>>()
-    .mockResolvedValue(emptyPage),
-
-  listSuggestions: jest
-    .fn<() => Promise<PaginatedResult<unknown>>>()
-    .mockResolvedValue(emptyPage),
-
-  listApprovals: jest
-    .fn<() => Promise<PaginatedResult<unknown>>>()
-    .mockResolvedValue(emptyPage),
-
-  listExecutions: jest
-    .fn<() => Promise<PaginatedResult<unknown>>>()
-    .mockResolvedValue(emptyPage),
-
-  listIncidents: jest
-    .fn<() => Promise<PaginatedResult<unknown>>>()
-    .mockResolvedValue(emptyPage),
-
-  listRollbacks: jest
-    .fn<() => Promise<PaginatedResult<unknown>>>()
-    .mockResolvedValue(emptyPage),
-
+  listSnapshots: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
+  listSuggestions: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
+  listApprovals: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
+  listExecutions: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
+  listIncidents: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
+  listRollbacks: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 25 }),
   getApprovalDetail: jest.fn(),
   getExecutionDetail: jest.fn(),
 };
 
-;
-
 const mockRequirePermission = jest.fn(
-  (_permission: string) =>
-    (_req: Request, _res: Response, next: NextFunction) =>
-      next(),
+  (_permission: string) => (_req: Request, _res: Response, next: NextFunction) => next(),
 );
 
 /* ------------------------------------------------------------------ */
@@ -66,11 +26,7 @@ const mockRequirePermission = jest.fn(
 /* ------------------------------------------------------------------ */
 
 let operatorAuditRouter: unknown;
-let listSnapshots: (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => Promise<void>;
+let listSnapshots: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
 /* ------------------------------------------------------------------ */
 /* Setup                                                              */
@@ -136,8 +92,7 @@ describe("Brand scoping", () => {
     expect(next).toHaveBeenCalled();
     expect(mockOperatorService.listSnapshots).not.toHaveBeenCalled();
 
-   const error = next.mock.calls[0][0] as { status?: number };
-   expect(error.status).toBe(403);
-
+    const error = next.mock.calls[0][0];
+    expect(error?.status).toBe(403);
   });
 });

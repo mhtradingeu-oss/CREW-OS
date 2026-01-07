@@ -6,7 +6,7 @@ describe('Env Safety Guard', () => {
   let checkEnvSafety: typeof import('../../core/config/env-guard').checkEnvSafety;
   let getNormalizedDatabaseUrl: typeof import('../../core/config/env-guard').getNormalizedDatabaseUrl;
 
-  
+
   beforeEach(async () => {
     jest.resetModules();
     process.env = { ...OLD_ENV };

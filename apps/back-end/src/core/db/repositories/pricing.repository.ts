@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma.js";
 
-export const pricingSelect = {
+const pricingSelect = {
   id: true,
   productId: true,
   brandId: true,
@@ -15,7 +15,7 @@ export const pricingSelect = {
   brand: { select: { defaultCurrency: true } },
 } satisfies Prisma.ProductPricingSelect;
 
-export const draftSelect = {
+const draftSelect = {
   id: true,
   productId: true,
   brandId: true,
@@ -220,25 +220,7 @@ export async function findDraftByProduct(productId: string, draftId: string): Pr
   });
 }
 
-export async function findDraftById(id: string): Promise<PricingDraftPayload | null> {
-  return prisma.productPriceDraft.findUnique({
-    where: { id },
-    select: draftSelect,
-  });
-}
-
 export async function updateDraftStatus(
-  draftId: string,
-  data: DraftUpdateInput,
-): Promise<PricingDraftPayload> {
-  return prisma.productPriceDraft.update({
-    where: { id: draftId },
-    data,
-    select: draftSelect,
-  });
-}
-
-export async function updateDraftEntry(
   draftId: string,
   data: DraftUpdateInput,
 ): Promise<PricingDraftPayload> {
@@ -313,10 +295,8 @@ export async function upsertCompetitorPriceRecord(
 // Logs / History / Insights / LearningJournal
 export async function createPricingHistoryEntry(
   data: PricingHistoryCreateInput,
-  client?: Prisma.TransactionClient,
 ): Promise<PricingHistoryPayload> {
-  const executor = client ?? prisma;
-  return executor.aIPricingHistory.create({
+  return prisma.aIPricingHistory.create({
     data,
     select: logSelect,
   });

@@ -12,7 +12,7 @@ export type ProductID = string;
 
 export type CreatePricingDTO = CreatePricingInputDto;
 export type UpdatePricingDTO = UpdatePricingInputDto;
-export type PricingRecord = PricingRecordDto & { currency?: string };
+export type PricingRecord = PricingRecordDto;
 export type PricingDraft = {
   id: string;
   productId: string;
@@ -26,25 +26,6 @@ export type PricingDraft = {
   approvedById?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
-};
-
-export interface PricingOSDraftCreateDto {
-  productId: string;
-  channel?: "pricing";
-  newNet: number;
-  oldNet?: number | null;
-  currency?: string;            // ✅ أضف
-  createdById?: string;         // ✅ أضف
-  approvedById?: string;        // ✅ أضف
-}
-
-export type PricingOSDraftUpdateDto = Partial<
-  Omit<PricingOSDraftCreateDto, "productId">
->;
-
-export type PublishDraftInput = {
-  approvedById?: string;
-  currency?: string;
 };
 
 export type AIPricingSuggestion = {

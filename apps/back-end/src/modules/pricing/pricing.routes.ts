@@ -7,9 +7,6 @@ import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.j
 import {
   competitorPriceSchema,
   createPricingDraftSchema,
-  createPriceDraftSchema,
-  updatePriceDraftSchema,
-  publishPriceDraftSchema,
   createPricingSchema,
   pricingDraftApprovalSchema,
   pricingDraftRejectionSchema,
@@ -18,26 +15,6 @@ import {
 } from "./pricing.validators.js";
 
 const router = Router();
-
-router.post(
-  "/drafts",
-  requirePermission("pricing:create"),
-  validateBody(createPriceDraftSchema),
-  controller.createPriceDraft,
-);
-router.put(
-  "/drafts/:draftId",
-  requirePermission("pricing:update"),
-  validateBody(updatePriceDraftSchema),
-  controller.updatePriceDraft,
-);
-router.post(
-  "/drafts/:draftId/publish",
-  requirePermission("pricing:approve"),
-  validateBody(publishPriceDraftSchema),
-  controller.publishPriceDraft,
-);
-router.get("/active/:productId", requirePermission("pricing:read"), controller.getActivePrice);
 
 router.get("/", requirePermission("pricing:read"), controller.list);
 router.get("/product/:productId/drafts", requirePermission("pricing:read"), controller.listDrafts);

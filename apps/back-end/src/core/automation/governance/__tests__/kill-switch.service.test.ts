@@ -1,4 +1,4 @@
-const { describe, it, test, expect } = require("@jest/globals");
+import { describe, it, test, expect } from "@jest/globals";
 
 import { AutomationKillSwitchService } from "../kill-switch.service.js";
 import { env } from "../../../config/env.js";
@@ -30,11 +30,11 @@ describe("AutomationKillSwitchService", () => {
   it("blocks brand executions when a brand-level switch is enabled", async () => {
     env.AUTOMATION_GLOBAL_DISABLED = false;
     const repository = {
-      getBrandKillSwitch: jest.fn().mockImplementation(async (brandId: string) => ({
+      getBrandKillSwitch: jest.fn(async () => ({
         enabled: true,
         reason: "incident",
       })),
-      findActiveExecutionKillSwitch: jest.fn().mockImplementation(async () => undefined),
+      findActiveExecutionKillSwitch: jest.fn(),
     };
     const service = new AutomationKillSwitchService(repository as any);
 
@@ -47,11 +47,11 @@ describe("AutomationKillSwitchService", () => {
   it("blocks executions when an execution-level switch exists", async () => {
     env.AUTOMATION_GLOBAL_DISABLED = false;
     const repository = {
-      getBrandKillSwitch: jest.fn().mockImplementation(async () => undefined),
-      findActiveExecutionKillSwitch: jest.fn().mockImplementation(async (targetType: string, targetId: string) => ({
+      getBrandKillSwitch: jest.fn(),
+      findActiveExecutionKillSwitch: jest.fn(async () => ({
         id: "kill-1",
-        targetId: targetId,
-        targetType: targetType,
+        targetId: "execution-1",
+        targetType: "EXECUTION",
         reason: "manual",
         isActive: true,
       })),

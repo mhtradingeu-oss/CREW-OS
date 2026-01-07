@@ -1,10 +1,11 @@
-const { describe, it, test, expect } = require("@jest/globals");
+import { describe, it, test, expect } from "@jest/globals";
+// import removed: AIReadOnlySnapshot type is not used at runtime
 
 describe("AI read-only snapshot service", () => {
   const DEFAULTS = { ...process.env };
 
-  afterEach(() => {
-  jest.clearAllMocks();
+  beforeEach(async () => {
+    jest.resetModules();
 
     process.env.AI_READ_ONLY_ENABLED = "true";
     process.env.AI_READ_ONLY_MAX_ROWS = "1000";
@@ -84,7 +85,7 @@ describe("AI read-only snapshot service", () => {
     const stub = jest
       .spyOn(snapshotBuilder, "buildAIReadOnlySnapshot")
       .mockImplementation(
-        () => new Promise(() => {}),
+        () => new Promise<AIReadOnlySnapshot>(() => {}),
       );
 
     await expect(
