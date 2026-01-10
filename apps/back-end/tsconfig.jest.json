@@ -1,17 +1,17 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "types": ["jest", "node"],
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/core/*": ["src/core/*"],
-      "@/*": ["src/*"]
-    }
+    "outDir": "./.jest-cache",
+    "noEmit": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["jest", "node"]
   },
-  "exclude": [
-    "src/tests/integration/**"
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "jest.setup.ts",
+    "../../packages/shared/src/**/*.ts"
   ]
 }

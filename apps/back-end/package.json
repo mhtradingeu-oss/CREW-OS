@@ -25,13 +25,21 @@
     "seed:all": "npm run seed:core && npm run seed:tenants",
     "smoke:phase5": "node --loader ts-node/esm --experimental-specifier-resolution=node ./scripts/phase5-automation-smoke.ts",
     "test:prepare": "NODE_ENV=test MHOS_BACKEND_ENV_PATH=.env.test npm run db:migrate",
-    "test:unit": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:unit": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --runInBand",
     "test": "npm run test:unit",
+    "test:governance": "jest src/tests/security --runInBand",
     "test:integration": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testMatch '**/tests/integration/**/*.int.test.ts'",
     "test:contract": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testMatch '**/tests/contract/**/*.contract.test.ts' --passWithNoTests",
     "event:audit": "ts-node scripts/event-audit-report.ts",
     "check:event-contracts": "ts-node scripts/check-event-contracts.ts",
-    "check:automation-actions": "ts-node scripts/check-automation-actions.ts"
+    "check:automation-actions": "ts-node scripts/check-automation-actions.ts",
+    "governance:permissions": "node scripts/governance/permission-registry.check.cjs",
+    "governance:features": "node scripts/governance/feature-registry.check.cjs",
+    "governance:plans": "node scripts/governance/plan-entitlements.check.cjs",
+    "plan-entitlements.check": "node scripts/governance/plan-entitlements.check.cjs",
+    "governance:usage": "node scripts/governance/usage-meter.check.cjs"
+      ,
+      "governance:billing": "node scripts/governance/billing-ledger.check.cjs"
   },
   "dependencies": {
     "@mh-os/shared": "file:../../packages/shared",

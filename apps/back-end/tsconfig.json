@@ -6,34 +6,29 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "types": ["node", "jest"],
-    "allowJs": true,
+    // "allowJs": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "typeRoots": ["../../node_modules/@types", "./types"],
 
-    "outDir": "dist",
-    "rootDir": "src",
+    
+    "rootDir": ".",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
 
     /* مهم للإنتاج */
     "noEmitOnError": true
   },
-  "include": [
-    "src",
-    "types"
-  ],
+  "include": ["src"],
   "exclude": [
-    "node_modules",
-    "dist",
-    "dev",
     "**/__tests__/**",
+    "src/tests/**",
     "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "src/tests/integration/**"
+    "**/*.test.mts",
+    "dist",
+    "node_modules",
+    "**/*.js"
   ],
   "references": [
     {
