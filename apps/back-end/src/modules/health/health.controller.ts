@@ -1,9 +1,10 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
+import type { AuthenticatedRequest } from '../../core/http/http-types.js';
 import { getHealthConfig, getReadinessConfig } from './health.env.js';
 import { dbCheck } from './readiness-checks.js';
 import { eventBusCheck } from './readiness-checks.js';
 
-export async function health(req: Request, res: Response) {
+export async function health(req: AuthenticatedRequest, res: Response) {
   const { HEALTH_INCLUDE_CORRELATION_ID } = getHealthConfig();
   const correlationId = req.context?.correlationId;
   const response: any = {
@@ -16,7 +17,7 @@ export async function health(req: Request, res: Response) {
   res.json(response);
 }
 
-export async function ready(req: Request, res: Response) {
+export async function ready(req: AuthenticatedRequest, res: Response) {
   const { READINESS_ENABLED, READINESS_STRICT } = getReadinessConfig();
   const correlationId = req.context?.correlationId;
   if (!READINESS_ENABLED) {

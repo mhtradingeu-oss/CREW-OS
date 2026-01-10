@@ -6,6 +6,7 @@ import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import { createAutomationSchema, updateAutomationSchema } from "./automation.validators.js";
 import { executeAutomationSchema } from "./automation.execution.validators.js";
 import { observabilityRouter as automationObservabilityRouter } from "./automation.observability.routes.js";
@@ -34,8 +35,8 @@ router.post("/:id/run", requirePermission("automation:run"), controller.runNow);
 router.post(
   "/execute",
   requirePermission(["automation:execute", "ai:approvals:read"]),
-  requireFeature("automation"),
-  featureTelemetry("automation"),
+  requireFeature(FEATURES.AUTOMATION),
+  featureTelemetry(FEATURES.AUTOMATION),
   validateBody(executeAutomationSchema),
   executeAction,
 );

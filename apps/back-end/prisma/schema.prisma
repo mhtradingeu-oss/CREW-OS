@@ -1,3 +1,22 @@
+/// Invoice Draft: Recomputable, Ledger-backed
+model InvoiceDraft {
+  id        String   @id @default(uuid())
+  tenantId  String
+  period    String   // "YYYY-MM"
+  total     Float
+  currency  String
+  createdAt DateTime @default(now())
+}
+
+/// Invoice Final: Locked, Ledger-backed
+model InvoiceFinal {
+  id        String   @id @default(uuid())
+  tenantId  String
+  period    String   // "YYYY-MM"
+  total     Float
+  currency  String
+  lockedAt  DateTime @default(now())
+}
 generator client {
   provider = "prisma-client-js"
 }
@@ -2571,3 +2590,17 @@ enum PlanScope {
   PARTNER
   WHITE_LABEL
 }
+
+  /// Billing Ledger: Persistent, Immutable Billing Records
+  model BillingLedger {
+    id            String   @id @default(uuid())
+    tenantId      String
+    usageKey      String
+    feature       String?
+    quantity      Int
+    unit          String
+    planCode      String
+    timestamp     DateTime
+    sourceEventId String?
+    status        String
+  }

@@ -16,7 +16,7 @@ const mockOperatorService = {
   getApprovalDetail: jest.fn(),
   getExecutionDetail: jest.fn(),
 };
-
+// ...existing code...
 const mockRequirePermission = jest.fn(
   (_permission: string) => (_req: Request, _res: Response, next: NextFunction) => next(),
 );
@@ -29,7 +29,7 @@ let operatorAuditRouter: unknown;
 let listSnapshots: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
 /* ------------------------------------------------------------------ */
-/* Setup                                                              */
+    "../../modules/operator-audit/operator-audit.controller"
 /* ------------------------------------------------------------------ */
 
 beforeAll(async () => {

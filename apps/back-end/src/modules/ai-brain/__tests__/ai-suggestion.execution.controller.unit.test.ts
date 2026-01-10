@@ -1,4 +1,4 @@
-import { describe, it, test, expect, beforeAll, beforeEach } from "@jest/globals";
+import { describe, it, test, expect, beforeAll, beforeEach, jest } from "@jest/globals";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { conflict, forbidden } from "../../../core/http/errors.js";

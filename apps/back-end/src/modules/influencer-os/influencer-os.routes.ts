@@ -3,6 +3,7 @@ import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import {
   campaignLinkSchema,
   discoverSchema,
@@ -16,8 +17,8 @@ const router = Router();
 router.post(
   "/discover",
   requirePermission(["influencer:manage", "marketing:manage"]),
-  requireFeature("influencerToolkit"),
-  featureTelemetry("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
+  featureTelemetry(FEATURES.INFLUENCER_TOOLKIT),
   validateBody(discoverSchema),
   controller.discover,
 );
@@ -25,16 +26,16 @@ router.post(
 router.get(
   "/scores",
   requirePermission(["influencer:read", "marketing:read"]),
-  requireFeature("influencerToolkit"),
-  featureTelemetry("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
+  featureTelemetry(FEATURES.INFLUENCER_TOOLKIT),
   controller.listScores,
 );
 
 router.post(
   "/recommend",
   requirePermission(["influencer:read", "influencer:manage", "marketing:manage"]),
-  requireFeature("influencerToolkit"),
-  featureTelemetry("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
+  featureTelemetry(FEATURES.INFLUENCER_TOOLKIT),
   validateBody(recommendSchema),
   controller.recommend,
 );
@@ -42,8 +43,8 @@ router.post(
 router.post(
   "/negotiations",
   requirePermission(["influencer:manage"]),
-  requireFeature("influencerToolkit"),
-  featureTelemetry("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
+  featureTelemetry(FEATURES.INFLUENCER_TOOLKIT),
   validateBody(negotiationSchema),
   controller.createNegotiation,
 );
@@ -51,16 +52,16 @@ router.post(
 router.get(
   "/negotiations",
   requirePermission(["influencer:read"]),
-  requireFeature("influencerToolkit"),
-  featureTelemetry("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
+  featureTelemetry(FEATURES.INFLUENCER_TOOLKIT),
   controller.listNegotiations,
 );
 
 router.post(
   "/campaign-links",
   requirePermission(["influencer:manage", "marketing:manage"]),
-  requireFeature("influencerToolkit"),
-  featureTelemetry("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
+  featureTelemetry(FEATURES.INFLUENCER_TOOLKIT),
   validateBody(campaignLinkSchema),
   controller.createCampaignLink,
 );
@@ -68,7 +69,7 @@ router.post(
 router.get(
   "/campaign-links",
   requirePermission(["influencer:read", "marketing:read"]),
-  requireFeature("influencerToolkit"),
+  requireFeature(FEATURES.INFLUENCER_TOOLKIT),
   controller.listCampaignLinks,
 );
 

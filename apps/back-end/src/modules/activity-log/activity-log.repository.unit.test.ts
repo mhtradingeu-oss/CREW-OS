@@ -1,5 +1,5 @@
 import { describe, it, test, expect } from "@jest/globals";
-import { ActivityLogRepository } from '../../core/db/repositories/activity-log.repository.js';
+import { ActivityLogRepository } from '../../core/db/repositories/activity-log.repository';
 
 /**
  * This is a UNIT test.

@@ -6,6 +6,7 @@ import { createDealersSchema, updateDealersSchema } from "./dealers.validators.j
 import { dealerAiInsightSchema } from "./dealers.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 
 const router = Router();
 
@@ -41,8 +42,8 @@ router.delete("/:id", requirePermission("dealers:delete"), controller.remove);
 router.post(
   "/ai/insights",
   requirePermission("dealers:stats"),
-  requireFeature("dealer"),
-  featureTelemetry("dealer"),
+  requireFeature(FEATURES.DEALER),
+  featureTelemetry(FEATURES.DEALER),
   validateBody(dealerAiInsightSchema),
   controller.aiInsights,
 );

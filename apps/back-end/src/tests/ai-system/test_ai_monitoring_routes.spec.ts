@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { router as monitoringRouter } from "../../modules/ai-monitoring/ai-monitoring.routes.js";
 
 test("ai-monitoring routes expose safety-events endpoint", () => {

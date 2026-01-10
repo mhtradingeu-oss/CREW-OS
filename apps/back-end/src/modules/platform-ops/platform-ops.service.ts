@@ -245,7 +245,8 @@ class PlatformOpsService {
         name: tenant.name,
         slug: tenant.slug,
         status: tenant.status ?? undefined,
-        planKey: tenant.plan?.key,
+        // Use canonical subscription resolver for plan enforcement
+        planKey: require("../../core/billing/subscription-resolver.js").resolveSubscriptionState({ user: { tenantId: tenant.id, planCode: tenant.plan?.key } }).planCode,
         brandCount: tenant._count.brands,
         userCount: tenant._count.users,
         brands: tenant.brands.map((brand: PlatformOpsTenantBrand) => {

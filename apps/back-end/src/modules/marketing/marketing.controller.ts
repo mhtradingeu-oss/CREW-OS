@@ -16,6 +16,7 @@ import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
+import { PERMISSIONS } from "../../core/security/permission-registry.js";
 
 export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -132,7 +133,7 @@ export async function generateIdeas(req: AuthenticatedRequest, res: Response, ne
       parsed.data.brandId,
     );
     const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
-    const actorPermissions = Array.from(new Set([...permissions, "ai:context:marketing"]));
+    const actorPermissions = Array.from(new Set([...permissions, PERMISSIONS.AI_CONTEXT.MARKETING]));
     const pipeline = await runAIPipeline({
       agentId: "campaign-engine",
       task: {

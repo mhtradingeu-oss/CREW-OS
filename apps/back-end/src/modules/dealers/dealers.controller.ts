@@ -10,6 +10,7 @@ import { parsePagination } from "../../core/http/pagination.js";
 import { dealerAiInsightSchema } from "./dealers.validators.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
+import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 import { createInsight } from "../../core/db/repositories/ai-insight.repository.js";
 
@@ -129,7 +130,7 @@ export async function aiInsights(req: AuthenticatedRequest, res: Response, next:
     const parsed = dealerAiInsightSchema.parse(req.body);
     const brandId = parsed.brandId;
     const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
-    const actorPermissions = Array.from(new Set([...permissions, "ai:context:partner"]));
+    const actorPermissions = Array.from(new Set([...permissions, PERMISSIONS.AI_CONTEXT.PARTNER]));
 
     const pipeline = await runAIPipeline({
       agentId: "partner-ops",

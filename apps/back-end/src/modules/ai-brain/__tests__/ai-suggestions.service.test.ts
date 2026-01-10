@@ -1,4 +1,4 @@
-import { describe, it, test, expect } from "@jest/globals";
+import { describe, it, test, expect, jest } from "@jest/globals";
 import { env } from "../../../core/config/env.js";
 import { aiSuggestionsService } from "../ai-suggestions/ai-suggestions.service.js";
 import { validateSuggestionsPayload } from "../ai-suggestions/ai-suggestions.guard.js";

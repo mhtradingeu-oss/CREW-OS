@@ -1,4 +1,4 @@
-import { describe, it, test, expect } from "@jest/globals";
+import { describe, it, test, expect, jest } from "@jest/globals";
 
 import { automationIncidentTotal } from "../metrics.js";
 import { AutomationIncidentService } from "../incident.service.js";

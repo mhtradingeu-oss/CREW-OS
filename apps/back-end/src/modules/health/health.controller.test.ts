@@ -1,6 +1,6 @@
 import { describe, it, test, expect } from "@jest/globals";
 
-import { health, ready } from './health.controller.js';
+import { health, ready } from './health.controller';
 
 describe('health.controller', () => {
   it('health includes correlationId if enabled', async () => {

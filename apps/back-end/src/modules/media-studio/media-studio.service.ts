@@ -1,3 +1,5 @@
+import { recordUsage } from "../../core/billing/usage-meter.js";
+import { USAGE_METERS } from "../../core/billing/usage-registry.js";
 import {
   generateImage,
   generateVideo,
@@ -56,8 +58,12 @@ export const mediaStudioService = {
   async whiteLabelPreview(payload: WhiteLabelRequest, ctx: MediaCallContext) {
     const normalized = normalizeWhiteLabelPayload(payload);
     const count = normalized.count ?? 1;
-    const previews = [] as Array<{ url: string; provider: MediaEngineId; meta?: Record<string, unknown> }>;
+    const previews = [] as Array<{ url: string; provider: MediaEngineId; meta?: Record<string, unknown> }>; 
     for (let i = 0; i < count; i += 1) {
+      // Governance: Meter each media render job
+      if (ctx.req) {
+        recordUsage({ key: "MEDIA_RENDER", quantity: 1, req: ctx.req as any });
+      }
       const prompt = buildWhiteLabelPrompt(normalized, i);
       const result = await generateImage(
         {
@@ -70,7 +76,6 @@ export const mediaStudioService = {
       );
       previews.push({ url: result.url, provider: result.provider, meta: result.meta });
     }
-
     return {
       previews,
       recipe: buildRecipe(normalized, ctx, previews.map((p) => p.url)),
@@ -84,6 +89,10 @@ export const mediaStudioService = {
     const outputs = [] as Array<{ previews: { url: string; provider: MediaEngineId }[]; recipe: unknown }>;
     const base = normalizeWhiteLabelPayload(payload);
     for (const variant of payload.variants) {
+      // Governance: Meter each media render job (batch variant)
+      if (ctx.req) {
+        recordUsage({ key: "MEDIA_RENDER", quantity: 1, req: ctx.req as any });
+      }
       const merged: WhiteLabelRequest = normalizeWhiteLabelPayload({ ...base, ...variant });
       const preview = await this.whiteLabelPreview(merged, ctx);
       outputs.push(preview);
@@ -98,6 +107,10 @@ export const mediaStudioService = {
     const outputs = [] as Array<{ surface: string; url: string; provider: MediaEngineId; meta?: Record<string, unknown> }>;
 
     for (const surface of surfaces) {
+      // Governance: Meter each media render job (surface)
+      if (ctx.req) {
+        recordUsage({ key: "MEDIA_RENDER", quantity: 1, req: ctx.req as any });
+      }
       const prompt = `${basePrompt} | Surface: ${surface}`;
       const result = await generateImage(
         {

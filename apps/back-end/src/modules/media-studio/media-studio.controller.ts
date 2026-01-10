@@ -14,6 +14,7 @@ import {
 } from "./media-studio.validators.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
+import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 
 function toCtx(req: AuthenticatedRequest): MediaCallContext {
@@ -121,9 +122,9 @@ export async function mediaIdeas(req: AuthenticatedRequest, res: Response, next:
     const actorPermissions = Array.from(
       new Set([
         ...permissions,
-        "ai:context:media",
-        "ai:context:brand",
-        ...(productId ? ["ai:context:product"] : []),
+        PERMISSIONS.AI_CONTEXT.MEDIA,
+        PERMISSIONS.AI_CONTEXT.BRAND,
+        ...(productId ? [PERMISSIONS.AI_CONTEXT.PRODUCT] : []),
       ]),
     );
 

@@ -16,6 +16,7 @@ import {
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
+import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { publishActivity } from "../../core/activity/activity.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
@@ -271,7 +272,7 @@ export async function aiPlan(req: AuthenticatedRequest, res: Response, next: Nex
     const actionContext = buildPricingContext(req);
     const brandId = actionContext.brandId;
     const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
-    const actorPermissions = Array.from(new Set([...permissions, "ai:context:pricing"]));
+    const actorPermissions = Array.from(new Set([...permissions, PERMISSIONS.AI_CONTEXT.PRICING]));
     const actionLabel = parsed.data.requireApproval === false ? "execute-pricing" : "recommend-pricing";
     const pipeline = await runAIPipeline({
       agentId: "pricing-strategist",

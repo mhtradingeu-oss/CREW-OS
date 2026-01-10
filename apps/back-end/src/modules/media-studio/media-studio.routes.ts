@@ -12,6 +12,7 @@ import {
 } from "./media-studio.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 
 const router = Router();
 
@@ -53,8 +54,8 @@ router.post(
 router.post(
   "/ai/ideas",
   requirePermission("ai:media:run"),
-  requireFeature("mediaStudio"),
-  featureTelemetry("mediaStudio"),
+  requireFeature(FEATURES.MEDIA_STUDIO),
+  featureTelemetry(FEATURES.MEDIA_STUDIO),
   validateBody(mediaIdeasSchema),
   controller.mediaIdeas,
 );

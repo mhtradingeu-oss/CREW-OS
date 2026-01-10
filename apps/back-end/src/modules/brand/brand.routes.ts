@@ -3,6 +3,7 @@ import * as controller from "./brand.controller.js";
 import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import {
   brandAiConfigSchema,
   brandAiIdentitySchema,
@@ -19,31 +20,32 @@ router.get("/:id", requirePermission("brand:read"), controller.getById);
 router.post(
   "/",
   requirePermission("brand:create"),
-  requireFeature("governance"),
+  requireFeature(FEATURES.GOVERNANCE),
   validateBody(createBrandSchema),
   controller.create,
 );
 router.put(
   "/:id",
   requirePermission("brand:update"),
-  requireFeature("governance"),
+  requireFeature(FEATURES.GOVERNANCE),
   validateBody(updateBrandSchema),
   controller.update,
 );
-router.delete("/:id", requirePermission("brand:delete"), requireFeature("governance"), controller.remove);
+router.delete("/:id", requirePermission("brand:delete"), requireFeature(FEATURES.GOVERNANCE), controller.remove);
+router.delete("/:id", requirePermission("brand:delete"), requireFeature(FEATURES.GOVERNANCE), controller.remove);
 
 router.get("/:id/identity", requirePermission("brand:read"), controller.getIdentity);
 router.put(
   "/:id/identity",
   requirePermission("brand:update"),
-  requireFeature("governance"),
+  requireFeature(FEATURES.GOVERNANCE),
   validateBody(brandIdentitySchema),
   controller.upsertIdentity,
 );
 router.post(
   "/:id/ai/identity",
   requirePermission(["brand:update", "ai:manage"]),
-  requireFeature("aiInsights"),
+  requireFeature(FEATURES.AI_INSIGHTS),
   validateBody(brandAiIdentitySchema),
   controller.refreshIdentity,
 );
@@ -52,7 +54,7 @@ router.get("/:id/rules", requirePermission("brand:read"), controller.getRules);
 router.put(
   "/:id/rules",
   requirePermission("brand:update"),
-  requireFeature("governance"),
+  requireFeature(FEATURES.GOVERNANCE),
   validateBody(brandRulesSchema),
   controller.upsertRules,
 );
@@ -60,7 +62,7 @@ router.put(
 router.post(
   "/:id/ai/rules",
   requirePermission(["brand:update", "ai:manage"]),
-  requireFeature("aiInsights"),
+  requireFeature(FEATURES.AI_INSIGHTS),
   validateBody(brandAiIdentitySchema),
   controller.refreshRules,
 );
@@ -73,7 +75,7 @@ router.get(
 router.put(
   "/:id/ai/config",
   requirePermission(["brand:update", "ai:manage"]),
-  requireFeature("aiInsights"),
+  requireFeature(FEATURES.AI_INSIGHTS),
   validateBody(brandAiConfigSchema),
   controller.upsertAiConfig,
 );

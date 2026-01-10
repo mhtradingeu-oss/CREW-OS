@@ -3,6 +3,7 @@ import * as controller from "./security-governance.controller.js";
 import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import {
   createSecurityGovernanceSchema,
   updateSecurityGovernanceSchema,
@@ -34,21 +35,21 @@ router.get(
 router.post(
   "/policies",
   requirePermission(["security:policies:manage", "security-governance:create"]),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   validateBody(createSecurityGovernanceSchema),
   controller.create,
 );
 router.put(
   "/policies/:id",
   requirePermission(["security:policies:manage", "security-governance:update"]),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   validateBody(updateSecurityGovernanceSchema),
   controller.update,
 );
 router.delete(
   "/policies/:id",
   requirePermission(["security:policies:manage", "security-governance:delete"]),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   controller.remove,
 );
 
@@ -57,32 +58,32 @@ router.get("/rbac/roles", requirePermission("security:rbac:view"), controller.li
 router.post(
   "/rbac/roles",
   requirePermission("security:rbac:manage"),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   controller.createRole,
 );
 router.put(
   "/rbac/roles/:id",
   requirePermission("security:rbac:manage"),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   controller.updateRole,
 );
 router.post(
   "/rbac/roles/:id/permissions",
   requirePermission("security:rbac:manage"),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   controller.setRolePermissions,
 );
 router.get("/rbac/permissions", requirePermission("security:rbac:view"), controller.listPermissions);
 router.post(
   "/rbac/roles/assign",
   requirePermission("security:rbac:manage"),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   controller.assignRole,
 );
 router.post(
   "/rbac/roles/revoke",
   requirePermission("security:rbac:manage"),
-  requireFeature("governance"),
+    requireFeature(FEATURES.GOVERNANCE),
   controller.revokeRole,
 );
 
@@ -100,19 +101,19 @@ router.get(
 router.post(
   "/ai/restrictions",
   requirePermission(["ai:manage", "security:policies:manage"]),
-  requireFeature("aiInsights"),
+    requireFeature(FEATURES.AI_INSIGHTS),
   controller.createAiRestriction,
 );
 router.put(
   "/ai/restrictions/:id",
   requirePermission(["ai:manage", "security:policies:manage"]),
-  requireFeature("aiInsights"),
+    requireFeature(FEATURES.AI_INSIGHTS),
   controller.updateAiRestriction,
 );
 router.delete(
   "/ai/restrictions/:id",
   requirePermission(["ai:manage", "security:policies:manage"]),
-  requireFeature("aiInsights"),
+    requireFeature(FEATURES.AI_INSIGHTS),
   controller.deleteAiRestriction,
 );
 

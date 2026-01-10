@@ -4,6 +4,7 @@ import { requireParam } from "../../core/http/params.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import type { PipelineActor } from "../../core/ai/pipeline/pipeline-types.js";
+import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { einvoiceService } from "./einvoice.service.js";
 import {
   generateEInvoiceSchema,
@@ -16,7 +17,7 @@ function toActor(req: AuthenticatedRequest): PipelineActor | undefined {
   return {
     userId: req.user.id,
     role: req.user.role,
-    permissions: ["ai:context:finance"],
+    permissions: [PERMISSIONS.AI_CONTEXT.FINANCE],
     brandId: req.user.brandId ?? undefined,
     tenantId: req.user.tenantId ?? undefined,
   };

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { ApiError } from "../../core/http/errors.js";
 import { __test__ as pricingTest } from "../../modules/pricing/pricing.service.js";
 

@@ -12,6 +12,7 @@ import {
 } from "./marketing.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 
 const router = Router();
 
@@ -52,27 +53,27 @@ router.post(
 router.post(
   "/ai/generate",
   requirePermission(["ai:marketing", "marketing:update"]),
-  requireFeature("marketing"),
-  featureTelemetry("marketing"),
+  requireFeature(FEATURES.MARKETING),
+  featureTelemetry(FEATURES.MARKETING),
   controller.generateContent,
 );
 router.post(
   "/ai/seo",
   requirePermission(["ai:marketing", "marketing:update"]),
-  requireFeature("marketing"),
-  featureTelemetry("marketing"),
+  requireFeature(FEATURES.MARKETING),
+  featureTelemetry(FEATURES.MARKETING),
   controller.generateSeo,
 );
 router.post(
   "/ai/captions",
   requirePermission(["ai:marketing", "marketing:update"]),
-  requireFeature("marketing"),
+  requireFeature(FEATURES.MARKETING),
   controller.generateCaptions,
 );
 router.post(
   "/ai/ideas",
   requirePermission(["ai:marketing", "marketing:update"]),
-  requireFeature("marketing"),
+  requireFeature(FEATURES.MARKETING),
   validateBody(marketingIdeaSchema),
   controller.generateIdeas,
 );

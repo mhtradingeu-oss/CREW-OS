@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { executeAutonomyTask } from "../../core/ai/autonomy/autonomy.executor.js";
 import { planAutonomyTasks } from "../../core/ai/autonomy/autonomy.planner.js";
 import type { AutonomyDetection } from "../../core/ai/autonomy/autonomy.types.js";

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { router as brandRouter } from "../../modules/brand/brand.routes.js";
 import { buildIdentityPrompt, buildRulesConsistencyPrompt } from "../../modules/brand/brand.prompts.js";
 

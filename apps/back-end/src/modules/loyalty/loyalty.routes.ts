@@ -4,6 +4,7 @@ import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { createLoyaltySchema, loyaltyAiInsightSchema, updateLoyaltySchema } from "./loyalty.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.get(
 router.post(
   "/ai/insights",
   requirePermission("loyalty:read"),
-  requireFeature("loyalty"),
+  requireFeature(FEATURES.LOYALTY),
   validateBody(loyaltyAiInsightSchema),
   controller.aiInsights,
 );

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { AUTONOMY_SCENARIOS, findScenarioForIssue } from "../../core/ai/autonomy/scenarios.js";
 import type { AutonomyIssueType } from "../../core/ai/autonomy/autonomy.types.js";
 

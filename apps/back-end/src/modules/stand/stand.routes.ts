@@ -5,6 +5,7 @@ import { validateBody } from "../../core/http/middleware/validate.js";
 import { createStandSchema, standAiInsightSchema, updateStandSchema } from "./stand.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 
 const router = Router();
 
@@ -32,8 +33,8 @@ router.delete("/:id", requirePermission("stand:delete"), controller.remove);
 router.post(
   "/ai/insights",
   requirePermission("stand:read"),
-  requireFeature("stand"),
-  featureTelemetry("stand"),
+  requireFeature(FEATURES.STAND),
+  featureTelemetry(FEATURES.STAND),
   validateBody(standAiInsightSchema),
   controller.aiInsights,
 );

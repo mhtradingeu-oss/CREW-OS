@@ -17,6 +17,7 @@ import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
+import { PERMISSIONS } from "../../core/security/permission-registry.js";
 
 export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -151,7 +152,7 @@ export async function aiFollowup(req: AuthenticatedRequest, res: Response, next:
       parsed.data.brandId,
     );
     const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
-    const actorPermissions = Array.from(new Set([...permissions, "ai:context:crm"]));
+    const actorPermissions = Array.from(new Set([...permissions, PERMISSIONS.AI_CONTEXT.CRM]));
     const pipeline = await runAIPipeline({
       agentId: "crm-coach",
       task: {

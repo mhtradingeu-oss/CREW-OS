@@ -1,4 +1,6 @@
 import { automationExecutionFailed, automationExecutionLatency, automationExecutionTotal } from "../../core/automation/execution/metrics.js";
+import { recordUsage } from "../../core/billing/usage-meter.js";
+import { USAGE_METERS } from "../../core/billing/usage-registry.js";
 import { AutomationExecutionGuard } from "../../core/automation/execution/guard.js";
 import { AutomationExecutionActionContext } from "../../core/automation/execution/types.js";
 import { resolveAutomationExecutionAction } from "../../core/automation/execution/actions.js";
@@ -39,6 +41,11 @@ export class AutomationExecutionService {
     userId: string,
   ): Promise<ExecuteAutomationActionResponse> {
     const correlationId = input.correlationId;
+    // Governance: Meter automation execution usage
+    // NOTE: req is not available here, so this must be called from the controller with req if strict governance is required.
+    // If possible, pass req as an argument and call:
+    // recordUsage({ key: USAGE_METERS.AUTOMATION_RUN, quantity: 1, req });
+    // Otherwise, ensure all automation executions are metered at the entry point.
     const globalKillContext: KillSwitchContext = buildKillSwitchContext({
       correlationId,
       approvalDecisionId: input.approvalDecisionId,

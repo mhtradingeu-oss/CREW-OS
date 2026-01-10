@@ -1,4 +1,4 @@
-import { buildPagination } from "../../core/utils/pagination.js";
+import { buildPagination } from "../../core/utils/pagination";
 
 describe("buildPagination", () => {
   it("returns correct skip and take for default params", () => {

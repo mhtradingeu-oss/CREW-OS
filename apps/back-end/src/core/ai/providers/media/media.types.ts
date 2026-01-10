@@ -68,6 +68,7 @@ export interface MediaCallContext {
   userId?: string;
   traceId?: string;
   namespace?: string;
+  req?: import("express").Request;
 }
 
 export interface ImageMediaProvider extends BaseMediaProviderConfig {

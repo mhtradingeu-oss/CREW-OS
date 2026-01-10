@@ -12,6 +12,7 @@ import {
   updateCrmSchema,
 } from "./crm.validators.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 
 const router = Router();
 
@@ -40,14 +41,14 @@ router.delete("/:id", requirePermission("crm:delete"), controller.remove);
 router.post(
   "/:id/ai/score",
   requirePermission(["ai:crm", "crm:update"]),
-  requireFeature("crm"),
+  requireFeature(FEATURES.CRM),
   validateBody(crmScoreSchema),
   controller.aiScore,
 );
 router.post(
   "/ai/followups",
   requirePermission(["ai:crm", "crm:update", "crm:read"]),
-  requireFeature("crm"),
+  requireFeature(FEATURES.CRM),
   validateBody(crmFollowupSchema),
   controller.aiFollowup,
 );

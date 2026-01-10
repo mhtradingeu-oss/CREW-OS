@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import type { TestContext } from "node:test";
 import { generateImage } from "../../core/ai/engines/media.engine.js";
 import * as monitoring from "../../core/ai/ai-monitoring.js";

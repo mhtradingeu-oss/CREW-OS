@@ -4,6 +4,7 @@ import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "../../core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import {
   createTicketSchema,
   addTicketMessageSchema,
@@ -53,8 +54,8 @@ router.post(
 router.post(
   "/tickets/:id/ai/triage",
   requirePermission(["support:read", "support:update"]),
-  requireFeature("operations"),
-  featureTelemetry("operations"),
+  requireFeature(FEATURES.OPERATIONS),
+  featureTelemetry(FEATURES.OPERATIONS),
   validateBody(supportTriageSchema),
   controller.triageTicket,
 );
@@ -94,31 +95,31 @@ router.get(
 router.post(
   "/voice/sessions",
   requirePermission(["support:update", "support:create"]),
-  requireFeature("voiceIVR"),
-  featureTelemetry("voiceIVR"),
+  requireFeature(FEATURES.VOICE_IVR),
+  featureTelemetry(FEATURES.VOICE_IVR),
   validateBody(startVoiceSessionSchema),
   controller.startVoiceSession,
 );
 router.get(
   "/voice/sessions/:id",
   requirePermission("support:read"),
-  requireFeature("voiceIVR"),
-  featureTelemetry("voiceIVR"),
+  requireFeature(FEATURES.VOICE_IVR),
+  featureTelemetry(FEATURES.VOICE_IVR),
   controller.getVoiceSession,
 );
 router.post(
   "/voice/sessions/:id/turn",
   requirePermission("support:update"),
-  requireFeature("voiceIVR"),
-  featureTelemetry("voiceIVR"),
+  requireFeature(FEATURES.VOICE_IVR),
+  featureTelemetry(FEATURES.VOICE_IVR),
   validateBody(voiceTurnSchema),
   controller.processVoiceTurn,
 );
 router.post(
   "/voice/sessions/:id/end",
   requirePermission("support:update"),
-  requireFeature("voiceIVR"),
-  featureTelemetry("voiceIVR"),
+  requireFeature(FEATURES.VOICE_IVR),
+  featureTelemetry(FEATURES.VOICE_IVR),
   validateBody(endVoiceSessionSchema),
   controller.endVoiceSession,
 );

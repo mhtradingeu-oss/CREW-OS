@@ -1,7 +1,7 @@
 import { describe, it, test, expect } from "@jest/globals";
 import request from 'supertest';
 import express from 'express';
-import { metricsRouter } from './metrics.routes.js';
+import { metricsRouter } from './metrics.routes';
 
 describe('/metrics endpoint', () => {
   it('returns 200 and text/plain when enabled', async () => {

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import type { MediaCallContext } from "../../core/ai/providers/media/media.types.js";
 import { whiteLabelConfiguratorService } from "../../modules/white-label-configurator/white-label-configurator.service.js";
 import { mediaStudioService, type WhiteLabelRequest } from "../../modules/media-studio/media-studio.service.js";

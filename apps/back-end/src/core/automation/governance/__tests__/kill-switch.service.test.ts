@@ -1,4 +1,4 @@
-import { describe, it, test, expect } from "@jest/globals";
+import { describe, it, test, expect, jest } from "@jest/globals";
 
 import { AutomationKillSwitchService } from "../kill-switch.service.js";
 import { env } from "../../../config/env.js";

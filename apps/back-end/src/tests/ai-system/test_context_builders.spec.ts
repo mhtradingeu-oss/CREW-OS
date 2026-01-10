@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { buildPromptFromContexts, mergeContexts, safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 
 const sampleContexts = {

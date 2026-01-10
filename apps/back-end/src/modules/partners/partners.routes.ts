@@ -3,6 +3,7 @@ import * as controller from "./partners.controller.js";
 import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requireFeature } from "../../core/http/middleware/plan-gating.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import {
   createPartnerSchema,
   createPartnerUserSchema,
@@ -110,7 +111,7 @@ router.delete(
 router.post(
   "/ai/insights",
   requirePermission("partners:read"),
-  requireFeature("partner"),
+  requireFeature(FEATURES.PARTNER),
   validateBody(partnerAiInsightSchema),
   controller.aiInsights,
 );

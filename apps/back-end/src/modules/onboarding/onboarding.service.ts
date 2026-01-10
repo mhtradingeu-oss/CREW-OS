@@ -56,12 +56,13 @@ async function ensureProfile(userId: string): Promise<OnboardingProfile> {
   const existing = await findLatestOnboardingProfile(userId);
   if (existing) return existing;
 
-  const selectedPlanKey: PlanKey = (user.tenant.plan?.key as PlanKey) ?? "free";
+  // Use canonical subscription resolver for plan enforcement
+  const { planCode } = require("../../core/billing/subscription-resolver.js").resolveSubscriptionState({ user });
   return createOnboardingProfile({
     tenantId: user.tenantId,
     userId,
     persona: DEFAULT_PERSONA,
-    selectedPlanKey,
+    selectedPlanKey: planCode,
     status: "in_progress",
   });
 }

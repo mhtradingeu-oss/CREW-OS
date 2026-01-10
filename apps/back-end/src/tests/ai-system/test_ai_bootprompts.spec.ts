@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "@jest/globals";
 import { AI_AGENTS_MANIFEST } from "../../ai/schema/ai-agents-manifest.js";
 import { decideAutonomy } from "../../core/ai/autonomy/autonomy-guard.js";
 
