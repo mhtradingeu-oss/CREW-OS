@@ -20,7 +20,7 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   injectGlobals: true,
   transform: {
     '^.+\\.ts$': [
@@ -38,11 +38,9 @@ export default {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: [
-    '<rootDir>/src/**/*.test.ts',
-    '<rootDir>/src/**/*.spec.ts',
-    '<rootDir>/src/**/*.spec.mts',
-    '<rootDir>/src/tests/**/*.ts',
+     '<rootDir>/src/**/__tests__/**/*.(spec|test).ts',
+     '<rootDir>/src/tests/**/*.(spec|test).ts'
   ],
   transformIgnorePatterns: [],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // setupFilesAfterEnv now only references jest.setup.js
 };

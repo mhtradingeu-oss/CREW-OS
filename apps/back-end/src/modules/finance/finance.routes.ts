@@ -3,6 +3,8 @@ import * as controller from "./finance.controller.js";
 import * as einvoiceController from "./einvoice.controller.js";
 import { requirePermission } from "../../core/security/rbac.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
+import { requirePlan } from "../../core/http/middleware/entitlements.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
 import {
   createExpenseSchema,
   createFinanceSchema,
@@ -22,24 +24,32 @@ const router = Router();
 router.get("/", requirePermission("finance:read"), controller.list);
 router.post(
   "/einvoice/generate",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
   requirePermission("finance:manage"),
   validateBody(generateEInvoiceSchema),
   einvoiceController.generate,
 );
 router.post(
   "/einvoice/validate",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
   requirePermission("finance:manage"),
   validateBody(validateEInvoiceSchema),
   einvoiceController.validate,
 );
 router.post(
   "/einvoice/send",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
   requirePermission("finance:manage"),
   validateBody(sendEInvoiceSchema),
   einvoiceController.send,
 );
 router.get(
   "/einvoice/:invoiceId",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
   requirePermission("finance:read"),
   einvoiceController.getByInvoice,
 );
@@ -72,15 +82,25 @@ router.post(
   validateBody(createExpenseSchema),
   controller.createExpense,
 );
-router.get("/invoices", requirePermission("finance:read"), controller.listInvoices);
+router.get(
+  "/invoices",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
+  requirePermission("finance:read"),
+  controller.listInvoices,
+);
 router.post(
   "/invoices",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
   requirePermission("finance:manage"),
   validateBody(createInvoiceSchema),
   controller.createInvoice,
 );
 router.post(
   "/invoices/:id/status",
+  (req, res, next) => req.feature = FEATURES.FINANCE_INVOICING, // Attach feature for audit
+  requirePlan(FEATURES.FINANCE_INVOICING),
   requirePermission("finance:manage"),
   validateBody(updateInvoiceStatusSchema),
   controller.updateInvoiceStatus,

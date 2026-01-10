@@ -37,9 +37,8 @@
     "governance:features": "node scripts/governance/feature-registry.check.cjs",
     "governance:plans": "node scripts/governance/plan-entitlements.check.cjs",
     "plan-entitlements.check": "node scripts/governance/plan-entitlements.check.cjs",
-    "governance:usage": "node scripts/governance/usage-meter.check.cjs"
-      ,
-      "governance:billing": "node scripts/governance/billing-ledger.check.cjs"
+    "governance:usage": "node scripts/governance/usage-meter.check.cjs",
+    "governance:billing": "node scripts/governance/billing-ledger.check.cjs"
   },
   "dependencies": {
     "@mh-os/shared": "file:../../packages/shared",
@@ -70,6 +69,7 @@
     "@types/supertest": "^6.0.3",
     "eslint": "^9.39.1",
     "jest": "^30.2.0",
+    "reflect-metadata": "^0.2.2",
     "rimraf": "^5.0.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",

@@ -149,6 +149,10 @@ export async function createInvoice(req: AuthenticatedRequest, res: Response, ne
     const brandId = resolveFinanceBrand(req, req.body.brandId as string | undefined);
     const parsed = createInvoiceSchema.parse({ ...req.body, brandId });
     const created = await financeService.createInvoice(parsed as CreateFinanceInvoiceInput);
+    // AUDIT: log invoice creation
+    if (req.feature?.audit) {
+      console.log("AUDIT", { action: "create_invoice", user: req.user?.id, invoiceId: created.id });
+    }
     respondWithSuccess(res, created, 201);
   } catch (err) {
     next(err);
@@ -166,6 +170,10 @@ export async function updateInvoiceStatus(
     const id = requireParam(req.params.id, "id");
     await financeService.ensureInvoiceBelongsToBrand(id, brandId);
     const updated = await financeService.updateInvoiceStatus(id, payload as UpdateFinanceInvoiceStatusInput);
+    // AUDIT: log invoice status update
+    if (req.feature?.audit) {
+      console.log("AUDIT", { action: "update_invoice_status", user: req.user?.id, invoiceId: id, status: payload.status });
+    }
     respondWithSuccess(res, updated);
   } catch (err) {
     next(err);

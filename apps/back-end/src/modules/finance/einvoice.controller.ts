@@ -30,6 +30,11 @@ export async function generate(req: AuthenticatedRequest, res: Response, next: N
       return next(badRequest("Validation error", parsed.error.flatten()));
     }
     const result = await einvoiceService.generate(parsed.data, toActor(req));
+    // AUDIT: log e-invoice generation
+    if (req.feature?.audit) {
+      // Replace with canonical audit emitter if available
+      console.log("AUDIT", { action: "generate_einvoice", user: req.user?.id, invoiceId: parsed.data.invoiceId });
+    }
     respondWithSuccess(res, result, 201);
   } catch (err) {
     next(err);
@@ -43,6 +48,10 @@ export async function validate(req: AuthenticatedRequest, res: Response, next: N
       return next(badRequest("Validation error", parsed.error.flatten()));
     }
     const result = await einvoiceService.validate(parsed.data, toActor(req));
+    // AUDIT: log e-invoice validation
+    if (req.feature?.audit) {
+      console.log("AUDIT", { action: "validate_einvoice", user: req.user?.id, invoiceId: parsed.data.invoiceId });
+    }
     respondWithSuccess(res, result);
   } catch (err) {
     next(err);
@@ -56,6 +65,10 @@ export async function send(req: AuthenticatedRequest, res: Response, next: NextF
       return next(badRequest("Validation error", parsed.error.flatten()));
     }
     const result = await einvoiceService.send(parsed.data, toActor(req));
+    // AUDIT: log e-invoice send
+    if (req.feature?.audit) {
+      console.log("AUDIT", { action: "send_einvoice", user: req.user?.id, invoiceId: parsed.data.invoiceId });
+    }
     respondWithSuccess(res, result);
   } catch (err) {
     next(err);

@@ -17,72 +17,120 @@ import {
 
 const router = Router();
 
-router.get("/", requirePermission("pricing:read"), controller.list);
-router.get("/product/:productId/drafts", requirePermission("pricing:read"), controller.listDrafts);
+
+// All routes now enforce feature flag and plan entitlement
+router.get(
+  "/",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
+  requirePermission("pricing:read"),
+  controller.list,
+);
+router.get(
+  "/product/:productId/drafts",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
+  requirePermission("pricing:read"),
+  controller.listDrafts,
+);
 router.post(
   "/product/:productId/drafts",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:update"),
   validateBody(createPricingDraftSchema),
   controller.createDraft,
 );
 router.get(
   "/product/:productId/competitors",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:read"),
   controller.listCompetitorPrices,
 );
 router.post(
   "/product/:productId/competitors",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:update"),
   validateBody(competitorPriceSchema),
   controller.addCompetitorPrice,
 );
-router.get("/product/:productId/logs", requirePermission("pricing:read"), controller.listLogs);
-router.post(
-  "/product/:productId/ai/suggest",
-  requirePermission(["ai:pricing", "pricing:update"]),
+router.get(
+  "/product/:productId/logs",
   requireFeature(FEATURES.PRICING),
   featureTelemetry(FEATURES.PRICING),
+  requirePermission("pricing:read"),
+  controller.listLogs,
+);
+router.post(
+  "/product/:productId/ai/suggest",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
+  requirePermission(["ai:pricing", "pricing:update"]),
   validateBody(pricingSuggestionSchema),
   controller.suggestPrice,
 );
 router.post(
   "/product/:productId/ai/plan",
-  requirePermission(["ai:pricing", "pricing:update"]),
   requireFeature(FEATURES.PRICING),
   featureTelemetry(FEATURES.PRICING),
+  requirePermission(["ai:pricing", "pricing:update"]),
   validateBody(pricingSuggestionSchema),
   controller.aiPlan,
 );
 router.post(
   "/product/:productId/drafts/:draftId/submit",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:update"),
   controller.submitDraft,
 );
 router.post(
   "/product/:productId/drafts/:draftId/approve",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:approve"),
   validateBody(pricingDraftApprovalSchema),
   controller.approveDraft,
 );
 router.post(
   "/product/:productId/drafts/:draftId/reject",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:approve"),
   validateBody(pricingDraftRejectionSchema),
   controller.rejectDraft,
 );
-router.get("/:id", requirePermission("pricing:read"), controller.getById);
+router.get(
+  "/:id",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
+  requirePermission("pricing:read"),
+  controller.getById,
+);
 router.post(
   "/",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:create"),
   validateBody(createPricingSchema),
   controller.create,
 );
 router.put(
   "/:id",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
   requirePermission("pricing:update"),
   validateBody(updatePricingSchema),
   controller.update,
 );
-router.delete("/:id", requirePermission("pricing:delete"), controller.remove);
+router.delete(
+  "/:id",
+  requireFeature(FEATURES.PRICING),
+  featureTelemetry(FEATURES.PRICING),
+  requirePermission("pricing:delete"),
+  controller.remove,
+);
 
 export { router };

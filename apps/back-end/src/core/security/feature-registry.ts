@@ -1,3 +1,9 @@
+  FINANCE_INVOICING: {
+    key: "FINANCE_INVOICING",
+    permissions: [PERMISSIONS.FINANCE.READ, PERMISSIONS.FINANCE.MANAGE],
+    plans: ["PRO", "ENTERPRISE"] as readonly string[],
+    audit: true,
+  },
 // Canonical Feature Registry (Phase 2D)
 // DO NOT EDIT FEATURES OUTSIDE THIS FILE
 
