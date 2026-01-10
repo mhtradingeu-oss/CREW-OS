@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
 import { verifyToken } from "./jwt.js";
-import type { AuthenticatedRequest } from "../http/http-types.js";
 import { unauthorized, forbidden } from "../http/errors.js";
 import { readSessionToken } from "./session-cookie.js";
 import { emitSecurityEvent, getRequestMeta } from "./security-events.js";
@@ -18,8 +17,7 @@ export function authenticateRequest(
   res: Response,
   next: NextFunction,
 ) {
-  const authReq = req as AuthenticatedRequest;
-  if (isPublicPath(authReq)) {
+  if (isPublicPath(req)) {
     return next();
   }
 
@@ -45,7 +43,7 @@ export function authenticateRequest(
     return next(unauthorized());
   }
 
-  authReq.user = payload;
+  (req as any).user = payload;
   return next();
 }
 
@@ -54,12 +52,3 @@ function isPublicPath(req: Request) {
   return PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-export function requireRole(...roles: string[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!authReq.user || !roles.includes(authReq.user.role)) {
-      return next(forbidden());
-    }
-    return next();
-  };
-}

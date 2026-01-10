@@ -1,7 +1,6 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import type { MediaCallContext } from "../../core/ai/providers/media/media.types.js";
 import { mediaStudioService } from "./media-studio.service.js";
 import {
@@ -17,7 +16,7 @@ import { getUserPermissions } from "../../core/security/rbac.js";
 import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 
-function toCtx(req: AuthenticatedRequest): MediaCallContext {
+function toCtx(req: Request): MediaCallContext {
   return {
     brandId: req.user?.brandId ?? undefined,
     tenantId: req.user?.tenantId ?? undefined,
@@ -27,7 +26,7 @@ function toCtx(req: AuthenticatedRequest): MediaCallContext {
   };
 }
 
-export async function listImageEngines(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listImageEngines(_req: Request, res: Response, next: NextFunction) {
   try {
     const engines = mediaStudioService.listImageEngines();
     respondWithSuccess(res, engines);
@@ -36,7 +35,7 @@ export async function listImageEngines(_req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function listVideoEngines(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listVideoEngines(_req: Request, res: Response, next: NextFunction) {
   try {
     const engines = mediaStudioService.listVideoEngines();
     respondWithSuccess(res, engines);
@@ -45,7 +44,7 @@ export async function listVideoEngines(_req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function generateImage(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generateImage(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = imageGenerationSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -58,7 +57,7 @@ export async function generateImage(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function generateVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generateVideo(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = videoGenerationSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -71,7 +70,7 @@ export async function generateVideo(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function whiteLabelPreview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function whiteLabelPreview(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = whiteLabelPreviewSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -84,7 +83,7 @@ export async function whiteLabelPreview(req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function whiteLabelBatch(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function whiteLabelBatch(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = whiteLabelBatchSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -97,7 +96,7 @@ export async function whiteLabelBatch(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-export async function whiteLabelProductMockup(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function whiteLabelProductMockup(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = whiteLabelProductMockupSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -110,7 +109,7 @@ export async function whiteLabelProductMockup(req: AuthenticatedRequest, res: Re
   }
 }
 
-export async function mediaIdeas(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function mediaIdeas(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = mediaIdeasSchema.safeParse(req.body);
     if (!parsed.success) {

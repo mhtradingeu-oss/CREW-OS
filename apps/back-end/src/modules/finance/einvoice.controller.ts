@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import type { PipelineActor } from "../../core/ai/pipeline/pipeline-types.js";
 import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { einvoiceService } from "./einvoice.service.js";
@@ -12,7 +11,7 @@ import {
   validateEInvoiceSchema,
 } from "./einvoice.validators.js";
 
-function toActor(req: AuthenticatedRequest): PipelineActor | undefined {
+function toActor(req: Request): PipelineActor | undefined {
   if (!req.user) return undefined;
   return {
     userId: req.user.id,
@@ -23,7 +22,7 @@ function toActor(req: AuthenticatedRequest): PipelineActor | undefined {
   };
 }
 
-export async function generate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generate(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = generateEInvoiceSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -41,7 +40,7 @@ export async function generate(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function validate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function validate(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = validateEInvoiceSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -58,7 +57,7 @@ export async function validate(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function send(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function send(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = sendEInvoiceSchema.safeParse(req.body);
     if (!parsed.success) {

@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { unauthorized } from "../../core/http/errors.js";
 import { authService, type AuthInput } from "./auth.service.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+
 import { clearSessionCookie, issueSessionCookie } from "../../core/security/session-cookie.js";
 import { issueCsrfCookie } from "../../core/security/csrf.js";
 import { emitSecurityEvent, hashEmail, getRequestMeta } from "../../core/security/security-events.js";
@@ -59,7 +59,7 @@ export async function loginHandler(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export async function meHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function meHandler(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user?.id) {
       return next(unauthorized());

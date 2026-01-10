@@ -1,9 +1,8 @@
-import type { NextFunction, Response } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
 import { coreAutomationEngine } from "../../core/automation/core-engine.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 
-export async function executeAutomationEvent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function executeAutomationEvent(req: Request, res: Response, next: NextFunction) {
   try {
     const { eventName, payload, context } = req.body;
     const mergedContext = {

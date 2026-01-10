@@ -1,5 +1,4 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import { operatorAuditService } from "./operator-audit.service.js";
 import {
@@ -7,7 +6,7 @@ import {
   approvalDetailParams,
   executionDetailParams,
 } from "./operator-audit.validators.js";
-function buildFilters(req: AuthenticatedRequest) {
+function buildFilters(req: Request) {
   const parsed = timelineQuerySchema.parse(req.query);
   const scopedBrand = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role, tenantId: req.user?.tenantId },
@@ -20,7 +19,7 @@ function buildFilters(req: AuthenticatedRequest) {
   };
 }
 
-function enforceBrandScope(brandId: string | undefined, req: AuthenticatedRequest) {
+function enforceBrandScope(brandId: string | undefined, req: Request) {
   if (!brandId) return;
   resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role, tenantId: req.user?.tenantId },
@@ -28,7 +27,7 @@ function enforceBrandScope(brandId: string | undefined, req: AuthenticatedReques
   );
 }
 
-export async function listSnapshots(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listSnapshots(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = buildFilters(req);
     const data = await operatorAuditService.listSnapshots(filters);
@@ -38,7 +37,7 @@ export async function listSnapshots(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function listSuggestions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listSuggestions(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = buildFilters(req);
     const data = await operatorAuditService.listSuggestions(filters);
@@ -48,7 +47,7 @@ export async function listSuggestions(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-export async function listApprovals(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listApprovals(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = buildFilters(req);
     const data = await operatorAuditService.listApprovals(filters);
@@ -58,7 +57,7 @@ export async function listApprovals(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function getApprovalDetail(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getApprovalDetail(req: Request, res: Response, next: NextFunction) {
   try {
     const params = approvalDetailParams.parse(req.params);
     const detail = await operatorAuditService.getApprovalDetail(params.id);
@@ -69,7 +68,7 @@ export async function getApprovalDetail(req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function listExecutions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listExecutions(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = buildFilters(req);
     const data = await operatorAuditService.listExecutions(filters);
@@ -79,7 +78,7 @@ export async function listExecutions(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function getExecutionDetail(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getExecutionDetail(req: Request, res: Response, next: NextFunction) {
   try {
     const params = executionDetailParams.parse(req.params);
     const detail = await operatorAuditService.getExecutionDetail(params.id);
@@ -90,7 +89,7 @@ export async function getExecutionDetail(req: AuthenticatedRequest, res: Respons
   }
 }
 
-export async function listIncidents(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listIncidents(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = buildFilters(req);
     const data = await operatorAuditService.listIncidents(filters);
@@ -100,7 +99,7 @@ export async function listIncidents(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function listRollbacks(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listRollbacks(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = buildFilters(req);
     const data = await operatorAuditService.listRollbacks(filters);

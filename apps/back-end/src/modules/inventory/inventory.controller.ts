@@ -1,5 +1,4 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
 import { publishActivity } from "../../core/activity/activity.js";
 import { requireParam } from "../../core/http/params.js";
 import { inventoryService } from "./inventory.service.js";
@@ -7,7 +6,7 @@ import { respondWithSuccess } from "../../core/http/respond.js";
 import { notFound } from "../../core/http/errors.js";
 import { parsePagination } from "../../core/http/pagination.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const params = {
       brandId: typeof req.query.brandId === "string" ? req.query.brandId : undefined,
@@ -23,7 +22,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await inventoryService.getInventoryItem(
@@ -39,7 +38,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await inventoryService.createInventoryItem(req.body);
     await publishActivity(
@@ -64,7 +63,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function createAdjustment(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createAdjustment(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await inventoryService.createInventoryAdjustment(req.body);
     await publishActivity(
@@ -93,7 +92,7 @@ export async function createAdjustment(req: AuthenticatedRequest, res: Response,
   }
 }
 
-export async function insights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function insights(req: Request, res: Response, next: NextFunction) {
   try {
     const params = {
       brandId: typeof req.query.brandId === "string" ? req.query.brandId : undefined,

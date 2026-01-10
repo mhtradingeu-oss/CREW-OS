@@ -1,12 +1,11 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { activityLogService } from "./activity-log.service.js";
 import { listActivityLogSchema } from "./activity-log.validators.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = listActivityLogSchema.safeParse(req.query);
     if (!parsed.success) {

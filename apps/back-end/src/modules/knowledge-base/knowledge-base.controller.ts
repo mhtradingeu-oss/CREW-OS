@@ -15,7 +15,8 @@ import { badRequest, notFound } from "../../core/http/errors.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { prisma } from "../../core/prisma.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
-import { getUserPermissions, type AuthenticatedRequest } from "../../core/security/rbac.js";
+import { getUserPermissions } from "../../core/security/rbac.js";
+
 
 function resolveBrandId(source: unknown): string | undefined {
   if (typeof source === "string" && source.trim()) {
@@ -116,7 +117,7 @@ export async function attachFile(req: Request, res: Response, next: NextFunction
   }
 }
 
-export async function aiQa(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiQa(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = knowledgeBaseQaSchema.parse(req.body);
     const documentId = requireParam(req.params.id, "id");

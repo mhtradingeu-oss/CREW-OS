@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { financeService } from "./finance.service.js";
 import { summarizeFinanceRunway } from "./finance.ai.js";
 import {
@@ -98,7 +97,7 @@ export async function runwaySummary(req: Request, res: Response, next: NextFunct
   }
 }
 
-function resolveFinanceBrand(req: AuthenticatedRequest, requestedBrandId?: string) {
+function resolveFinanceBrand(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,
@@ -109,7 +108,7 @@ function resolveFinanceBrand(req: AuthenticatedRequest, requestedBrandId?: strin
   return brandId;
 }
 
-export async function listExpenses(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listExpenses(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = resolveFinanceBrand(req, req.query.brandId as string | undefined);
     const { page, pageSize } = parsePagination(req.query);
@@ -121,7 +120,7 @@ export async function listExpenses(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function createExpense(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createExpense(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = resolveFinanceBrand(req, req.body.brandId as string | undefined);
     const parsed = createExpenseSchema.parse({ ...req.body, brandId });
@@ -132,7 +131,7 @@ export async function createExpense(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function listInvoices(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listInvoices(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = resolveFinanceBrand(req, req.query.brandId as string | undefined);
     const { page, pageSize } = parsePagination(req.query);
@@ -144,7 +143,7 @@ export async function listInvoices(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function createInvoice(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createInvoice(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = resolveFinanceBrand(req, req.body.brandId as string | undefined);
     const parsed = createInvoiceSchema.parse({ ...req.body, brandId });
@@ -160,7 +159,7 @@ export async function createInvoice(req: AuthenticatedRequest, res: Response, ne
 }
 
 export async function updateInvoiceStatus(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {

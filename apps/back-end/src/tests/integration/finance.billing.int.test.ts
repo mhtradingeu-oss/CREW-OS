@@ -1,4 +1,4 @@
-describe('Finance Invoicing Integration', () => {
+
 import request from 'supertest';
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import { createApp } from '@/app.js';

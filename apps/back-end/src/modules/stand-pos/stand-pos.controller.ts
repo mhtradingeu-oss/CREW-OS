@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+// ...existing code...
 import { standPosService } from "./stand-pos.service.js";
 import { standListSchema, standAiStockSchema } from "./stand-pos.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
@@ -98,7 +98,7 @@ export async function getAiStockSuggestion(req: Request, res: Response, next: Ne
   }
 }
 
-function buildStandContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildStandContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,
@@ -109,7 +109,7 @@ function buildStandContext(req: AuthenticatedRequest, requestedBrandId?: string)
   return { brandId };
 }
 
-export async function listKpis(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listKpis(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildStandContext(req, req.query.brandId as string | undefined);
     const { page, pageSize } = parsePagination(req.query);
@@ -124,7 +124,7 @@ export async function listKpis(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function getKpi(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getKpi(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildStandContext(req, req.query.brandId as string | undefined);
     const id = requireParam(req.params.id, "id");
@@ -136,7 +136,7 @@ export async function getKpi(req: AuthenticatedRequest, res: Response, next: Nex
 }
 
 export async function recalculateKpi(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -150,7 +150,7 @@ export async function recalculateKpi(
   }
 }
 
-export async function getInsights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getInsights(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildStandContext(req, req.query.brandId as string | undefined);
     const id = requireParam(req.params.id, "id");

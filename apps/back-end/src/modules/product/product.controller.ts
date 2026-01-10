@@ -11,9 +11,9 @@ import {
   productMediaSchema,
 } from "./product.validators.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request } from "express";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = listProductSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -30,7 +30,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildProductContext(req);
@@ -41,7 +41,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const actionContext = buildProductContext(req, req.body.brandId as string | undefined);
     const item = await productService.create(req.body, actionContext);
@@ -51,7 +51,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildProductContext(req, req.body.brandId as string | undefined);
@@ -62,7 +62,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildProductContext(req);
@@ -73,7 +73,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function importProducts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function importProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = productImportSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -92,7 +92,7 @@ export async function importProducts(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function exportProducts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function exportProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = productExportSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -111,7 +111,7 @@ export async function exportProducts(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function createInsight(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createInsight(req: Request, res: Response, next: NextFunction) {
   try {
     const params = productInsightSchema.parse(req.body);
     const scopedBrandId = resolveScopedBrandId(
@@ -129,7 +129,7 @@ export async function createInsight(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function getInsight(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getInsight(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildProductContext(req);
@@ -141,7 +141,7 @@ export async function getInsight(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function attachMedia(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function attachMedia(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = productMediaSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -159,7 +159,7 @@ export async function attachMedia(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function detachMedia(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function detachMedia(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = productMediaSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -177,7 +177,7 @@ export async function detachMedia(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-function buildProductContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildProductContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,

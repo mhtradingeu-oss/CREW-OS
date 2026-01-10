@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { forbidden } from "../../core/http/errors.js";
 import { publishActivity } from "../../core/activity/activity.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+
 import { requireParam } from "../../core/http/params.js";
 import { platformOpsService } from "./platform-ops.service.js";
 import {
@@ -61,11 +61,7 @@ export async function listAudit(req: Request, res: Response, next: NextFunction)
   }
 }
 
-export async function getSuperAdminHealth(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getSuperAdminHealth(req: Request, res: Response, next: NextFunction) {
   try {
     assertSuperAdmin(req);
     const health = await platformOpsService.getHealth();
@@ -75,11 +71,7 @@ export async function getSuperAdminHealth(
   }
 }
 
-export async function listTenantsOverview(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function listTenantsOverview(req: Request, res: Response, next: NextFunction) {
   try {
     assertSuperAdmin(req);
     const data = await platformOpsService.getTenantOverview();
@@ -89,11 +81,7 @@ export async function listTenantsOverview(
   }
 }
 
-export async function listUsersWithRBAC(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function listUsersWithRBAC(req: Request, res: Response, next: NextFunction) {
   try {
     assertSuperAdmin(req);
     const parsed = superAdminUserListSchema.parse(req.query);
@@ -104,11 +92,7 @@ export async function listUsersWithRBAC(
   }
 }
 
-export async function assignUserRole(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function assignUserRole(req: Request, res: Response, next: NextFunction) {
   try {
     assertSuperAdmin(req);
     const userId = requireParam(req.params.userId, "userId");
@@ -136,11 +120,7 @@ export async function assignUserRole(
   }
 }
 
-export async function removeUserRole(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function removeUserRole(req: Request, res: Response, next: NextFunction) {
   try {
     assertSuperAdmin(req);
     const userId = requireParam(req.params.userId, "userId");
@@ -168,11 +148,7 @@ export async function removeUserRole(
   }
 }
 
-export async function getPlanContext(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getPlanContext(req: Request, res: Response, next: NextFunction) {
   try {
     const tenantId = req.user?.tenantId ?? req.planContext?.tenantId;
     const brandId = req.user?.brandId ?? req.planContext?.brandId;
@@ -183,11 +159,7 @@ export async function getPlanContext(
   }
 }
 
-export async function getPlanFeatures(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getPlanFeatures(req: Request, res: Response, next: NextFunction) {
   try {
     const tenantId = req.user?.tenantId ?? req.planContext?.tenantId;
     const brandId = req.user?.brandId ?? req.planContext?.brandId;
@@ -199,7 +171,7 @@ export async function getPlanFeatures(
   }
 }
 
-function assertSuperAdmin(req: AuthenticatedRequest) {
+function assertSuperAdmin(req: Request) {
   if (req.user?.role !== "SUPER_ADMIN") {
     throw forbidden("SuperAdmin access required");
   }

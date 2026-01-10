@@ -23,7 +23,6 @@ export class AICrewController {
     const { scopes, agentNames, question, contextRefs } = parse.data;
 
     // User info injected by auth middleware
-    // @ts-expect-error Express Request is extended by authentication middleware (Phase C wiring)
     const user = req.user as { id: string; role: string } | undefined;
 
     if (!user) {

@@ -3,10 +3,37 @@ import { Router } from 'express';
 import { executionIntentController } from './execution-intent.controller.js';
 import { authenticateRequest } from '../../core/security/auth-middleware.js';
 import { requirePermission } from '../../core/security/rbac.js';
+import { requirePlanFeature } from '../../core/http/middleware/plan-gating.js';
+import { FEATURES } from '../../core/security/feature-registry.js';
+import { emitEvent } from '../../core/events/event-bus.js';
 
 const router = Router();
 
-router.use(authenticateRequest);
+
+// Automation entry guard: feature, plan, permission, audit
+router.use(async (req, res, next) => {
+  try {
+    await requirePlanFeature(FEATURES.AUTOMATION)(req, res, async (err) => {
+      if (err) {
+        await emitEvent("automation.run.denied", {
+          reason: err.message,
+          actorId: req.user?.id,
+          tenantId: req.user?.tenantId,
+          source: "api",
+        }, { module: "automation", actorUserId: req.user?.id, tenantId: req.user?.tenantId, source: "api" });
+        return res.status(403).json({ error: err.message, code: err.code || "AUTOMATION_DENIED" });
+      }
+      await emitEvent("automation.run.requested", {
+        actorId: req.user?.id,
+        tenantId: req.user?.tenantId,
+        source: "api",
+      }, { module: "automation", actorUserId: req.user?.id, tenantId: req.user?.tenantId, source: "api" });
+      next();
+    });
+  } catch (e) {
+    next(e);
+  }
+});
 
 router.post(
   '/from-decision',

@@ -1,11 +1,11 @@
 import type { NextFunction, Response } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request } from "express";
 import { badRequest, unauthorized } from "../../core/http/errors.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { notificationService } from "./notification.service.js";
 import { listNotificationsSchema, markReadSchema } from "./notification.validators.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) return next(unauthorized());
     const parsed = listNotificationsSchema.safeParse(req.query);
@@ -19,7 +19,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function markRead(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function markRead(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) return next(unauthorized());
     const parsed = markReadSchema.safeParse(req.body);
@@ -33,7 +33,7 @@ export async function markRead(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function markAllRead(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function markAllRead(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) return next(unauthorized());
     await notificationService.markAllReadForUser(req.user.id);

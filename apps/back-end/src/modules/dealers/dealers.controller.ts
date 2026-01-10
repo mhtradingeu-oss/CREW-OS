@@ -1,8 +1,7 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest, notFound } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { dealersService } from "./dealers.service.js";
 import type { PartnerListParams, DealerKpiListParams } from "./dealers.types.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
@@ -14,7 +13,7 @@ import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 import { createInsight } from "../../core/db/repositories/ai-insight.repository.js";
 
-function buildDealerContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildDealerContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,
@@ -25,7 +24,7 @@ function buildDealerContext(req: AuthenticatedRequest, requestedBrandId?: string
   };
 }
 
-function buildListParams(req: AuthenticatedRequest): PartnerListParams {
+function buildListParams(req: Request): PartnerListParams {
   const context = buildDealerContext(req, req.query.brandId as string | undefined);
   if (!context.brandId) {
     throw badRequest("brandId query parameter is required");
@@ -44,7 +43,7 @@ function buildListParams(req: AuthenticatedRequest): PartnerListParams {
   };
 }
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const params = buildListParams(req);
     const payload = await dealersService.listPartners(params);
@@ -54,7 +53,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildDealerContext(req, req.query.brandId as string | undefined);
     if (!context.brandId) {
@@ -71,7 +70,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await dealersService.createPartner(req.body);
     respondWithSuccess(res, item, 201);
@@ -80,7 +79,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildDealerContext(req, req.query.brandId as string | undefined);
     if (!context.brandId) {
@@ -94,7 +93,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildDealerContext(req, req.query.brandId as string | undefined);
     if (!context.brandId) {
@@ -108,7 +107,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function listKpis(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listKpis(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildDealerContext(req, req.query.brandId as string | undefined);
     if (!context.brandId) {
@@ -125,7 +124,7 @@ export async function listKpis(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function aiInsights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiInsights(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = dealerAiInsightSchema.parse(req.body);
     const brandId = parsed.brandId;
@@ -182,7 +181,7 @@ export async function aiInsights(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function getKpi(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getKpi(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildDealerContext(req, req.query.brandId as string | undefined);
     if (!context.brandId) {
@@ -197,7 +196,7 @@ export async function getKpi(req: AuthenticatedRequest, res: Response, next: Nex
 }
 
 export async function dashboardSummary(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -214,7 +213,7 @@ export async function dashboardSummary(
 }
 
 export async function recalculateKpi(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {

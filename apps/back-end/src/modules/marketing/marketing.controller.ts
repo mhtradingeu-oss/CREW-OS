@@ -1,4 +1,4 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
@@ -12,13 +12,12 @@ import {
   updateMarketingSchema,
 } from "./marketing.validators.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
 import { PERMISSIONS } from "../../core/security/permission-registry.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const params = {
       brandId: req.query.brandId as string | undefined,
@@ -37,7 +36,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildMarketingContext(req);
@@ -48,7 +47,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createMarketingSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -62,7 +61,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = updateMarketingSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -77,7 +76,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildMarketingContext(req);
@@ -88,7 +87,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function generateContent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generateContent(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildMarketingContext(req, (req.body as { brandId?: string }).brandId);
     const payload = { ...req.body, brandId: context.brandId, tenantId: req.user?.tenantId };
@@ -99,7 +98,7 @@ export async function generateContent(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-export async function generateSeo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generateSeo(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildMarketingContext(req, (req.body as { brandId?: string }).brandId);
     const payload = { ...req.body, brandId: context.brandId, tenantId: req.user?.tenantId };
@@ -110,7 +109,7 @@ export async function generateSeo(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function generateCaptions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generateCaptions(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildMarketingContext(req, (req.body as { brandId?: string }).brandId);
     const payload = { ...req.body, brandId: context.brandId, tenantId: req.user?.tenantId };
@@ -121,7 +120,7 @@ export async function generateCaptions(req: AuthenticatedRequest, res: Response,
   }
 }
 
-export async function generateIdeas(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function generateIdeas(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = marketingIdeaSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -172,7 +171,7 @@ export async function generateIdeas(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function previewTargets(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function previewTargets(req: Request, res: Response, next: NextFunction) {
   try {
     const campaignId = requireParam(req.params.id, "id");
     const rawLimit = Number(req.query.limit ?? 5);
@@ -185,7 +184,7 @@ export async function previewTargets(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function linkLeadToCampaign(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function linkLeadToCampaign(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = campaignAttributionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -200,7 +199,7 @@ export async function linkLeadToCampaign(req: AuthenticatedRequest, res: Respons
   }
 }
 
-export async function recordCampaignInteraction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function recordCampaignInteraction(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = campaignInteractionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -215,7 +214,7 @@ export async function recordCampaignInteraction(req: AuthenticatedRequest, res: 
   }
 }
 
-export async function recordExecution(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function recordExecution(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = campaignExecutionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -230,7 +229,7 @@ export async function recordExecution(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-export async function getPerformance(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getPerformance(req: Request, res: Response, next: NextFunction) {
   try {
     const campaignId = requireParam(req.params.id, "id");
     const rawLimit = Number(req.query.limit ?? 10);
@@ -244,7 +243,7 @@ export async function getPerformance(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function getActivity(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getActivity(req: Request, res: Response, next: NextFunction) {
   try {
     const campaignId = requireParam(req.params.id, "id");
     const actionContext = buildMarketingContext(req);
@@ -255,7 +254,7 @@ export async function getActivity(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-function buildMarketingContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildMarketingContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,

@@ -4,7 +4,7 @@ import { respondWithSuccess } from "../../core/http/respond.js";
 import { forbidden } from "../../core/http/errors.js";
 import { aiAgentsConfigService } from "./ai-agents-config.service.js";
 import { agentConfigQuerySchema, updateAgentConfigSchema } from "./ai-agents-config.validators.js";
-import type { AuthenticatedRequest } from "../../core/http/http-types.js";
+
 
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
@@ -27,7 +27,7 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const agentId = requireParam(req.params.agentId, "agentId");
     const payload = updateAgentConfigSchema.parse(req.body ?? {});

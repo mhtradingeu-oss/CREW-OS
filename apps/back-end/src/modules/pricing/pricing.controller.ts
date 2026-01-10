@@ -1,4 +1,4 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { requireParam } from "../../core/http/params.js";
@@ -14,14 +14,13 @@ import {
   pricingDraftRejectionSchema,
 } from "./pricing.validators.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
 import { PERMISSIONS } from "../../core/security/permission-registry.js";
 import { publishActivity } from "../../core/activity/activity.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = listPricingSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -36,7 +35,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildPricingContext(req);
@@ -47,7 +46,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createPricingSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -66,7 +65,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const parsed = updatePricingSchema.safeParse(req.body);
@@ -86,7 +85,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildPricingContext(req);
@@ -107,7 +106,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function createDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createDraft(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createPricingDraftSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -127,7 +126,7 @@ export async function createDraft(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function listDrafts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listDrafts(req: Request, res: Response, next: NextFunction) {
   try {
     const productId = requireParam(req.params.productId, "productId");
     const actionContext = buildPricingContext(req);
@@ -139,7 +138,7 @@ export async function listDrafts(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function submitDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function submitDraft(req: Request, res: Response, next: NextFunction) {
   try {
     const actionContext = buildPricingContext(req);
     const draft = await pricingService.submitDraftForApproval(
@@ -158,7 +157,7 @@ export async function submitDraft(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function rejectDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function rejectDraft(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = pricingDraftRejectionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -183,7 +182,7 @@ export async function rejectDraft(req: AuthenticatedRequest, res: Response, next
 }
 
 export async function addCompetitorPrice(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -215,7 +214,7 @@ export async function addCompetitorPrice(
 }
 
 export async function listCompetitorPrices(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -230,7 +229,7 @@ export async function listCompetitorPrices(
   }
 }
 
-export async function listLogs(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listLogs(req: Request, res: Response, next: NextFunction) {
   try {
     const productId = requireParam(req.params.productId, "productId");
     const actionContext = buildPricingContext(req);
@@ -242,7 +241,7 @@ export async function listLogs(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function suggestPrice(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function suggestPrice(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = pricingSuggestionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -262,7 +261,7 @@ export async function suggestPrice(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function aiPlan(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiPlan(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = pricingSuggestionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -320,7 +319,7 @@ export async function aiPlan(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function approveDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function approveDraft(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = pricingDraftApprovalSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -344,7 +343,7 @@ export async function approveDraft(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-function buildPricingContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildPricingContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,

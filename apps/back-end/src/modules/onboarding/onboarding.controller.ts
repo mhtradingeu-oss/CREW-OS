@@ -1,9 +1,8 @@
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { onboardingService } from "./onboarding.service.js";
 
-export async function startHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function startHandler(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user?.id) return next();
     const profile = await onboardingService.startOnboarding(req.user.id);
@@ -13,7 +12,7 @@ export async function startHandler(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function personaHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function personaHandler(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user?.id) return next();
     const { persona } = req.body as { persona: string };
@@ -24,7 +23,7 @@ export async function personaHandler(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function planHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function planHandler(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user?.id) return next();
     const { planKey, selectedModules } = req.body as { planKey: string; selectedModules?: Record<string, unknown> };
@@ -38,7 +37,7 @@ export async function planHandler(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function optionsHandler(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function optionsHandler(_req: Request, res: Response, next: NextFunction) {
   try {
     const options = onboardingService.getOnboardingOptions();
     return respondWithSuccess(res, options);

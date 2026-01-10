@@ -44,6 +44,7 @@
     "@mh-os/shared": "file:../../packages/shared",
     "@paralleldrive/cuid2": "^3.0.4",
     "@prisma/client": "^5.22.0",
+    "@types/redis": "^4.0.10",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.66.4",
     "cors": "^2.8.5",

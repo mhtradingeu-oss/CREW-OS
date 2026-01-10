@@ -1,5 +1,4 @@
-import type { NextFunction, Response } from "express";
-import type { AuthenticatedRequest } from "../http-types.js";
+import type { NextFunction, Response, Request } from "express";
 import { ApiError } from "../errors.js";
 import type { PlanFeatureSet } from "../../plans.js";
 import type { FeatureKey } from "../../security/feature-registry.js";
@@ -7,7 +6,7 @@ import { FEATURES } from "../../security/feature-registry.js";
 import { getPermissionsForRole } from "../../security/rbac.js";
 import { resolvePlanContext } from "../../plans-resolver.js";
 
-async function ensurePlanContext(req: AuthenticatedRequest) {
+async function ensurePlanContext(req: Request) {
   if (req.planContext) return req.planContext;
   const body = (req.body ?? {}) as Record<string, unknown>;
   const tenantId =
@@ -21,7 +20,7 @@ async function ensurePlanContext(req: AuthenticatedRequest) {
   return req.planContext;
 }
 
-export async function attachPlanContext(req: AuthenticatedRequest, _res: Response, next: NextFunction) {
+export async function attachPlanContext(req: Request, _res: Response, next: NextFunction) {
   try {
     await ensurePlanContext(req);
     next();
@@ -44,7 +43,7 @@ function isFeatureEnabled(features: PlanFeatureSet, featureKey: FeatureKey): boo
  * @param featureObj - Canonical feature object from registry
  */
 export function requireFeature(featureObj: typeof FEATURES[keyof typeof FEATURES], message?: string) {
-  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       const context = await ensurePlanContext(req);
       // Canonical plan enforcement using subscription resolver

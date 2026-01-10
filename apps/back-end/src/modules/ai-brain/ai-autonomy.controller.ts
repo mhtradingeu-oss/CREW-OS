@@ -5,7 +5,7 @@ import { planAutonomyTasks } from "../../core/ai/autonomy/autonomy.planner.js";
 import { runAutonomyLoop } from "../../core/ai/autonomy/autonomy.loop.js";
 import { requireParam } from "../../core/http/params.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
-import type { AuthenticatedRequest } from "../../core/http/http-types.js";
+
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
 import { forbidden } from "../../core/http/errors.js";
@@ -15,7 +15,7 @@ import {
   runAutonomyCycleSchema,
 } from "./ai-autonomy.validators.js";
 
-async function buildActor(req: AuthenticatedRequest) {
+async function buildActor(req: Request) {
   const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, tenantId: req.user?.tenantId, role: req.user?.role },
@@ -49,7 +49,7 @@ export async function pending(_req: Request, res: Response, next: NextFunction) 
   }
 }
 
-export async function approve(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function approve(req: Request, res: Response, next: NextFunction) {
   try {
     const taskId = requireParam(req.params.taskId, "taskId");
     const actor = await buildActor(req);
@@ -71,7 +71,7 @@ export async function reject(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function runCycle(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function runCycle(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = runAutonomyCycleSchema.parse(req.body ?? {});
     const actor = await buildActor(req);
@@ -95,7 +95,7 @@ export function getConfig(_req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export function updateConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export function updateConfig(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = autonomyConfigSchema.parse(req.body ?? {});
     if (payload.globalAutonomyEnabled === true && req.user?.role !== "SUPER_ADMIN") {
@@ -116,7 +116,7 @@ export async function debugDetectors(_req: Request, res: Response, next: NextFun
   }
 }
 
-export async function debugTaskPlan(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function debugTaskPlan(req: Request, res: Response, next: NextFunction) {
   try {
     const detections = autonomyService.getStatus().lastDetections ?? (await runAutonomyDetectors());
     const actor = await buildActor(req);
@@ -135,7 +135,7 @@ export async function debugExecutor(_req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function debugLoop(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function debugLoop(req: Request, res: Response, next: NextFunction) {
   try {
     const actor = await buildActor(req);
     const result = await runAutonomyLoop({ actor, autoExecute: false, dryRun: true });

@@ -4,7 +4,6 @@ const mockGetUserPermissions = jest.fn();
 
 import type { AutomationService } from "../../modules/automation/automation.service.js";
 import type { Request, Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 
 let automationService: AutomationService;
 let update: typeof import("../../modules/automation/automation.controller.js").update;
@@ -38,20 +37,17 @@ const basePayload = {
   state: "ACTIVE",
 };
 
-function createMockReq(): AuthenticatedRequest {
-  const req: any = {
-    user: {
-      id: "user-1",
-      role: "BRAND_OPERATOR",
-      brandId: "brand-1",
-      tenantId: "tenant-1",
-    },
-    params: { id: basePayload.ruleId },
-    body: { ...basePayload },
-    query: {},
+function createMockReq(): Request {
+  const req = {} as Request;
+  (req as any).user = {
+    id: "user-1",
+    role: "BRAND_OPERATOR",
+    brandId: "brand-1",
+    tenantId: "tenant-1",
   };
-  req.get = jest.fn().mockReturnValue(undefined);
-  req.header = jest.fn().mockReturnValue(undefined);
+  (req as any).params = { id: basePayload.ruleId };
+  (req as any).body = { ...basePayload };
+  (req as any).query = {};
   return req;
 }
 

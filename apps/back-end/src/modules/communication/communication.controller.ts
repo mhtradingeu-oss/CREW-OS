@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { badRequest, unauthorized } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import { communicationService } from "./communication.service.js";
 import type { ListNotificationTemplateParams } from "./communication.types.js";
@@ -106,7 +106,7 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-function resolveBrandContext(req: AuthenticatedRequest) {
+function resolveBrandContext(req: Request) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     (req.body.brandId as string | undefined) ?? (req.query.brandId as string | undefined),
@@ -115,7 +115,7 @@ function resolveBrandContext(req: AuthenticatedRequest) {
   return brandId;
 }
 
-export async function sendMessage(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function sendMessage(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) {
       return next(unauthorized());

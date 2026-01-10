@@ -53,6 +53,7 @@ import { authenticateRequest } from "./core/security/auth-middleware.js";
 import { responseFormatter } from "./core/http/middleware/response-formatter.js";
 import { attachPlanContext, requireFeature } from "./core/http/middleware/plan-gating.js";
 import { featureTelemetry } from "./core/http/middleware/feature-telemetry.js";
+import { FEATURES } from "./core/security/feature-registry.js";
 import { csrfProtectionMiddleware } from "./core/security/csrf.js";
 import { cookieParser } from "./core/http/middleware/cookie-parser.js";
 import { healthRouter } from "./core/health/router.js";
@@ -95,18 +96,18 @@ export function createApp() {
   app.use(attachPlanContext);
   app.use("/api/v1/ai/safety", aiRateLimiter, aiSafetyRouter);
   app.use("/api/v1/ai/monitoring", aiRateLimiter, aiMonitoringRouter);
-  app.use("/api/v1/ai", aiRateLimiter, requireFeature("advancedAutonomy"), featureTelemetry("advancedAutonomy"), ai_brainRouter);
+  app.use("/api/v1/ai", aiRateLimiter, requireFeature(FEATURES.ADVANCED_AUTONOMY), featureTelemetry(FEATURES.ADVANCED_AUTONOMY), ai_brainRouter);
   // AI Crew Advisory (advisory-only, safe)
   app.use("/api/ai/crew", aiRateLimiter, aiCrewRouter);
   // AI Crew Advisory Session Composition (advisory-only, safe)
   app.use("/api/v1/ai/crew/advisory", aiRateLimiter, advisorySessionRouter);
   app.use("/api/v1/ai-suggestions", aiRateLimiter, aiSuggestionRouter);
-  app.use("/api/v1/media", aiRateLimiter, requireFeature("mediaStudio"), featureTelemetry("mediaStudio"), mediaStudioRouter);
+  app.use("/api/v1/media", aiRateLimiter, requireFeature(FEATURES.MEDIA_STUDIO), featureTelemetry(FEATURES.MEDIA_STUDIO), mediaStudioRouter);
   app.use(
     "/api/v1/white-label-configurator",
     aiRateLimiter,
-    requireFeature("whiteLabelStudio"),
-    featureTelemetry("whiteLabelStudio"),
+    requireFeature(FEATURES.WHITE_LABEL_STUDIO),
+    featureTelemetry(FEATURES.WHITE_LABEL_STUDIO),
     whiteLabelConfiguratorRouter,
   );
   app.use("/api/v1/platform-ops", platformOpsRateLimiter, platformOpsRouter);
@@ -119,7 +120,7 @@ export function createApp() {
   app.use("/api/v1/sales-reps", sales_repsRouter);
   app.use("/api/v1/dealers", dealersRouter);
   app.use("/api/v1/partners", partnersRouter);
-  app.use("/api/v1/competitor", requireFeature("competitor"), featureTelemetry("competitor"), competitorRouter);
+  app.use("/api/v1/competitor", requireFeature(FEATURES.COMPETITOR), featureTelemetry(FEATURES.COMPETITOR), competitorRouter);
   app.use("/api/v1/stand", standRouter);
   app.use("/api/v1/stand-pos", stand_posRouter);
   app.use("/api/v1/affiliate", affiliateRouter);
@@ -134,7 +135,7 @@ export function createApp() {
   app.use("/api/v1/knowledge", knowledge_baseRouter);
   app.use("/api/v1/security", security_governanceRouter);
   app.use("/api/v1/admin", adminRouter);
-  app.use("/api/v1/influencer", requireFeature("influencerToolkit"), featureTelemetry("influencerToolkit"), influencer_osRouter);
+  app.use("/api/v1/influencer", requireFeature(FEATURES.INFLUENCER_TOOLKIT), featureTelemetry(FEATURES.INFLUENCER_TOOLKIT), influencer_osRouter);
   app.use("/api/v1/social-intelligence", social_intelligenceRouter);
   app.use("/api/v1/operations", operationsRouter);
   app.use("/api/v1/support", supportRouter);

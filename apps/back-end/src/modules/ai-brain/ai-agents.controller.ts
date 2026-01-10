@@ -8,7 +8,7 @@ import { AI_ENGINE_HANDLERS, type AIEngineId } from "../../ai/agents/index.js";
 import type { EngineRunOptions } from "../../core/ai/engines/engine-types.js";
 import { aiAgentsService } from "./ai-agents.service.js";
 import { runAgentSchema } from "./ai-agents.validators.js";
-import type { AuthenticatedRequest } from "../../core/http/http-types.js";
+
 
 export async function list(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -72,7 +72,7 @@ export async function test(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function run(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function run(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = runAgentSchema.parse(req.body ?? {});
     const handler = AI_ENGINE_HANDLERS[payload.agentId as AIEngineId];

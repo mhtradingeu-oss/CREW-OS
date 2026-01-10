@@ -7,7 +7,7 @@ import {
   reportsQuerySchema,
 } from "./ai-insights.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
-import type { AuthenticatedRequest } from "../../core/http/http-types.js";
+
 
 export async function refresh(req: Request, res: Response, next: NextFunction) {
   try {
@@ -21,7 +21,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function list(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(_req: Request, res: Response, next: NextFunction) {
   try {
     const params = insightsQuerySchema.parse(_req.query);
     const brandScoped =

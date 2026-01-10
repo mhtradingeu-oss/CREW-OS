@@ -20,7 +20,7 @@
     /* مهم للإنتاج */
     "noEmitOnError": true
   },
-  "include": ["src"],
+  "include": ["src", "src/types/express.d.ts"],
   "exclude": [
     "**/__tests__/**",
     "src/tests/**",

@@ -4,7 +4,7 @@ import { requireParam } from "../../core/http/params.js";
 import { ai_brainService, aiBrainInsightsService } from "./ai-brain.service.js";
 import { aiOrchestrator } from "../../core/ai/orchestrator.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+
 import { publishActivity } from "../../core/activity/activity.js";
 import {
   listInsightsSchema,
@@ -16,7 +16,7 @@ import {
   createAiBrainSchema,
 } from "./ai-brain.validators.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const rawBrandId = req.query.brandId as string | undefined;
     const includeAnalysis = (req.query.includeAnalysis as string | undefined) === "true";
@@ -44,7 +44,7 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = createAiBrainSchema.parse(req.body);
     const scopedBrandId = resolveScopedBrandId(
@@ -117,7 +117,7 @@ export async function listInsights(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export async function createInsight(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createInsight(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = createInsightSchema.parse(req.body);
     const insight = await aiBrainInsightsService.createInsight(payload);
@@ -153,7 +153,7 @@ export async function listReports(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function createReport(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createReport(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = createReportSchema.parse(req.body);
     const report = await aiBrainInsightsService.createReport(payload);
@@ -189,7 +189,7 @@ export async function listLearning(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export async function createLearning(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createLearning(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = createLearningSchema.parse(req.body);
     const log = await aiBrainInsightsService.createLearningLog(payload);

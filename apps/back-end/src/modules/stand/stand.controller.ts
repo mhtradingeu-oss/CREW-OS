@@ -8,7 +8,8 @@ import { standAiInsightSchema } from "./stand.validators.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 import { createInsight } from "../../core/db/repositories/ai-insight.repository.js";
-import { getUserPermissions, type AuthenticatedRequest } from "../../core/security/rbac.js";
+import { getUserPermissions } from "../../core/security/rbac.js";
+
 
 function buildListParams(req: Request): StandPartnerListParams {
   const brandId = req.query.brandId as string | undefined;
@@ -97,7 +98,7 @@ export async function dashboardSummary(req: Request, res: Response, next: NextFu
   }
 }
 
-export async function aiInsights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiInsights(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = standAiInsightSchema.parse(req.body);
     const { standPartnerId, brandId } = parsed;

@@ -1,10 +1,9 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
 import { unauthorized } from "../../core/http/errors.js";
 import { automationExecutionService } from "./automation.execution.service.js";
 import type { ExecuteAutomationActionRequest } from "./automation.execution.types.js";
 
-export async function executeAction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function executeAction(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.id;
     if (!userId) {

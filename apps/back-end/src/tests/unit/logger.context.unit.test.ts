@@ -30,7 +30,6 @@ describe('logger context enforcement', () => {
   });
 
   it('logger.error with raw string as second arg is not allowed', () => {
-    // @ts-expect-error -- invalid context argument to enforceContext
     logger.error('fail', 'raw string');
     expect(spy).toHaveBeenCalledWith(expect.stringContaining('fail'));
   });

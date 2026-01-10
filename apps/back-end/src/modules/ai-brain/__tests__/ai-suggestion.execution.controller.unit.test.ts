@@ -2,7 +2,7 @@ import { describe, it, test, expect, beforeAll, beforeEach, jest } from "@jest/g
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { conflict, forbidden } from "../../../core/http/errors.js";
-import type { AuthenticatedRequest } from "../../../core/http/http-types.js";
+
 import type { ExecuteAiSuggestionRequest } from "../../ai-suggestions/ai-suggestion.execution.validators.js";
 import type {
   ExecuteAutomationActionRequest,
@@ -52,14 +52,14 @@ beforeEach(() => {
   });
 });
 
-function createRequest(overrides: Partial<AuthenticatedRequest & { context?: { correlationId?: string } }> = {}) {
+function createRequest(overrides: Partial<{ params?: any; body?: any; user?: any; context?: any }> = {}) {
   return {
     params: { id: "suggestion-1" },
     body: baseBody,
     user: { id: "user-1" },
     context: { correlationId: "ctx-1" },
     ...overrides,
-  } as AuthenticatedRequest & { context?: { correlationId?: string } };
+  };
 }
 
 function createResponse() {

@@ -19,7 +19,8 @@ import {
 } from "./partners.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
-import { getUserPermissions, type AuthenticatedRequest } from "../../core/security/rbac.js";
+import { getUserPermissions } from "../../core/security/rbac.js";
+
 import { createInsight } from "../../core/db/repositories/ai-insight.repository.js";
 import { safeTruncate } from "../../core/ai/pipeline/pipeline-utils.js";
 
@@ -113,7 +114,7 @@ export async function getContract(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function aiInsights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiInsights(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = partnerAiInsightSchema.parse(req.body);
     const partnerId = parsed.partnerId;

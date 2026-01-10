@@ -1,5 +1,4 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../http/http-types.js";
+import type { Response, NextFunction, Request } from "express";
 import type { SessionPayload } from "./jwt.js";
 import { authenticateRequest } from "./auth-middleware.js";
 import type { Prisma } from "@prisma/client";
@@ -7,8 +6,7 @@ import { prisma } from "../prisma.js";
 import { forbidden, unauthorized } from "../http/errors.js";
 import { logger } from "../logger.js";
 
-export type { AuthenticatedRequest } from "../http/http-types.js";
-export { authenticateRequest };
+
 
 export function hasRole(user: SessionPayload | undefined, roles: string[]) {
   if (!user) return false;
@@ -116,7 +114,7 @@ export async function evaluatePermissionPolicies(
 
 export function requirePermission(permission: string | string[]) {
   const requiredPermissions = Array.isArray(permission) ? permission : [permission];
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user?.id) {
         return next(unauthorized());

@@ -1,7 +1,7 @@
 "use strict";
 
-import type { NextFunction, Response } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, NextFunction, Response } from "express";
+
 import { publishActivity } from "../../core/activity/activity.js";
 import { competitorService } from "./competitor.service.js";
 import type { GetCompetitorPricesInput, ScanCompetitorsInput } from "./competitor.dto.js";
@@ -11,11 +11,7 @@ import { parsePagination } from "../../core/http/pagination.js";
 /**
  * TODO: Replace with real competitor ingestion logic when the AI intelligence layer is ready.
  */
-export async function scanCompetitorsHandler(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function scanCompetitorsHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = req.body as ScanCompetitorsInput;
     const scanInput: ScanCompetitorsInput = {
@@ -53,11 +49,7 @@ export async function scanCompetitorsHandler(
 /**
  * TODO: Enforce permissions and filtering as soon as the pricing telemetry schema is available.
  */
-export async function getCompetitorPricesHandler(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getCompetitorPricesHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { page, pageSize } = parsePagination(req.query);
     const params: GetCompetitorPricesInput = {

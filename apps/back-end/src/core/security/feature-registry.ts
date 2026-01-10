@@ -1,15 +1,15 @@
-  FINANCE_INVOICING: {
-    key: "FINANCE_INVOICING",
-    permissions: [PERMISSIONS.FINANCE.READ, PERMISSIONS.FINANCE.MANAGE],
-    plans: ["PRO", "ENTERPRISE"] as readonly string[],
-    audit: true,
-  },
 // Canonical Feature Registry (Phase 2D)
 // DO NOT EDIT FEATURES OUTSIDE THIS FILE
 
 import { PERMISSIONS } from "./permission-registry.js";
 
 export const FEATURES = {
+  FINANCE_INVOICING: {
+    key: "FINANCE_INVOICING",
+    permissions: [PERMISSIONS.FINANCE.READ, PERMISSIONS.FINANCE.MANAGE],
+    plans: ["PRO", "ENTERPRISE"] as readonly string[],
+    audit: true,
+  },
   MEDIA_STUDIO: {
     key: "MEDIA_STUDIO",
     permissions: [PERMISSIONS.AI.READ, PERMISSIONS.AI.RUN, PERMISSIONS.MEDIA.READ],
@@ -115,4 +115,6 @@ export const FEATURES = {
 } as const;
 
 // Only string keys allowed for FeatureKey
-export type FeatureKey = Extract<keyof typeof FEATURES, string>;
+
+export type FeatureKey = keyof typeof FEATURES;
+export type FeatureDefinition = (typeof FEATURES)[FeatureKey];

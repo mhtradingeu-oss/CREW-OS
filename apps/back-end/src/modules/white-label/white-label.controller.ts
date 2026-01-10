@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+// ...existing code...
 import {
   listBrandsQuerySchema,
   createBrandSchema,
@@ -21,7 +21,7 @@ function ensureBrandParam(req: Request) {
   return requireParam(req.params.id, "id");
 }
 
-function resolveBrandContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function resolveBrandContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,
@@ -105,7 +105,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
   }
 }
 
-export async function createOrder(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createOrder(req: Request, res: Response, next: NextFunction) {
   try {
     const wlBrandId = ensureBrandParam(req);
     const brandId = resolveBrandContext(req, req.query.brandId as string | undefined);
@@ -118,7 +118,7 @@ export async function createOrder(req: AuthenticatedRequest, res: Response, next
 }
 
 export async function updateOrderStatus(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -135,7 +135,7 @@ export async function updateOrderStatus(
 }
 
 export async function requestPricingSync(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {

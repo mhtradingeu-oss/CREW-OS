@@ -1,8 +1,7 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 import { requireParam } from "../../core/http/params.js";
-import type { AuthenticatedRequest } from "../../core/http/http-types.js";
 import { brandService } from "./brand.service.js";
 import {
   brandAiIdentitySchema,
@@ -12,7 +11,7 @@ import {
   listBrandSchema,
 } from "./brand.validators.js";
 
-function buildContext(req: AuthenticatedRequest) {
+function buildContext(req: Request) {
   return {
     tenantId: req.user?.tenantId,
     brandId: req.user?.brandId,
@@ -21,7 +20,7 @@ function buildContext(req: AuthenticatedRequest) {
   };
 }
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = listBrandSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -34,7 +33,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await brandService.getById(id, buildContext(req));
@@ -44,7 +43,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await brandService.create(req.body, buildContext(req));
     respondWithSuccess(res, item, 201);
@@ -53,7 +52,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await brandService.update(id, req.body, buildContext(req));
@@ -63,7 +62,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     await brandService.remove(id, buildContext(req));
@@ -73,7 +72,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function getIdentity(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getIdentity(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const identity = await brandService.getIdentity(id, buildContext(req));
@@ -83,7 +82,7 @@ export async function getIdentity(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function upsertIdentity(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function upsertIdentity(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = brandIdentitySchema.parse(req.body);
     const id = requireParam(req.params.id, "id");
@@ -94,7 +93,7 @@ export async function upsertIdentity(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function refreshIdentity(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function refreshIdentity(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = brandAiIdentitySchema.parse(req.body);
     const id = requireParam(req.params.id, "id");
@@ -111,7 +110,7 @@ export async function refreshIdentity(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-export async function refreshRules(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function refreshRules(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = brandAiIdentitySchema.parse(req.body);
     const id = requireParam(req.params.id, "id");
@@ -128,7 +127,7 @@ export async function refreshRules(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function getRules(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getRules(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const rules = await brandService.getRules(id, buildContext(req));
@@ -138,7 +137,7 @@ export async function getRules(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function upsertRules(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function upsertRules(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = brandRulesSchema.parse(req.body);
     const id = requireParam(req.params.id, "id");
@@ -149,7 +148,7 @@ export async function upsertRules(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function getAiConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getAiConfig(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const config = await brandService.getAiConfig(id, buildContext(req));
@@ -159,7 +158,7 @@ export async function getAiConfig(req: AuthenticatedRequest, res: Response, next
   }
 }
 
-export async function upsertAiConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function upsertAiConfig(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = brandAiConfigSchema.parse(req.body);
     const id = requireParam(req.params.id, "id");
@@ -170,7 +169,7 @@ export async function upsertAiConfig(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function getCurrentBrand(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getCurrentBrand(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = req.user?.brandId;
     if (!brandId) {

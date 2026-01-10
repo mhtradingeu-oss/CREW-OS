@@ -1,5 +1,4 @@
-import type { NextFunction, Response } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { publishActivity } from "../../core/activity/activity.js";
@@ -9,7 +8,7 @@ import { respondWithSuccess } from "../../core/http/respond.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const { page, pageSize } = parsePagination(req.query);
     const items = await automationService.list({
@@ -23,7 +22,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await automationService.getById(id);
@@ -33,7 +32,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createAutomationSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -54,7 +53,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = updateAutomationSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -88,7 +87,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     await automationService.remove(id);
@@ -113,7 +112,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function runScheduled(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function runScheduled(_req: Request, res: Response, next: NextFunction) {
   try {
     await automationService.runScheduled(new Date());
     await publishActivity("automation", "run_scheduled", { entityType: "automation-schedule" }, { source: "system" });
@@ -123,7 +122,7 @@ export async function runScheduled(_req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function runNow(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function runNow(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     await automationService.runRule(id, {

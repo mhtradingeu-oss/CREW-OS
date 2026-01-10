@@ -1,4 +1,4 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { adminService } from "./admin.service.js";
@@ -9,10 +9,9 @@ import {
   policySchema,
 } from "./admin.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { parsePagination } from "../../core/http/pagination.js";
 
-export async function listPolicies(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listPolicies(req: Request, res: Response, next: NextFunction) {
   try {
     const { search } = req.query;
     const pagination = parsePagination(req.query);
@@ -26,7 +25,7 @@ export async function listPolicies(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function getPolicy(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getPolicy(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await adminService.getPolicy(requireParam(req.params.id, "id"));
     respondWithSuccess(res, item);
@@ -35,7 +34,7 @@ export async function getPolicy(req: AuthenticatedRequest, res: Response, next: 
   }
 }
 
-export async function createPolicy(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createPolicy(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = policySchema.safeParse(req.body);
     if (!parsed.success) {
@@ -48,7 +47,7 @@ export async function createPolicy(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function updatePolicy(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function updatePolicy(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = policySchema.partial().safeParse(req.body);
     if (!parsed.success) {
@@ -61,7 +60,7 @@ export async function updatePolicy(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function deletePolicy(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function deletePolicy(req: Request, res: Response, next: NextFunction) {
   try {
     await adminService.deletePolicy(requireParam(req.params.id, "id"));
     respondWithSuccess(res, { deleted: true });
@@ -70,7 +69,7 @@ export async function deletePolicy(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function listAIRestrictions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listAIRestrictions(req: Request, res: Response, next: NextFunction) {
   try {
     const { search } = req.query;
     const pagination = parsePagination(req.query);
@@ -84,7 +83,7 @@ export async function listAIRestrictions(req: AuthenticatedRequest, res: Respons
   }
 }
 
-export async function createAIRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createAIRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = aiRestrictionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -97,7 +96,7 @@ export async function createAIRestriction(req: AuthenticatedRequest, res: Respon
   }
 }
 
-export async function updateAIRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function updateAIRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = aiRestrictionSchema.partial().safeParse(req.body);
     if (!parsed.success) {
@@ -110,7 +109,7 @@ export async function updateAIRestriction(req: AuthenticatedRequest, res: Respon
   }
 }
 
-export async function deleteAIRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function deleteAIRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     await adminService.deleteAIRestriction(requireParam(req.params.id, "id"));
     respondWithSuccess(res, { deleted: true });
@@ -119,7 +118,7 @@ export async function deleteAIRestriction(req: AuthenticatedRequest, res: Respon
   }
 }
 
-export async function listAuditLogs(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listAuditLogs(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = auditLogSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -132,7 +131,7 @@ export async function listAuditLogs(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function aiAuditSummary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiAuditSummary(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = aiSummarySchema.parse(req.body);
     const summary = await adminService.summarizeAI({
@@ -145,7 +144,7 @@ export async function aiAuditSummary(req: AuthenticatedRequest, res: Response, n
   }
 }
 
-export async function listAITelemetry(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listAITelemetry(req: Request, res: Response, next: NextFunction) {
   try {
     const data = await adminService.getAITelemetry({
       brandId: req.user?.brandId ?? null,

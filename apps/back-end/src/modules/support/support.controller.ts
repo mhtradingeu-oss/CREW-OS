@@ -16,7 +16,7 @@ import {
   supportTriageSchema,
 } from "./support.validators.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
-import { getUserPermissions, type AuthenticatedRequest } from "../../core/security/rbac.js";
+import { getUserPermissions } from "../../core/security/rbac.js";
 
 const listQuerySchema = z.object({
   brandId: z.string().min(1),
@@ -140,10 +140,9 @@ export async function triageTicket(req: Request, res: Response, next: NextFuncti
   try {
     const parsed = supportTriageSchema.parse(req.body ?? {});
     const ticketId = parsed.ticketId ?? requireParam(req.params.id, "id");
-    const authReq = req as AuthenticatedRequest;
-    const permissions = authReq.user?.id ? await getUserPermissions(authReq.user.id) : [];
+    const permissions = req.user?.id ? await getUserPermissions(req.user.id) : [];
     const actorPermissions = Array.from(new Set([...permissions, "ai:context:support"]));
-    const brandId = parsed.brandId ?? authReq.user?.brandId ?? undefined;
+    const brandId = parsed.brandId ?? req.user?.brandId ?? undefined;
 
     const pipeline = await runAIPipeline({
       agentId: "SUPPORT_TRIAGE",
@@ -156,14 +155,14 @@ export async function triageTicket(req: Request, res: Response, next: NextFuncti
         },
       },
       actor: {
-        userId: authReq.user?.id,
-        role: authReq.user?.role,
+        userId: req.user?.id,
+        role: req.user?.role,
         permissions: actorPermissions,
         brandId,
-        tenantId: authReq.user?.tenantId,
+        tenantId: req.user?.tenantId,
       },
       brandId: brandId ?? undefined,
-      tenantId: authReq.user?.tenantId ?? undefined,
+      tenantId: req.user?.tenantId ?? undefined,
     });
 
     if (!pipeline.success) {

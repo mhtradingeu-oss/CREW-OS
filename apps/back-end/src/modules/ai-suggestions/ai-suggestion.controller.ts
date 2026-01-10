@@ -1,5 +1,5 @@
 import type { Response, NextFunction, Request } from "express";
-import type { AuthenticatedRequest } from "../../core/http/http-types.js";
+
 import { AISuggestionService } from "./ai-suggestion.service.js";
 import { forbidden, notFound, badRequest, unauthorized } from "../../core/http/errors.js";
 import { getPermissionsForRole } from "../../core/security/rbac.js";
@@ -7,7 +7,7 @@ import { automationExecutionService } from "../../modules/automation/automation.
 import type { ExecuteAutomationActionRequest } from "../../modules/automation/automation.execution.types.js";
 import type { ExecuteAiSuggestionRequest } from "./ai-suggestion.execution.validators.js";
 // POST /api/v1/ai-suggestions/:id/execute (internal, ops/admin)
-export async function executeSuggestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function executeSuggestion(req: Request, res: Response, next: NextFunction) {
   try {
     const suggestionId = req.params.id;
     if (!suggestionId) {
@@ -34,10 +34,10 @@ export async function executeSuggestion(req: AuthenticatedRequest, res: Response
 
 const service = new AISuggestionService();
 
-function getUserRole(req: AuthenticatedRequest) {
+function getUserRole(req: Request) {
   return req.user?.role || "";
 }
-export async function listSuggestions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listSuggestions(req: Request, res: Response, next: NextFunction) {
   try {
     const { status, domain, tenantId, brandId } = req.query;
     const filter: any = {};
@@ -52,7 +52,7 @@ export async function listSuggestions(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-async function checkApprovalPermission(suggestion: any, req: AuthenticatedRequest) {
+async function checkApprovalPermission(suggestion: any, req: Request) {
   const userRole = getUserRole(req);
   if (!userRole) throw unauthorized();
   if (userRole === "SUPER_ADMIN") return true; // If global bypass is already policy
@@ -65,7 +65,7 @@ async function checkApprovalPermission(suggestion: any, req: AuthenticatedReques
   return true;
 }
 
-export async function approveSuggestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function approveSuggestion(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const suggestion = await service.repo.listSuggestions({ filter: { id } });
@@ -82,7 +82,7 @@ export async function approveSuggestion(req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function rejectSuggestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function rejectSuggestion(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
     const { reason } = req.body;

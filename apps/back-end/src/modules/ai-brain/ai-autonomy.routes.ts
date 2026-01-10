@@ -2,9 +2,37 @@ import { Router } from "express";
 import * as controller from "./ai-autonomy.controller.js";
 import { validateBody } from "../../core/http/middleware/validate.js";
 import { requirePermission } from "../../core/security/rbac.js";
+import { requirePlanFeature } from "../../core/http/middleware/plan-gating.js";
+import { FEATURES } from "../../core/security/feature-registry.js";
+import { emitEvent } from "../../core/events/event-bus.js";
 import { runAutonomyCycleSchema } from "./ai-autonomy.validators.js";
 
 const router = Router();
+
+// Automation entry guard: feature, plan, permission, audit
+router.use(async (req, res, next) => {
+  try {
+    await requirePlanFeature(FEATURES.AUTOMATION)(req, res, async (err) => {
+      if (err) {
+        await emitEvent("automation.run.denied", {
+          reason: err.message,
+          actorId: req.user?.id,
+          tenantId: req.user?.tenantId,
+          source: "ai",
+        }, { module: "automation", actorUserId: req.user?.id, tenantId: req.user?.tenantId, source: "ai" });
+        return res.status(403).json({ error: err.message, code: err.code || "AUTOMATION_DENIED" });
+      }
+      await emitEvent("automation.run.requested", {
+        actorId: req.user?.id,
+        tenantId: req.user?.tenantId,
+        source: "ai",
+      }, { module: "automation", actorUserId: req.user?.id, tenantId: req.user?.tenantId, source: "ai" });
+      next();
+    });
+  } catch (e) {
+    next(e);
+  }
+});
 
 router.get("/status", requirePermission("ai:read"), controller.status);
 router.get("/pending", requirePermission("ai:read"), controller.pending);

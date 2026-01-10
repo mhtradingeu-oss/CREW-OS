@@ -13,13 +13,13 @@ import {
   updateCrmSchema,
 } from "./crm.validators.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request } from "express";
 import { parsePagination } from "../../core/http/pagination.js";
 import { runAIPipeline } from "../../core/ai/pipeline/pipeline-runner.js";
 import { getUserPermissions } from "../../core/security/rbac.js";
 import { PERMISSIONS } from "../../core/security/permission-registry.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const params = {
       brandId: req.query.brandId as string | undefined,
@@ -43,7 +43,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildCrmContext(req);
@@ -54,7 +54,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createCrmSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -68,7 +68,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = updateCrmSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -83,7 +83,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const actionContext = buildCrmContext(req);
@@ -94,7 +94,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function convertToContact(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function convertToContact(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = convertLeadToContactSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -109,7 +109,7 @@ export async function convertToContact(req: AuthenticatedRequest, res: Response,
   }
 }
 
-export async function convertToCustomer(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function convertToCustomer(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = convertLeadToCustomerSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -124,7 +124,7 @@ export async function convertToCustomer(req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function aiScore(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiScore(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = crmScoreSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -139,7 +139,7 @@ export async function aiScore(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function aiFollowup(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiFollowup(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = crmFollowupSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -189,7 +189,7 @@ export async function aiFollowup(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function listSegments(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listSegments(req: Request, res: Response, next: NextFunction) {
   try {
     const requestedBrandId = req.query.brandId as string | undefined;
     const scopedBrandId = resolveScopedBrandId(
@@ -209,7 +209,7 @@ export async function listSegments(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function createSegment(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createSegment(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createSegmentSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -223,7 +223,7 @@ export async function createSegment(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
-export async function getSegmentLeads(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getSegmentLeads(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.segmentId, "segmentId");
     const requestedBrandId = req.query.brandId as string | undefined;
@@ -248,7 +248,7 @@ export async function getSegmentLeads(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-function buildCrmContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildCrmContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,

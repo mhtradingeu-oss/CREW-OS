@@ -1,7 +1,6 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { badRequest } from "../../core/http/errors.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import {
@@ -15,7 +14,7 @@ import {
 } from "./influencer-os.validators.js";
 import { influencerOSService } from "./influencer-os.service.js";
 
-export async function discover(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function discover(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = discoverSchema.safeParse(req.body);
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -28,7 +27,7 @@ export async function discover(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export async function listScores(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listScores(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = scoresQuerySchema.safeParse({ ...req.query, ...parsePagination(req.query) });
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -40,7 +39,7 @@ export async function listScores(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function recommend(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function recommend(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = recommendSchema.safeParse(req.body);
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -52,7 +51,7 @@ export async function recommend(req: AuthenticatedRequest, res: Response, next: 
   }
 }
 
-export async function createNegotiation(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createNegotiation(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = negotiationSchema.safeParse(req.body);
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -64,7 +63,7 @@ export async function createNegotiation(req: AuthenticatedRequest, res: Response
   }
 }
 
-export async function listNegotiations(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listNegotiations(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = negotiationListSchema.safeParse({ ...req.query, ...parsePagination(req.query) });
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -76,7 +75,7 @@ export async function listNegotiations(req: AuthenticatedRequest, res: Response,
   }
 }
 
-export async function createCampaignLink(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createCampaignLink(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = campaignLinkSchema.safeParse(req.body);
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -91,7 +90,7 @@ export async function createCampaignLink(req: AuthenticatedRequest, res: Respons
   }
 }
 
-export async function listCampaignLinks(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listCampaignLinks(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = campaignLinkListSchema.safeParse({ ...req.query, ...parsePagination(req.query) });
     if (!parsed.success) return next(badRequest("Validation error", parsed.error.flatten()));
@@ -103,7 +102,7 @@ export async function listCampaignLinks(req: AuthenticatedRequest, res: Response
   }
 }
 
-function buildContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId({ brandId: req.user?.brandId, role: req.user?.role }, requestedBrandId);
   return { brandId, actorUserId: req.user?.id, tenantId: req.user?.tenantId };
 }

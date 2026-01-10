@@ -3,7 +3,7 @@ import { badRequest } from "../../core/http/errors.js";
 import { parsePagination } from "../../core/http/pagination.js";
 import { requireParam } from "../../core/http/params.js";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+// ...existing code...
 import { loyaltyService } from "./loyalty.service.js";
 import {
   createLoyaltySchema,
@@ -81,7 +81,7 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function listPrograms(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listPrograms(req: Request, res: Response, next: NextFunction) {
   try {
     const context = buildLoyaltyContext(req, req.query.brandId as string | undefined);
     const pagination = parsePagination(req.query);
@@ -92,7 +92,7 @@ export async function listPrograms(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function createProgram(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createProgram(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createProgramSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -107,7 +107,7 @@ export async function createProgram(req: AuthenticatedRequest, res: Response, ne
 }
 
 export async function listProgramTiers(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -123,7 +123,7 @@ export async function listProgramTiers(
 }
 
 export async function createProgramTier(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -142,7 +142,7 @@ export async function createProgramTier(
 }
 
 export async function listProgramRewards(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -158,7 +158,7 @@ export async function listProgramRewards(
 }
 
 export async function createProgramReward(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -177,7 +177,7 @@ export async function createProgramReward(
 }
 
 export async function redeemReward(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -196,7 +196,7 @@ export async function redeemReward(
 }
 
 export async function dashboardSummary(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -212,7 +212,7 @@ export async function dashboardSummary(
   }
 }
 
-export async function aiInsights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function aiInsights(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = loyaltyAiInsightSchema.parse(req.body);
     const { brandId, loyaltyCustomerId } = parsed;
@@ -270,7 +270,7 @@ export async function aiInsights(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-function buildLoyaltyContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildLoyaltyContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,

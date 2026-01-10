@@ -1,5 +1,5 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
+import type { Request, Response, NextFunction } from "express";
+
 import { forbidden } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { security_governanceService } from "./security-governance.service.js";
@@ -14,7 +14,7 @@ import {
 } from "./security-governance.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = listSecurityPoliciesSchema.parse(req.query);
     const items = await security_governanceService.list(filters, req.user);
@@ -24,7 +24,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await security_governanceService.getById(id, req.user);
@@ -34,7 +34,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await security_governanceService.create(req.body, req.user);
     respondWithSuccess(res, item, 201);
@@ -43,7 +43,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await security_governanceService.update(id, req.body, req.user);
@@ -53,7 +53,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     await security_governanceService.remove(id, req.user);
@@ -63,7 +63,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function rbacOverview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function rbacOverview(req: Request, res: Response, next: NextFunction) {
   try {
     if (req.user?.role !== "SUPER_ADMIN") {
       throw forbidden("SUPER_ADMIN access required");
@@ -75,7 +75,7 @@ export async function rbacOverview(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
-export async function listRoles(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listRoles(req: Request, res: Response, next: NextFunction) {
   try {
     const roles = await security_governanceService.listRoles();
     respondWithSuccess(res, roles);
@@ -84,7 +84,7 @@ export async function listRoles(req: AuthenticatedRequest, res: Response, next: 
   }
 }
 
-export async function createRole(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createRole(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = createRoleSchema.parse(req.body);
     const role = await security_governanceService.createRole(payload, req.user);
@@ -94,7 +94,7 @@ export async function createRole(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function updateRole(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function updateRole(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const payload = updateRoleSchema.parse(req.body);
@@ -105,7 +105,7 @@ export async function updateRole(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function setRolePermissions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function setRolePermissions(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const payload = setRolePermissionsSchema.parse(req.body);
@@ -116,7 +116,7 @@ export async function setRolePermissions(req: AuthenticatedRequest, res: Respons
   }
 }
 
-export async function listPermissions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listPermissions(req: Request, res: Response, next: NextFunction) {
   try {
     const items = await security_governanceService.listPermissions();
     respondWithSuccess(res, items);
@@ -125,7 +125,7 @@ export async function listPermissions(req: AuthenticatedRequest, res: Response, 
   }
 }
 
-export async function assignRole(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function assignRole(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = assignRoleSchema.parse(req.body);
     const result = await security_governanceService.assignRoleToUser(payload, req.user);
@@ -135,7 +135,7 @@ export async function assignRole(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function revokeRole(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function revokeRole(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = assignRoleSchema.pick({ userId: true, role: true }).parse(req.body);
     const result = await security_governanceService.revokeRoleFromUser(payload, req.user);
@@ -145,7 +145,7 @@ export async function revokeRole(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export async function listAiRestrictions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function listAiRestrictions(req: Request, res: Response, next: NextFunction) {
   try {
     const items = await security_governanceService.listAiRestrictions();
     respondWithSuccess(res, items);
@@ -154,7 +154,7 @@ export async function listAiRestrictions(req: AuthenticatedRequest, res: Respons
   }
 }
 
-export async function getAiRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getAiRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const item = await security_governanceService.getAiRestriction(id);
@@ -164,7 +164,7 @@ export async function getAiRestriction(req: AuthenticatedRequest, res: Response,
   }
 }
 
-export async function createAiRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function createAiRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = createAiRestrictionSchema.parse(req.body);
     const item = await security_governanceService.upsertAiRestriction(null, payload, req.user);
@@ -174,7 +174,7 @@ export async function createAiRestriction(req: AuthenticatedRequest, res: Respon
   }
 }
 
-export async function updateAiRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function updateAiRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     const payload = updateAiRestrictionSchema.parse(req.body);
@@ -185,7 +185,7 @@ export async function updateAiRestriction(req: AuthenticatedRequest, res: Respon
   }
 }
 
-export async function deleteAiRestriction(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function deleteAiRestriction(req: Request, res: Response, next: NextFunction) {
   try {
     const id = requireParam(req.params.id, "id");
     await security_governanceService.deleteAiRestriction(id, req.user);

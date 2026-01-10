@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
 import { resolveScopedBrandId } from "../../core/security/multitenant.js";
-import type { AuthenticatedRequest } from "../../core/security/rbac.js";
 import { badRequest } from "../../core/http/errors.js";
 import { requireParam } from "../../core/http/params.js";
 import { affiliateService } from "./affiliate.service.js";
@@ -11,14 +10,14 @@ import {
 } from "./affiliate.validators.js";
 import { respondWithSuccess } from "../../core/http/respond.js";
 
-function execBrandId(req: AuthenticatedRequest) {
+function execBrandId(req: Request) {
   return (
     (req.query.brandId as string | undefined) ??
     (req.body.brandId as string | undefined)
   );
 }
 
-export async function list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = execBrandId(req);
     if (!brandId) {
@@ -44,7 +43,7 @@ export async function list(req: AuthenticatedRequest, res: Response, next: NextF
   }
 }
 
-export async function getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = execBrandId(req);
     if (!brandId) {
@@ -58,7 +57,7 @@ export async function getById(req: AuthenticatedRequest, res: Response, next: Ne
   }
 }
 
-export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = execBrandId(req);
     if (!brandId) {
@@ -74,7 +73,7 @@ export async function create(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = execBrandId(req);
     if (!brandId) {
@@ -88,7 +87,7 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
-export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const brandId = execBrandId(req);
     if (!brandId) {
@@ -103,7 +102,7 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
 }
 
 export async function createConversion(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -121,7 +120,7 @@ export async function createConversion(
 }
 
 export async function requestPayout(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -139,7 +138,7 @@ export async function requestPayout(
 }
 
 export async function approvePayout(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -158,7 +157,7 @@ export async function approvePayout(
 }
 
 export async function rejectPayout(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -177,7 +176,7 @@ export async function rejectPayout(
 }
 
 export async function markPayoutPaid(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -196,7 +195,7 @@ export async function markPayoutPaid(
 }
 
 export async function dashboardSummary(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -212,7 +211,7 @@ export async function dashboardSummary(
   }
 }
 
-function buildAffiliateContext(req: AuthenticatedRequest, requestedBrandId?: string) {
+function buildAffiliateContext(req: Request, requestedBrandId?: string) {
   const brandId = resolveScopedBrandId(
     { brandId: req.user?.brandId, role: req.user?.role },
     requestedBrandId,
