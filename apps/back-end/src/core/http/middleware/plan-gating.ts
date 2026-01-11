@@ -86,7 +86,17 @@ export function requireFeature(featureObj: typeof FEATURES[keyof typeof FEATURES
       }
       // Audit event (if enabled)
       if (featureObj.audit) {
-        // TODO: Emit audit event here (e.g., eventBus.publish)
+        // Emit audit event for feature access/denial
+        const { eventBus } = require("../../events/event-bus.js");
+        eventBus.publish("feature.audit", {
+          feature: featureObj.key,
+          userId: req.user?.id,
+          tenantId: req.user?.tenantId,
+          route: req.originalUrl,
+          method: req.method,
+          timestamp: new Date(),
+          status: "access_granted"
+        });
       }
       return next();
     } catch (err) {
